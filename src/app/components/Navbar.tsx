@@ -7,7 +7,8 @@ export default function Navbar() {
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
         <div className="text-xl font-bold text-blue-900">
-          <Link href="/">School<span className="text-yellow-500">Way</span></Link>
+          {/* <Link href="/">School<span className="text-yellow-500">Way</span></Link> */}
+          <Link href="/"> <img src="/illustrations/Logo_light.svg" height={100} width={100} alt="" /></Link>
         </div>
         <ul className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
           <li><Link href="/">Home</Link></li>
