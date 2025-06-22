@@ -1,5 +1,6 @@
 import Navbar from  "./components/Navbar";
 import HeroSection from "./components/HeroSection";
+import WhatWeOffer from "./components/WhatWeOffer";
 
 
 export default function Home() {
@@ -7,6 +8,7 @@ export default function Home() {
     <main>
       <Navbar />
       <HeroSection />
+      <WhatWeOffer/>
     </main>
   );
 }
