@@ -14,7 +14,7 @@ export default function HeroSection() {
             Where to grow your business as a photographer: site or social media?
           </p>
           <Link href="/register">
-            <button className="bg-yellow-400 text-white px-6 py-2 rounded font-semibold hover:bg-yellow-500">
+            <button className="cursor-pointer bg-yellow-400 text-white px-6 py-2 rounded font-semibold hover:bg-yellow-500">
               Register
             </button>
           </Link>

@@ -20,10 +20,10 @@ export default function Navbar() {
         </ul>
         <div className="space-x-2">
           <Link href="/login">
-            <button className="text-gray-700 px-4 py-2 text-sm">Login</button>
+            <button className="cursor-pointer text-gray-700 px-4 py-2 text-sm">Login</button>
           </Link>
           <Link href="/signup">
-            <button className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded text-sm">
+            <button className="cursor-pointer bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded text-sm">
               Sign up
             </button>
           </Link>

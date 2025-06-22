@@ -3,12 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --neutral-grey: #4D4D4D;
 }
-
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: #4D4D4D;
   font-family: 'poppins',Arial, Helvetica, sans-serif;
 }
 
