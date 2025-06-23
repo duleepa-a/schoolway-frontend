@@ -1,6 +1,47 @@
 @import "tailwindcss";
 
-:root {
+
+
+@theme {
+
+  /* font and other theme colors */
+  --color-primary: orange;
+  --color-secondary: #4D4D4D;
+  --color-accent: #171717;
+
+  /* button properties : padding, width, height, margine, hover effects*/
+
+  --shadow-sha: red;
+
+  /* custom spacing  */
+  --spacing-7: 1.7rem; /* 4px : used as p-7 for padding */ 
+
+  /* custom breakpoints */
+  --breakpoint-xsbreak: 320px; /* xsbreak:text-xs (here xs is 16px standard tailwind font side) for mobile responsive styles*/
+
+}
+
+  /* layer based custom styling => global style */
+@layer base {
+  
+  a{
+    /* color:orange; */
+    text-decoration: none; /* this is to add regular css*/
+    /* apply on hover styles on anchor tags globally using tailwing css */
+    @apply hover:text-blue-500 hover:underline;
+    font-weight: 600;
+  }
+}
+
+/* Layer components */
+@layer components { 
+  .btn-primary-viewinfo {
+    @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600;
+  }
+}
+
+
+/* :root {
   --background: #ffffff;
   --foreground: #171717;
   --neutral-grey: #4D4D4D;
@@ -10,6 +51,4 @@ body {
   background: var(--background);
   color: #4D4D4D;
   font-family: 'poppins',Arial, Helvetica, sans-serif;
-}
-
-
+} */
