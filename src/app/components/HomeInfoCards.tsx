@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 
 export default function HomeInfoCards() {
@@ -17,9 +18,11 @@ export default function HomeInfoCards() {
                   Whether you're running a school service by hiring out your vehicle with a driver or have a vehicle sitting idle at home and are eager to start a school van service, our platform is here to help. You can easily find reliable drivers to team up with, ensuring safe and efficient operations. With our tools, managing your fleet becomes simple, allowing you to connect, coordinate, and grow your school transport business with confidence.
                 </p>
                 <div className="flex gap-4">
-                  <button className="bg-yellow-400 hover:bg-yellow-500 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
+                <Link href="/signup">
+                  <button className="bg-primary hover:bg-yellow-500 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
                     Register
                   </button>
+                </Link>
                 </div>
               </div>
             </div>
@@ -34,7 +37,7 @@ export default function HomeInfoCards() {
                   Van drivers can boost their earnings by finding private hires on our platform during free days like holidays and weekends, beyond their regular school service schedules. Additionally, if you're planning a trip and need a vehicle, our platform makes it easy to find the perfect option. Connect with reliable drivers and available vans, ensuring flexibility and extra income opportunities for drivers while meeting your travel needs seamlessly.
                 </p>
                 <div className="flex gap-4">
-                  <button className="bg-yellow-400 hover:bg-yellow-500 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
+                  <button className="bg-primary hover:bg-yellow-500 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
                     Discover
                   </button>
                 </div>

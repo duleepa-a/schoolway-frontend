@@ -1,4 +1,4 @@
-import Navbar from  "./components/Navbar";
+
 import HeroSection from "./components/HeroSection";
 import WhatWeOffer from "./components/WhatWeOffer";
 import AppDetails from "./components/AppDetails";
@@ -12,7 +12,6 @@ import AppLink from "./components/AppLink";
 export default function Home() {
   return (
     <main>
-      <Navbar />
       <HeroSection />
       <WhatWeOffer/>
       <AppDetails/>

@@ -10,10 +10,10 @@ const Footer = () => {
           <Link href="/"> <img src="/illustrations/Logo_light.svg" className="mb-3" height={150} width={150} alt="" /></Link>
           <p className="text-sm mb-2">Copyright © 2025 SchoolWay.<br />All rights reserved</p>
           <div className="flex space-x-3 mt-4">
-            <FaInstagram className="text-xl hover:text-yellow-400 cursor-pointer" />
-            <FaDribbble className="text-xl hover:text-yellow-400 cursor-pointer" />
-            <FaTwitter className="text-xl hover:text-yellow-400 cursor-pointer" />
-            <FaYoutube className="text-xl hover:text-yellow-400 cursor-pointer" />
+            <FaInstagram className="text-xl hover:text-primary cursor-pointer" />
+            <FaDribbble className="text-xl hover:text-primary cursor-pointer" />
+            <FaTwitter className="text-xl hover:text-primary cursor-pointer" />
+            <FaYoutube className="text-xl hover:text-primary cursor-pointer" />
           </div>
         </div>
 
@@ -21,11 +21,11 @@ const Footer = () => {
         <div>
           <h3 className="font-semibold text-lg mb-4">Company</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-yellow-400">About us</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Blog</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Contact us</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Pricing</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Testimonials</a></li>
+            <li><a href="#" className="hover:text-primary">About us</a></li>
+            <li><a href="#" className="hover:text-primary">Blog</a></li>
+            <li><a href="#" className="hover:text-primary">Contact us</a></li>
+            <li><a href="#" className="hover:text-primary">Pricing</a></li>
+            <li><a href="#" className="hover:text-primary">Testimonials</a></li>
           </ul>
         </div>
 
@@ -33,11 +33,11 @@ const Footer = () => {
         <div>
           <h3 className="font-semibold text-lg mb-4">Support</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-yellow-400">Help center</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Terms of service</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Legal</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Privacy policy</a></li>
-            <li><a href="#" className="hover:text-yellow-400">Status</a></li>
+            <li><a href="#" className="hover:text-primary">Help center</a></li>
+            <li><a href="#" className="hover:text-primary">Terms of service</a></li>
+            <li><a href="#" className="hover:text-primary">Legal</a></li>
+            <li><a href="#" className="hover:text-primary">Privacy policy</a></li>
+            <li><a href="#" className="hover:text-primary">Status</a></li>
           </ul>
         </div>
 
@@ -50,7 +50,7 @@ const Footer = () => {
               placeholder="Your email address"
               className="bg-transparent outline-none w-full text-sm placeholder-gray-400 text-white"
             />
-            <button className="text-yellow-400 hover:text-yellow-300 ml-2">
+            <button className="text-primary hover:text-yellow-300 ml-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor"

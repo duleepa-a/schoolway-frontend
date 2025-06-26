@@ -1,13 +1,17 @@
 @import "tailwindcss";
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
 
 
 
 @theme {
 
   /* font and other theme colors */
-  --color-primary: orange;
-  --color-secondary: #4D4D4D;
+  --color-primary: #ffC825;
+  --color-secondary: #4d4d4d;
   --color-accent: #171717;
+  --color-gray-shade: #a7a8aa;
+  --color-primary-shade: #fffaeb;
 
   /* button properties : padding, width, height, margine, hover effects*/
 
@@ -27,7 +31,6 @@
   a{
     /* color:orange; */
     text-decoration: none; /* this is to add regular css*/
-    /* apply on hover styles on anchor tags globally using tailwing css */
     @apply hover:text-blue-500 hover:underline;
     font-weight: 600;
   }
@@ -41,7 +44,7 @@
 }
 
 
-/* :root {
+:root {
   --background: #ffffff;
   --foreground: #171717;
   --neutral-grey: #4D4D4D;
@@ -51,4 +54,29 @@ body {
   background: var(--background);
   color: #4D4D4D;
   font-family: 'poppins',Arial, Helvetica, sans-serif;
-} */
+}
+
+.slick-dots {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slick-dots li {
+  margin: 0;
+}
+
+.slick-dots li button:before {
+  width: 10px;
+  height: 10px;
+  border-radius: 12px;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #ffd000 !important;
+  width: 30px;
+  background-color: #ffd000; 
+}
