@@ -9,9 +9,9 @@ interface Props {
    return (
      <div className='h-screen w-full flex '>
         <Sidebar/>
-        <div>
+        <main className='flex-1'>
             {children}
-        </div>
+        </main>
      </div>
    )
  }

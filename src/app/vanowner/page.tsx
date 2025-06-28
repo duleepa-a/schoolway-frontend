@@ -16,7 +16,7 @@ const VanOwnerDashboard = () => {
 
   return (
 
-      <section className="p-6 md:p-10 min-h-screen">
+      <section className="p-6 md:p-10 min-h-screen w-full">
         {/* Top Right Icons */}
         <div className="flex justify-between items-center mt-10 mb-2.5">
           <div>
