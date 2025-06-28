@@ -11,7 +11,7 @@ export default function HomeInfoCards() {
                 <Image src="/illustrations/2man.png" alt="Van Tracking Illustration" width={400} height={400} />
               </div>
               <div className="text-left">
-                <h2 className="text-3xl font-bold text-gray-800 md:text-3xl font-bold mb-4">
+                <h2 className="text-3xl font-bold text-gray-800 md:text-3xl mb-4">
                   Find a reliable driver for your school service
                 </h2>
                 <p className="text-sm mb-6">
@@ -30,7 +30,7 @@ export default function HomeInfoCards() {
       <section className="bg-white py-12">
             <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
               <div className="text-left">
-                <h2 className="text-3xl font-bold text-gray-800 md:text-3xl font-bold mb-4">
+                <h2 className="text-3xl font-bold text-gray-800 md:text-3xl mb-4">
                  Find vehicles for your private trips
                 </h2>
                 <p className="text-sm mb-6">

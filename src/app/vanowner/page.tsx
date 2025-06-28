@@ -1,7 +1,9 @@
-export default function vanOwnerDashboard() {
+import React from 'react'
+
+const VanOwnerDashboard = () => {
   return (
-    <main>
-      
-    </main>
-  );
+    <div></div>
+  )
 }
+
+export default VanOwnerDashboard

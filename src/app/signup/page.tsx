@@ -1,6 +1,6 @@
 export default function Signup() {
   return (
-    <div className=" bg-cover bg-center bg-no-repeat relative justify-center justify-items-center" 
+    <div className=" bg-cover bg-center bg-no-repeat relative justify-center justify-items-center pb-13" 
           style={{backgroundImage: 'url("./illustrations/signupBackground.png")'}}
     >
       
@@ -16,7 +16,6 @@ export default function Signup() {
             />
           </div>
           
-          {/* Question */}
           <div className="mb-6">
             <p className="text-gray-700 text-lg font-medium">Are you a,</p>
           </div>

@@ -13,7 +13,7 @@ const AppDetails = () => {
 
         {/* Right Text Section */}
         <div className="text-left">
-          <h2 className="text-3xl font-bold text-gray-800 md:text-3xl font-bold mb-4">
+          <h2 className="text-3xl font-bold text-gray-800 md:text-3xl mb-4">
             The safety of your child's journey,<br className="hidden md:block" /> tracked live!
           </h2>
           <p className="text-sm mb-6">
