@@ -7,7 +7,7 @@ interface Props {
 
  const VanOwnerLayout = ( {children}:Props) => {
    return (
-     <div className='h-screen'>
+     <div className='h-screen w-screen flex '>
         <Sidebar/>
         <div>
             {children}

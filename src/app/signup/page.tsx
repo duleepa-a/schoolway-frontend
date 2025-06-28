@@ -8,7 +8,7 @@ export default function Signup() {
         <div className="bg-white w-8/10 px-29 pb-10 shadow-lg border-1 border-amber-50">
           
           {/* Logo */}
-          <div className="text-center mb-8">
+          <div className="mb-8">
             <img 
               src="/illustrations/Logo_light.svg" 
               alt="SchoolWay Logo" 

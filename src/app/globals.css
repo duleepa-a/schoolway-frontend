@@ -12,6 +12,9 @@
   --color-accent: #171717;
   --color-gray-shade: #a7a8aa;
   --color-primary-shade: #fffaeb;
+  --color-border-light-shade: #f4f7fe;
+  --color-inactive-text: #a3a3d0;
+  --color-active-text: #2b3674;
 
   /* button properties : padding, width, height, margine, hover effects*/
 
