@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default function HeroSection() {
   return (
-    <section className="bg-gray-50 py-20 px-4 md:px-20">
+   <Suspense fallback={<h1>Loading</h1>}>
+     <section className="bg-gray-50 py-20 px-4 md:px-20">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">
           <h1 className="text-4xl font-bold text-gray-800">Welcome to SchoolWay</h1>
@@ -38,5 +40,6 @@ export default function HeroSection() {
         <span className="w-2 h-2 bg-yellow-200 rounded-full"></span>
       </div>
     </section>
-  );
+
+   </Suspense>  );
 }

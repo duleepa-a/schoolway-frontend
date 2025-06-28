@@ -12,7 +12,6 @@ import AppLink from "./components/AppLink";
 export default function Home() {
   return (
     <main>
-      <Navbar />
       <HeroSection />
       <WhatWeOffer/>
       <AppDetails/>

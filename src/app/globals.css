@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+/* @plugin "daisyui"; */
 
 
 @theme {
@@ -28,7 +28,8 @@
     /* color:orange; */
     text-decoration: none; /* this is to add regular css*/
     /* apply on hover styles on anchor tags globally using tailwing css */
-    @apply hover:text-blue-500 hover:underline;
+    /* @apply hover:text-blue-500; */
+    @apply hover:text-primary;
     font-weight: 600;
   }
 }
