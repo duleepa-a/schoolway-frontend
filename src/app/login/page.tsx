@@ -1,6 +1,139 @@
-export default function Login() {
+'use client';
+import { useState } from 'react';
+
+type Errors = {
+  email?: string;
+  password?: string;
+};
+
+const LoginPage = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState<Errors>({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (errors[name as keyof Errors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors :Errors = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Login successful!');
+        // Store token or user data if needed
+        // localStorage.setItem('token_yo', data.token); // if using JWT
+        // localStorage.setItem('user', JSON.stringify(data.user));
+
+        // Redirect to dashboard or home page
+        console.log('User logged in:', data.user);
+        
+        // Reset form
+        setFormData({
+          email: '',
+          password: ''
+        });
+      } else {
+        alert(`Login failed: ${data.message || 'Invalid credentials'}`);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <main>
+      <h1>Login</h1>
+      
+      <div>
+        <label htmlFor="email">Email:</label>
+        <br />
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          required
+        />
+        {errors.email && <div style={{color: 'red'}}>{errors.email}</div>}
+      </div>
+      <br />
+
+      <div>
+        <label htmlFor="password">Password:</label>
+        <br />
+        <input
+          type="password"
+          id="password"
+          name="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          required
+        />
+        {errors.password && <div style={{color: 'red'}}>{errors.password}</div>}
+      </div>
+      <br />
+
+      <button onClick={handleLogin} disabled={isLoading}>
+        {isLoading ? 'Logging in...' : 'Login'}
+      </button>
+      
+      <br />
+      <br />
+      <div>
+        <a href="/signup">Don't have an account? Sign up here</a>
+      </div>
     </main>
   );
 }
+
+export default LoginPage;

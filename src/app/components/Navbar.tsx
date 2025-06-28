@@ -25,8 +25,15 @@ export default function Navbar() {
           <li><Link href="#testimonials">Testimonial</Link></li>
           <li><Link href="#faq">FAQ</Link></li>
         </ul>
+        {/* {
+          JSON.parse(localStorage.getItem('user') || '{}').email
+          }
+         */}
         <div className="space-x-2">
           {status==="unauthenticated" && <>
+          {
+          JSON.parse(localStorage.getItem('user') || '{}').serviceName
+          }
           <Link href="/login">
             <button className="cursor-pointer text-gray-700 px-4 py-2 text-sm">Login</button>
           </Link>
@@ -40,7 +47,9 @@ export default function Navbar() {
           status === "authenticated" 
           // && <Image src={session.user!.picture}/> 
           &&<> 
-
+          {/* {
+          JSON.parse(localStorage.getItem('user') || '{}').serviceName
+          } */}
           <div className="dropdown dropdown-end">
             
             <div tabIndex={0} role="button" className=" btn-ghost rounded-full"><Image src={session.user!.image} width={40} height={40} alt="User image" className='rounded-full'/></div>

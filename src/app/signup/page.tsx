@@ -1,254 +1,324 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { signIn } from 'next-auth/react';
-signIn
+import {useRouter} from 'next/navigation';
 
-interface UserFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
 
-interface VanServiceFormData {
-  serviceName: string;
-  contactNo: string;
-  profilePhoto: File | null;
-  businessLicense: File | null;
-}
-const Signup=() => {
+const SignupForm = () => {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [userFormData, setUserFormData] = useState<UserFormData>({
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [email, setEmail] = useState<string>('');
+  const [userExists, setUserExists] = useState<boolean>(false);
+  const [formData, setFormData] = useState({
+    // Step 1 fields
     firstName: '',
     lastName: '',
     email: '',
     password: '',
-  });
-  const [vanServiceFormData, setVanServiceFormData] = useState<VanServiceFormData>({
+    confirmPassword: '',
+    // Step 2 fields
     serviceName: '',
-    contactNo: '',
-    profilePhoto: null,
-    businessLicense: null,
+    contactNumber: '',
+    serviceRegistrationNumber: ''
   });
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
-  const handleUserFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserFormData({ ...userFormData, [e.target.name]: e.target.value });
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (name === "email" && value !== email ) {
+    setEmail(value);
+    const duplicate = await fetch('/api/signup', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'email': value
+      }
+    });
+
+    console.log("duplicate is ",duplicate);
+    if(duplicate.status === 409) {
+      setErrors(prev => ({
+        ...prev,
+        email: 'User with this email already exists'
+      }));
+      setUserExists(true);
+    }else{
+      setUserExists(false);
+    }
+  }
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
-  const handleVanServiceFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
-    if (files && files.length > 0) {
-      setVanServiceFormData({ ...vanServiceFormData, [name]: files[0] });
-    } else {
-      setVanServiceFormData({ ...vanServiceFormData, [name]: value });
+  const validateStep1 = () => {
+    const newErrors: { [key: string]: string } = {};
+    
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'first name is required';
     }
+    
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'last name is required';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors: { [key: string]: string } = {};
+    
+    if (!formData.serviceName.trim()) {
+      newErrors.serviceName = 'Service name is required';
+    }
+    
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = 'Contact number is required';
+    } else if (!/^\d{10,}$/.test(formData.contactNumber.replace(/\D/g, ''))) {
+      newErrors.contactNumber = 'Please enter a valid contact number';
+    }
+    
+    if (!formData.serviceRegistrationNumber.trim()) {
+      newErrors.serviceRegistrationNumber = 'Service registration number is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
-    if (!userFormData.firstName || !userFormData.lastName || !userFormData.email || !userFormData.password) {
-      setError('Please fill out all fields.');
-      return;
+    if (validateStep1()) {
+      setCurrentStep(2);
     }
-    setError(null);
-    setStep(2);
   };
 
   const handleBack = () => {
-    setStep(1);
-    setError(null);
+    setCurrentStep(1);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vanServiceFormData.serviceName || !vanServiceFormData.contactNo) {
-      setError('Please fill out all required fields.');
+  const handleSubmit = async () => {
+    if (!validateStep2()) {
       return;
     }
-    setError(null);
-    setLoading(true);
+
+    setIsSubmitting(true);
+    
     try {
-      const formData = new FormData();
-      formData.append('firstName', userFormData.firstName);
-      formData.append('lastName', userFormData.lastName);
-      formData.append('email', userFormData.email);
-      formData.append('password', userFormData.password);
-      formData.append('serviceName', vanServiceFormData.serviceName);
-      formData.append('contactNo', vanServiceFormData.contactNo);
-      if (vanServiceFormData.profilePhoto) {
-        formData.append('profilePhoto', vanServiceFormData.profilePhoto);
-      }
-      if (vanServiceFormData.businessLicense) {
-        formData.append('businessLicense', vanServiceFormData.businessLicense);
-      }
-      const res = await fetch('/api/signup', {
+      // Remove confirmPassword from data sent to backend
+      const { confirmPassword, ...dataToSubmit } = formData;
+      
+      const response = await fetch('/api/signup', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSubmit),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Signup failed.');
-        setLoading(false);
-        return;
+
+      if (response.ok) {
+        // Reset form or redirect
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          serviceName: '',
+          contactNumber: '',
+          serviceRegistrationNumber: ''
+        });
+        // setCurrentStep(1);
+        
+        router.push('/'); // Redirect to add drivers page after successful registration
+        
+      } else {
+        const errorData = await response.json();
+        alert(`Registration failed: ${errorData.message || 'Unknown error'}`);
       }
-      router.push('/success');
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      setLoading(false);
+    } catch (error) {
+      console.log("erro is ",error);
+      console.error('Registration error:', error);
+      alert('Registration failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <>
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1><Link href="/api/auth/signin">Login with google account</Link>
-        
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {step === 1 ? (
-            <>
-          <form onSubmit={e => { e.preventDefault(); handleNext(); }}>
-            <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">First Name</label>
-              <input
-                type="text"
-                name="firstName"
-                value={userFormData.firstName}
-                onChange={handleUserFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Last Name</label>
-              <input
-                type="text"
-                name="lastName"
-                value={userFormData.lastName}
-                onChange={handleUserFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={userFormData.email}
-                onChange={handleUserFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={userFormData.password}
-                onChange={handleUserFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-                required
-                minLength={8}
-                autoComplete="new-password"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
-              disabled={loading}
-            >
-              Next
-            </button>
-            
-          </form>
-        
-          <button
-              onClick={() => signIn("google", { callbackUrl: "/" })}
-              className="flex items-center justify-center w-full border border-gray-300 hover:bg-gray-100 rounded-md px-4 py-2 text-sm font-medium"
-          >
-              <img
-                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                alt="Google"
-                className="w-5 h-5 mr-2"
-              />
-              Continue with Google
-          </button></>
+    <div>
+      <h1>User Registration</h1>
+      <p>Step {currentStep} of 2</p>
+      
+      {currentStep === 1 && (
+        <div>
+          <h2>Personal Information</h2>
           
-        ) : (
-          <form onSubmit={handleSubmit} encType="multipart/form-data">
-            <h2 className="text-lg font-semibold mb-4">Van Service Information</h2>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Service Name</label>
-              <input
-                type="text"
-                name="serviceName"
-                value={vanServiceFormData.serviceName}
-                onChange={handleVanServiceFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Contact Number</label>
-              <input
-                type="tel"
-                name="contactNo"
-                value={vanServiceFormData.contactNo}
-                onChange={handleVanServiceFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Profile Photo (Optional)</label>
-              <input
-                type="file"
-                name="profilePhoto"
-                accept="image/*"
-                onChange={handleVanServiceFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Business License (Optional)</label>
-              <input
-                type="file"
-                name="businessLicense"
-                accept=".pdf,.jpg,.png"
-                onChange={handleVanServiceFormChange}
-                className="mt-1 p-2 w-full border rounded-md"
-              />
-            </div>
-            <div className="flex justify-between">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="bg-gray-300 text-gray-700 p-2 rounded-md hover:bg-gray-400"
-                disabled={loading}
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
-                disabled={loading}
-              >
-                {loading ? 'Submitting...' : 'Submit'}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
+          <div>
+            <label htmlFor="firstName">First Name:</label>
+            <br />
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              required
+              className="signup-form-field"
+            />
+            {errors.firstName && <div style={{color: 'red'}}>{errors.firstName}</div>}
+          </div>
+          <div>
+            <label htmlFor="lastName">Last Name:</label>
+            <br />
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              required
+              className="signup-form-field"
+            />
+            {errors.lastName && <div style={{color: 'red'}}>{errors.lastName}</div>}
+          </div>
+          <br />
+
+          <div>
+            <label htmlFor="email">Email:</label>
+            <br />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="signup-form-field"
+            />
+            {errors.email && <div style={{color: 'red'}}>{errors.email}</div>}
+          </div>
+          <br />
+
+          <div>
+            <label htmlFor="password">Password:</label>
+            <br />
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+              className="signup-form-field"
+            />
+            {errors.password && <div style={{color: 'red'}}>{errors.password}</div>}
+          </div>
+          <br />
+
+          <div>
+            <label htmlFor="confirmPassword">Confirm Password:</label>
+            <br />
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+              className="signup-form-field"
+            />
+            {errors.confirmPassword && <div style={{color: 'red'}}>{errors.confirmPassword}</div>}
+          </div>
+          <br />
+            <button onClick={handleNext} disabled={userExists} className = {userExists?"bg-blue-100 p-2 px-4 rounded-lg text-gray-500":"bg-blue-500 p-2 px-4 rounded-lg"}>Next</button>
+        </div>
+      )}
+
+      {currentStep === 2 && (
+        <div>
+          <h2>Service Information</h2>
+          
+          <div>
+            <label htmlFor="serviceName">Service Name:</label>
+            <br />
+            <input
+              type="text"
+              id="serviceName"
+              name="serviceName"
+              value={formData.serviceName}
+              onChange={handleInputChange}
+              required
+            />
+            {errors.serviceName && <div style={{color: 'red'}}>{errors.serviceName}</div>}
+          </div>
+          <br />
+
+          <div>
+            <label htmlFor="contactNumber">Contact Number:</label>
+            <br />
+            <input
+              type="tel"
+              id="contactNumber"
+              name="contactNumber"
+              value={formData.contactNumber}
+              onChange={handleInputChange}
+              required
+            />
+            {errors.contactNumber && <div style={{color: 'red'}}>{errors.contactNumber}</div>}
+          </div>
+          <br />
+
+          <div>
+            <label htmlFor="serviceRegistrationNumber">Service Registration Number:</label>
+            <br />
+            <input
+              type="text"
+              id="serviceRegistrationNumber"
+              name="serviceRegistrationNumber"
+              value={formData.serviceRegistrationNumber}
+              onChange={handleInputChange}
+              required
+            />
+            {errors.serviceRegistrationNumber && <div style={{color: 'red'}}>{errors.serviceRegistrationNumber}</div>}
+          </div>
+          <br />
+
+          <button onClick={handleBack}>Back</button>
+          <button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Registering...' : 'Register'}
+          </button>
+        </div>
+      )}
     </div>
-    </>
   );
 }
 
-export default Signup;
+export default SignupForm;

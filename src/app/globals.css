@@ -39,6 +39,10 @@
   .btn-primary-viewinfo {
     @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600;
   }
+
+  .signup-form-field {
+    @apply max-w-md mx-auto p-2 bg-orange-50 rounded-b-sm shadow-lg;
+  }
 }
 
 
