@@ -8,7 +8,7 @@ const AppDetails = () => {
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
         {/* Left Image */}
         <div className="flex justify-center">
-          <Image src="/illustrations/appDetails.png" alt="Van Tracking Illustration" width={400} height={400} />
+          <Image src="/illustrations/heroimage1.png" alt="Van Tracking Illustration" width={400} height={400} />
         </div>
 
         {/* Right Text Section */}

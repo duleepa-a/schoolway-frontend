@@ -76,7 +76,7 @@ body {
 }
 
 .slick-dots li.slick-active button:before {
-  color: #ffd000 !important;
+  color: #ffc825 !important;
   width: 30px;
-  background-color: #ffd000; 
+  background-color: #ffc825; 
 }
