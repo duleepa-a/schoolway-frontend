@@ -21,7 +21,7 @@ const AppDetails = () => {
           </p>
 
           <div className="flex gap-4">
-            <button className="bg-primary hover:bg-yellow-500 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
+            <button className="bg-primary hover:bg-gray-900 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
               Learn More
             </button>
             <button className="bg-black text-white hover:bg-gray-900 px-8 py-4 text-sm font-semibold rounded flex items-center gap-2 cursor-pointer">

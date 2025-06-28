@@ -21,11 +21,11 @@ const Footer = () => {
         <div>
           <h3 className="font-semibold text-lg mb-4">Company</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-primary">About us</a></li>
-            <li><a href="#" className="hover:text-primary">Blog</a></li>
-            <li><a href="#" className="hover:text-primary">Contact us</a></li>
-            <li><a href="#" className="hover:text-primary">Pricing</a></li>
-            <li><a href="#" className="hover:text-primary">Testimonials</a></li>
+            <li><Link href="#" className="hover:text-primary no-underline">About us</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Blog</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Contact us</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Pricing</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Testimonials</Link></li>
           </ul>
         </div>
 
@@ -33,11 +33,11 @@ const Footer = () => {
         <div>
           <h3 className="font-semibold text-lg mb-4">Support</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-primary">Help center</a></li>
-            <li><a href="#" className="hover:text-primary">Terms of service</a></li>
-            <li><a href="#" className="hover:text-primary">Legal</a></li>
-            <li><a href="#" className="hover:text-primary">Privacy policy</a></li>
-            <li><a href="#" className="hover:text-primary">Status</a></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Help center</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Terms of service</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Legal</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Privacy policy</Link></li>
+            <li><Link href="#" className="hover:text-primary no-underline">Status</Link></li>
           </ul>
         </div>
 

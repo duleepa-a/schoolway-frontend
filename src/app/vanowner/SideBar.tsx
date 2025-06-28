@@ -11,11 +11,11 @@ import Image from "next/image";
 
 const navItems = [
   { label: 'Dashboard', icon: <HiHome />, href: '/vanowner' },
-  { label: 'Students', icon: <FaUser/>, href: '/students' },
-  { label: 'Vehicles', icon: <FaChartSimple  />, href: '/vehicles' },
-  { label: 'Private hires', icon: <HiRectangleGroup/>, href: '/private-hires' },
-  { label: 'Profile', icon: <FaUserAlt />, href: '/profile' },
-  { label: 'Revenue', icon: <TbBriefcase2Filled />, href: '/revenue' },
+  { label: 'Students', icon: <FaUser/>, href: '/vanowner/students' },
+  { label: 'Vehicles', icon: <FaChartSimple  />, href: '/vanowner/vehicles' },
+  { label: 'Private hires', icon: <HiRectangleGroup/>, href: '/vanowner/private-hires' },
+  { label: 'Profile', icon: <FaUserAlt />, href: '/vanowner/profile' },
+  { label: 'Revenue', icon: <TbBriefcase2Filled />, href: '/vanowner/revenue' },
 ];
 
 export default function Sidebar() {
@@ -40,8 +40,8 @@ export default function Sidebar() {
           <Link
             key={item.label}
             href={item.href}
-            className={`flex items-center gap-3 pl-3 pr-13 my-2 transition  no-underline  
-              ${pathname === item.href ? 'border-r-4 border-primary' : 'hover:text-active-text '}
+            className={`flex items-center gap-3 pl-3 pr-13 my-2 transition  no-underline hover:text-active-text
+              ${pathname === item.href ? 'border-r-4 border-primary' : ' '}
               `}
           >
               <span className={`text-lg mr-2
