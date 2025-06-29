@@ -6,7 +6,7 @@ const StudentRequests = () => {
       id: 1,
       student: {
         name: "Emily Johnson",
-        profilePic: "/api/placeholder/80/80",
+        profilePic: "/Images/male_pro_pic_placeholder.png",
         grade: "Grade 8"
       },
       van: {
@@ -23,7 +23,7 @@ const StudentRequests = () => {
       id: 2,
       student: {
         name: "Michael Chen",
-        profilePic: "/api/placeholder/80/80",
+        profilePic: "/Images/male_pro_pic_placeholder.png",
         grade: "Grade 10"
       },
       van: {
@@ -40,7 +40,7 @@ const StudentRequests = () => {
       id: 3,
       student: {
         name: "Sarah Williams",
-        profilePic: "/api/placeholder/80/80",
+        profilePic: "/Images/male_pro_pic_placeholder.png",
         grade: "Grade 6"
       },
       van: {

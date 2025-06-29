@@ -7,11 +7,11 @@ import Navbar from '../components/Navbar';
 
  const LoginLayout = ( {children}:Props) => {
    return (
-     <div className='h-screen'>
+     <div className='h-screen flex flex-col'>
         <Navbar/>
-        <div>
+        <main className='overflow-y-auto'>
             {children}
-        </div>
+        </main>
      </div>
    )
  }

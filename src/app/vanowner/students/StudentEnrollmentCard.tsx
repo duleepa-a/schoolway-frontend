@@ -32,7 +32,7 @@ const StudentEnrollmentCard = ({
     id: 1,
     student: {
       name: "Emily Johnson",
-      profilePic: "/api/placeholder/80/80",
+      profilePic: "/Images/male_pro_pic_placeholder.png",
       grade: "Grade 8"
     },
     van: {
@@ -89,38 +89,42 @@ const StudentEnrollmentCard = ({
 
       <div className="p-2.5">
         {/* Student Info Section */}
-        <div className="flex justify-between mb-6">
-          <div className="flex">
-            <img
-              src={request.student.profilePic}
-              alt={request.student.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-            />
-            <div className="flex-1">
-              <h3 className="text-xs font-semibold text-gray-900 mb-1">
-                {request.student.name}
-              </h3>
-              <div className="flex items-center  text-gray-600">
-                <User className="w-4 h-4" />
-                <span className="text-xs">{request.student.grade}</span>
-              </div>
+        <div className="justify-between mb-6 grid grid-cols-2">
+          <div className="flex p-2">
+            <div className='p-1'>
+              <img
+                src={request.student.profilePic}
+                alt={request.student.name}
+                className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+              />
+            </div>
+            <div className="p-1">
+                <div className='text-center ml-1'>
+                  <h3 className="text-xs font-semibold text-gray-900 mb-1">
+                    {request.student.name}
+                  </h3>
+                </div>
+                <div className="flex items-center  text-gray-600">
+                  <User className="w-4 h-4" />
+                  <span className="text-xs">{request.student.grade}</span>
+                </div>
+            </div>
           </div>
-          </div>
-          <div className="bg-gray-50 rounded-lg ">
-          <div className="flex items-center mb-1">
+          <div className="bg-gray-50 rounded-lg p-2">
+            <div className="flex items-center mb-1">
               <Car className="w-5 h-5 text-blue-600" />
-              <h4 className="text-xs text-gray-900">Requested Van</h4>
+              <h4 className="text-xs text-gray-900 ml-1">Requested Van</h4>
             </div>
             <p className="text-xs text-gray-700 font-medium">{request.van.name}</p>
           </div>
         </div>
         
         {/* Location Details */}
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Pickup Location */}
           <div className="space-y-1">
-            <div className="flex items-center space-x-1">
-              <MapPin className="w-4 h-4 text-green-600" />
+            <div className="flex items-center">
+              <MapPin className="w-4 h-4 text-green-600 mr-2" />
               <span className="text-xs font-medium text-gray-700">Pickup Location</span>
             </div>
             <p className="text-xs text-gray-600 pl-6">{request.pickupLocation}</p>
@@ -128,8 +132,8 @@ const StudentEnrollmentCard = ({
 
           {/* School */}
           <div className="space-y-1">
-            <div className="flex items-center space-x-1">
-              <School className="w-4 h-4 text-purple-600" />
+            <div className="flex items-center">
+              <School className="w-4 h-4 text-purple-600 mr-2" />
               <span className="text-xs font-medium text-gray-700">School</span>
             </div>
             <p className="text-xs text-gray-600 pl-6">{request.school}</p>
@@ -156,19 +160,19 @@ const StudentEnrollmentCard = ({
           <div className="flex space-x-1">
             <button
               onClick={() => onAccept?.(request.id)}
-              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors duration-200"
+              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg text-xs font-medium hover:bg-green-700 transition-colors duration-200 cursor-pointer"
             >
               Accept Request
             </button>
             <button
               onClick={() => onReject?.(request.id)}
-              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors duration-200"
+              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg text-xs font-medium hover:bg-red-700 transition-colors duration-200 cursor-pointer"
             >
               Reject Request
             </button>
             <button
               onClick={() => onViewDetails?.(request.id)}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors duration-200"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors duration-200  cursor-pointer"
             >
               Details
             </button>
@@ -178,7 +182,7 @@ const StudentEnrollmentCard = ({
         {request.status !== 'pending' && (
           <button
             onClick={() => onViewDetails?.(request.id)}
-            className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
+            className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200 text-xs  cursor-pointer"
           >
             View Details
           </button>

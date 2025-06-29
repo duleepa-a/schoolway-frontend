@@ -43,7 +43,7 @@ export default function HomeInfoCards() {
                 </div>
               </div>
               <div className="flex justify-center">
-                <Image src="/illustrations/schoolvan.png" alt="Van Tracking Illustration" width={400} height={400} />
+                <Image src="/illustrations/yellowvan.png" alt="Van Tracking Illustration" width={400} height={400} />
               </div>
             </div>
       </section>
