@@ -54,6 +54,8 @@
 }
 
 
+
+
 :root {
   --background: #F4F7FE;
   --foreground: #171717;
@@ -95,4 +97,32 @@ body {
 h1 , h2 {
   color: #4D4D4D;
 
+
+/*---------------------------------------SIDE BAR STYLES ------------------------------------------------*/
+
+@layer utilities {
+  .sidebar-link {
+    @apply flex items-center gap-3 text-gray-400 hover:text-blue-600 py-2 px-4 cursor-pointer transition-colors duration-200;
+  }
+
+  .sidebar-link-active {
+    @apply text-blue-900 font-semibold bg-transparent border-r-4 border-yellow-400;
+  }
+
+  .sidebar-icon {
+    @apply w-5 h-5;
+  }
+
+  .sidebar-container {
+    @apply w-60 h-full bg-white shadow-md p-6 flex flex-col gap-6;
+  }
+
+  .sidebar-logo {
+    @apply text-xl font-bold text-green-900 mb-4 flex items-center justify-center;
+  }
+
+  .sidebar-section {
+    @apply flex flex-col gap-2;
+  }
 }
+
