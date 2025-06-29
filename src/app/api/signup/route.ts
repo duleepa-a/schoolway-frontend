@@ -7,6 +7,7 @@ import { sql } from '../../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import SignUpdata from './schema';
 const SALTRounds = 12;
+import prisma from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
   console.log('Checking email availability');
@@ -16,13 +17,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Email header is required' }, { status: 400 });
   }
 
-  const existingUser = await sql`
-    SELECT id FROM users 
-    WHERE email = ${email}
-  `;
+  const existingUser = await prisma.userProfile.findUnique({
+    where: { email },
+  });
 
-  console.log('Existing user:', existingUser);
-  if (existingUser.length > 0) {
+  // const existingUser = await sql`
+  //   SELECT * FROM userprofile`;
+
+  // console.log('Existing user:', existingUser);
+
+  if (existingUser) {
     return NextResponse.json({ 
       message: 'User with this email already exists' 
     }, { status: 409 });
@@ -43,12 +47,15 @@ export async function POST(req:NextRequest) {
       },{status: 400});
     }
     
-    const existingUser = await sql`
-      SELECT id FROM users 
-      WHERE email = ${body.email}
-    `;
+    // const existingUser = await sql`
+    //   SELECT id FROM users 
+    //   WHERE email = ${body.email}
+    // `;
+    const existingUser = await prisma.userProfile.findUnique({
+    where: { email: body.email },
+  });
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
       return NextResponse.json({ 
         message: 'User with this already exists' 
       }, { status: 409 });
@@ -56,30 +63,41 @@ export async function POST(req:NextRequest) {
 
     const hashedPassword = await bcrypt.hash(body.password, SALTRounds);
 
-    const result = await sql`
-      INSERT INTO users (
-        firstName, 
-        lastName,
-        email, 
-        password, 
-        service_name, 
-        contact_number, 
-        service_registration_number,
-        created_at
-      ) 
-      VALUES (
-        ${body.firstName}, 
-        ${body.lastName},
-        ${body.email}, 
-        ${hashedPassword}, 
-        ${body.serviceName}, 
-        ${body.contactNumber}, 
-        ${body.serviceRegistrationNumber},
-        NOW()
-      )
-      RETURNING id, firstName, lastName, email, service_name, contact_number, service_registration_number, created_at
-    `;
-    if (result.length === 0) {
+    const newUser = await prisma.userProfile.create({
+      data: {firstname: body.firstName,
+        lastname: body.lastName,
+        email: body.email,
+        password: hashedPassword,
+        role: 'SERVICE',
+        createdAt: new Date()}
+    });
+
+    // const result = await sql`
+    //   INSERT INTO users (
+    //     firstName, 
+    //     lastName,
+    //     email, 
+    //     password, 
+    //     role, 
+    //     -- contact_number, 
+    //     -- service_registration_number,
+    //     created_at
+    //   ) 
+    //   VALUES (
+    //     ${body.firstName}, 
+    //     ${body.lastName},
+    //     ${body.email}, 
+    //     ${hashedPassword}, 
+    //     "SERVICE",
+    //     -- ${body.serviceName}, 
+    //     -- ${body.contactNumber}, 
+    //     -- ${body.serviceRegistrationNumber},
+    //     NOW()
+    //   )
+    //   RETURNING id, firstName, lastName, email, service_name, contact_number, service_registration_number, created_at
+    // `;
+
+    if (newUser === null) {
       return NextResponse.json({ 
         message: 'User registration failed' 
       }, { status: 500 });
