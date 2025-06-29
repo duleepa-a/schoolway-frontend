@@ -23,10 +23,10 @@ export default function Sidebar() {
 
   return (
     <aside className="w-72 h-screen bg-white flex flex-col ">
-      {/* Logo */}
+
       <div className="flex justify-center border-b-border-light-shade border-b-1 p-10 mt-10">
         <Image
-          src="/illustrations/Logo_light.svg"
+          src="/logo/Logo_light.svg"
           alt="Hero Slide"
           width={120}
           height={120}
@@ -34,7 +34,6 @@ export default function Sidebar() {
         />
       </div>
 
-      {/* Navigation Items */}
       <nav className="flex flex-col gap-4 py-10 pl-10">
         {navItems.map((item) => (
           <Link

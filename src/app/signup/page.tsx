@@ -10,7 +10,7 @@ export default function Signup() {
           {/* Logo */}
           <div className="mb-8">
             <img 
-              src="/illustrations/Logo_light.svg" 
+              src="logo/Logo_light.svg" 
               alt="SchoolWay Logo" 
               className="mx-auto h-auto w-3xs"
             />

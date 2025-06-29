@@ -19,7 +19,7 @@ export default function HomeInfoCards() {
                 </p>
                 <div className="flex gap-4">
                 <Link href="/signup">
-                  <button className="bg-primary hover:bg-gray-900 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
+                  <button className="btn-primary">
                     Register
                   </button>
                 </Link>
@@ -37,7 +37,7 @@ export default function HomeInfoCards() {
                   Van drivers can boost their earnings by finding private hires on our platform during free days like holidays and weekends, beyond their regular school service schedules. Additionally, if you're planning a trip and need a vehicle, our platform makes it easy to find the perfect option. Connect with reliable drivers and available vans, ensuring flexibility and extra income opportunities for drivers while meeting your travel needs seamlessly.
                 </p>
                 <div className="flex gap-4">
-                  <button className="bg-primary hover:bg-gray-900 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer">
+                  <button className="btn-primary">
                     Discover
                   </button>
                 </div>

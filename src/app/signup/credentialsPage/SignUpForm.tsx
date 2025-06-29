@@ -98,7 +98,7 @@ const SignUpForm = () => {
       {/* Left side - Yellow background with logo */}
       <div className="hidden lg:block overflow-hidden justify-items-center pl-20 pt-4">
         <Image
-        src={'/illustrations/Logo_light.svg'}
+        src={'/logo/Logo_light.svg'}
         alt='schoolway logo'
         width={200}
         height={200}
@@ -180,12 +180,17 @@ const SignUpForm = () => {
               </div>
 
               {/* Sign Up button */}
-              <button
-                type="submit"
-                className="w-full bg-primary hover:bg-black text-white font-semibold px-2 py-2 rounded-lg transition-colors duration-200  cursor-pointer text-sm"
-              >
-                sign up
-              </button>
+              <div className='w-full flex justify-center'>
+                <button
+                  type="submit"
+                  className="
+                  w-max bg-black hover:bg-active-text 
+                  text-white font-semibold px-18 py-2.5
+                  rounded-xs transition-colors duration-200  cursor-pointer text-sm"
+                >
+                  sign up
+                </button>
+              </div>
             </form>
 
             {/* Login link */}
@@ -208,7 +213,7 @@ const SignUpForm = () => {
               <button
                 type="button"
                 onClick={handleGoogleSignUp}
-                className="w-full flex items-center justify-center px-2 py-1.5 bg-page-background text-active-text border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                className="submit-bttn"
               >
                 
                 <span className="text-gray-700 font-medium text-sm">Sign up with Google</span>

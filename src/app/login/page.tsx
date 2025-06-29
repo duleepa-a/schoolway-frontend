@@ -25,7 +25,7 @@ export default function Login() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
               />
             </div>
 
@@ -35,7 +35,7 @@ export default function Login() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your Password"
-                  className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
                 />
                 <button
                   type="button"
@@ -55,7 +55,7 @@ export default function Login() {
               <a href="#" className="text-blue-500 hover:underline">Forgot password?</a>
             </div>
 
-            <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded-md font-semibold">
+            <button className="form-btn-full-width">
               Sign In
             </button>
           </form>
@@ -69,12 +69,6 @@ export default function Login() {
           <div className="flex justify-center gap-4">
             <button className="bg-white  rounded-full cursor-pointer">
               <Image src="/Images/google.svg" alt="Google" width={24} height={24} />
-            </button>
-            <button className="bg-white  rounded-full cursor-pointer">
-              <Image src="/Images/facebook.svg" alt="Facebook" width={24} height={24} />
-            </button>
-            <button className="bg-white  rounded-full cursor-pointer">
-              <Image src="/Images/apple.svg" alt="Apple" width={24} height={24} />
             </button>
           </div>
         </div>
