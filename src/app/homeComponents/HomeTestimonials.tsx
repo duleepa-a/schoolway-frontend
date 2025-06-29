@@ -25,7 +25,7 @@ export default function HomeTestimonials() {
   return (
     <section className="py-12 px-4 text-center bg-white">
       <h2 className="text-3xl font-semibold">
-        <span className="text-yellow-400 font-bold">SchoolWay</span> The Future of School Transportation!
+        <span className="text-primary font-bold">SchoolWay</span> The Future of School Transportation!
       </h2>
       <p className="mt-2 text-gray-600">
         Find out what our users think about our platform and how we made their life easier.

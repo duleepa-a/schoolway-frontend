@@ -1,9 +1,63 @@
 @import "tailwindcss";
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+
+
+@theme {
+
+  /* font and other theme colors */
+  --color-primary: #ffC825;
+  --color-secondary: #4d4d4d;
+  --color-accent: #171717;
+  --color-gray-shade: #a7a8aa;
+  --color-primary-shade: #fffaeb;
+  --color-page-background: #f4f7fe;
+
+  --color-border-bold-shade: #cfdbe8;
+  --color-border-light-shade: #f4f7fe;
+  
+  --color-inactive-text: #a3a3d0;
+  --color-active-text: #2b3674;
+
+  --color-search-bar-bg: #e8edf5;
+
+
+  /* button properties : padding, width, height, margine, hover effects*/
+
+  --shadow-sha: red;
+
+  /* custom spacing  */
+  --spacing-7: 1.7rem; /* 4px : used as p-7 for padding */ 
+
+  /* custom breakpoints */
+  --breakpoint-xsbreak: 320px; /* xsbreak:text-xs (here xs is 16px standard tailwind font side) for mobile responsive styles*/
+
+}
+
+  /* layer based custom styling => global style */
+@layer base {
+  
+  a{
+    /* color:orange; */
+    text-decoration: none; /* this is to add regular css*/
+    @apply hover:text-blue-500 hover:underline;
+    font-weight: 600;
+  }
+}
+
+/* Layer components */
+@layer components { 
+  .btn-primary-viewinfo {
+    @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600;
+  }
+}
+
 
 
 
 :root {
-  --background: #ffffff;
+  --background: #F4F7FE;
   --foreground: #171717;
   --neutral-grey: #4D4D4D;
 }
@@ -13,6 +67,35 @@ body {
   color: #4D4D4D;
   font-family: 'poppins',Arial, Helvetica, sans-serif;
 }
+
+.slick-dots {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slick-dots li {
+  margin: 0;
+}
+
+.slick-dots li button:before {
+  width: 10px;
+  height: 10px;
+  border-radius: 12px;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #ffc825 !important;
+  width: 30px;
+  background-color: #ffc825; 
+}
+
+
+h1 , h2 {
+  color: #4D4D4D;
 
 
 /*---------------------------------------SIDE BAR STYLES ------------------------------------------------*/
@@ -42,3 +125,4 @@ body {
     @apply flex flex-col gap-2;
   }
 }
+
