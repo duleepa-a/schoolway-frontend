@@ -10,7 +10,7 @@ const layout = ({children} : Props) => {
   return (
     <div className="flex h-full">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto dashboard">
             {children}
         </main>
     </div>

@@ -6,6 +6,8 @@
   --background: #ffffff;
   --foreground: #171717;
   --neutral-grey: #4D4D4D;
+  --background-dashb : #F4F7FE;
+
 }
 
 body {
@@ -31,14 +33,23 @@ body {
   }
 
   .sidebar-container {
-    @apply w-60 h-full bg-white shadow-md p-6 flex flex-col gap-6;
+    @apply w-60 h-screen bg-white shadow-md p-6 flex flex-col gap-6;
   }
 
   .sidebar-logo {
-    @apply text-xl font-bold text-green-900 mb-4 flex items-center justify-center;
+    @apply text-xl font-bold text-gray-900 mb-4 flex items-center justify-center;
   }
 
   .sidebar-section {
     @apply flex flex-col gap-2;
+  }
+}
+
+
+
+/*------------------------common dashboard styles------------------------------*/
+@layer utilities{
+  .dashboard {
+    @apply bg-[#F4F7FE] h-screen;
   }
 }
