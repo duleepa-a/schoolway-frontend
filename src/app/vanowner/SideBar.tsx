@@ -26,7 +26,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex justify-center border-b-border-light-shade border-b-1 p-10 mt-10">
         <Image
-          src="../illustrations/Logo_light.svg"
+          src="/illustrations/Logo_light.svg"
           alt="Hero Slide"
           width={120}
           height={120}
