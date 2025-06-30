@@ -83,7 +83,7 @@ const VehicleCard = ({
         </div>
 
         {/* View Details Button */}
-        <Link href={''}>
+        <Link href={'/vanowner/vehicles/van'}>
           <button className="text-sm w-full bg-gray-900 text-white py-3 px-4 rounded-lg  hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
             View Details
           </button>
