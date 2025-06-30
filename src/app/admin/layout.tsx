@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react'
 import AdminSidebar from './components/sidebar'
+import "../dashboards.css";
 
 
 interface Props{

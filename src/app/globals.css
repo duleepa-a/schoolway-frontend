@@ -98,7 +98,7 @@ body {
 
 h1 , h2 {
   color: #4D4D4D;
-
+}
 
 /*---------------------------------------SIDE BAR STYLES ------------------------------------------------*/
 
@@ -107,9 +107,18 @@ h1 , h2 {
     @apply flex items-center gap-3 text-gray-400 hover:text-blue-600 py-2 px-4 cursor-pointer transition-colors duration-200;
   }
 
+  .sidebar-link:hover {
+    @apply bg-gray-100 text-blue-600;
+  }
+
   .sidebar-link-active {
     @apply text-blue-900 font-semibold bg-transparent border-r-4 border-yellow-400;
   }
+
+  .sidebar-link-active:hover {
+    @apply bg-yellow-50 text-blue-900 no-underline;
+  }
+
 
   .sidebar-icon {
     @apply w-5 h-5;
@@ -126,13 +135,26 @@ h1 , h2 {
   .sidebar-section {
     @apply flex flex-col gap-2;
   }
-}
 
 
 
-/*------------------------common dashboard styles------------------------------*/
-@layer utilities{
-  .dashboard {
-    @apply bg-[#F4F7FE] h-screen;
+  /*-----------------------------------------------TIP TAP TEXT EDITOR STYLES --------------------------------*/
+  .tiptapEditorWrapper {
+    @apply border border-gray-300 rounded-md p-4 min-h-[150px] bg-white;
   }
+
+  .toolbar {
+    @apply border-t border-gray-200 pt-2 flex items-center gap-3 text-sm mb-2;
+  }
+
+  .toolbar button {
+    @apply px-2 py-1 rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-100;
+  }
+
+  .activeBtn {
+    @apply bg-yellow-100 text-yellow-700 border-yellow-400;
+  }
+
 }
+
+
