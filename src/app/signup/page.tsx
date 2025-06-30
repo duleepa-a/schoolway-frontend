@@ -144,7 +144,6 @@ const SignupForm = () => {
       });
 
       if (response.ok) {
-        // Reset form or redirect
         setFormData({
           firstName: '',
           lastName: '',
@@ -155,9 +154,8 @@ const SignupForm = () => {
           contactNumber: '',
           serviceRegistrationNumber: ''
         });
-        // setCurrentStep(1);
-        
-        router.push('/'); // Redirect to add drivers page after successful registration
+
+        router.push('/'); 
         
       } else {
         const errorData = await response.json();

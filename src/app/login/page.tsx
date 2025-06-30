@@ -1,4 +1,6 @@
 'use client';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 type Errors = {
@@ -7,6 +9,7 @@ type Errors = {
 };
 
 const LoginPage = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -47,40 +50,68 @@ const LoginPage = () => {
   };
 
   const handleLogin = async () => {
+    
     if (!validateForm()) {
       return;
     }
-
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      // const response = await fetch('/api/login', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(formData),
+      // });
+      
 
-      const data = await response.json();
+console.log(formData);
 
-      if (response.ok) {
-        alert('Login successful!');
+// await new Promise(resolve => setTimeout(resolve, 3000));
+      const handleSignIn = async (data : {email:String, password:String}) => {
+        
+        const signInData  = await signIn('credentials', {
+          email: data.email,
+          password: data.password
+        });
+
+        console.log("clicekd2");
+console.log(signInData);
+await new Promise(resolve => setTimeout(resolve, 3000));
+if(signInData?.error){
+  
+      console.log(signInData.error);
+  router.push('/');
+}else{
+  console.log("wada");
+  router.push('/');
+}
+      };
+      const signInData = await handleSignIn(formData);
+
+
+
+      // const data = await response.json();
+
+      // if (response.ok) {
+      //   alert('Login successful!');
         // Store token or user data if needed
         // localStorage.setItem('token_yo', data.token); // if using JWT
         // localStorage.setItem('user', JSON.stringify(data.user));
 
         // Redirect to dashboard or home page
-        console.log('User logged in:', data.user);
+        // console.log('User logged in:', data.user);
         
         // Reset form
-        setFormData({
-          email: '',
-          password: ''
-        });
-      } else {
-        alert(`Login failed: ${data.message || 'Invalid credentials'}`);
-      }
+      //   setFormData({
+      //     email: '',
+      //     password: ''
+      //   });
+
+      // } else {
+      //   alert(`Login failed: ${data.message || 'Invalid credentials'}`);
+      // }
     } catch (error) {
       console.error('Login error:', error);
       alert('Login failed. Please try again.');

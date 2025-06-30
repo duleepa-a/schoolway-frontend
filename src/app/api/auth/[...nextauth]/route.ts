@@ -1,13 +1,71 @@
-import NextAuth from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
+import {PrismaAdapter} from "@next-auth/prisma-adapter"
+import {compare} from "bcryptjs" 
+import prisma from "@/lib/prisma"
 
 //export this authOptions as an object and use with getServerSession in the app directory to access session data in server components
-const authOptions = {
+const authOptions:NextAuthOptions = {
+    adapter: PrismaAdapter(prisma),
+    pages: {
+        signIn : '/login'
+    },
     providers: [
+                
+        CredentialsProvider ({
+            // The name to display on the sign in form (e.g. 'Sign in with...')
+            name: 'Credentials',
+            credentials: {
+            email: { label: "Email", type: "text", placeholder: "your.email@mail.com" },
+            password: { label: "Password", type: "password" }
+            },
+            async authorize(credentials) {
+            // const res = await fetch("/api/login", {
+            //     method: 'POST',
+            //     body: JSON.stringify(credentials),
+            //     headers: { "Content-Type": "application/json" }
+            // })
+            
+// await new Promise(resolve => setTimeout(resolve, 3000));
+
+// console.log(credentials);
+            if(!credentials?.email || !credentials?.password){
+                return null;
+            }
+
+            const existingUser= await prisma.userProfile.findUnique({
+                where:{email: credentials?.email}
+            })
+            // console.log(existingUser);
+
+            if(!existingUser){
+                return null
+            }
+
+            const pwmatch = await compare(credentials.password, existingUser.password);
+
+console.log(pwmatch);
+            if(!pwmatch){
+                return null;
+            }
+            return {
+                id:`${existingUser.id}`,
+                email: existingUser.email
+            }
+            // const user = await res.json()
+
+            // if (res.ok && user) {
+            //     return user
+            // }
+            // return null 
+            }
+        }),
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        })
+        }),
+
     ]
 }
 

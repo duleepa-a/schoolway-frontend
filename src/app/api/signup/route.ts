@@ -63,18 +63,32 @@ export async function POST(req:NextRequest) {
 
     const hashedPassword = await bcrypt.hash(body.password, SALTRounds);
 
+    // First, create the user profile
     const newUser = await prisma.userProfile.create({
-      data: {firstname: body.firstName,
-        lastname: body.lastName,
-        email: body.email,
-        password: hashedPassword,
-        role: 'SERVICE',
-        createdAt: new Date()}
+      data: {
+      firstname: body.firstName,
+      lastname: body.lastName,
+      email: body.email,
+      password: hashedPassword,
+      role: 'SERVICE',
+      createdAt: new Date(),
+      // VanService will be created below
+      }
+    });
+
+    const newVanService = await prisma.vanService.create({
+      data: {
+      serviceName: body.serviceName,
+      contactNo: body.contactNumber,
+      serviceRegNumber: body.serviceRegistrationNumber,
+      // businessDocument: body.businessDocument || null,
+      userId: newUser.id,
+      }
     });
 
     // const result = await sql`
     //   INSERT INTO users (
-    //     firstName, 
+    //     firstName,  
     //     lastName,
     //     email, 
     //     password, 
