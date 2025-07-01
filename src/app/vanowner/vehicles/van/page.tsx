@@ -1,6 +1,7 @@
 import React from 'react'
 import {FaBell, FaMoon } from 'react-icons/fa';
 import Image from 'next/image';
+import VanDetails from './VanDetails';
 
 const VanDetailsPage = () => {
   
@@ -22,7 +23,7 @@ const VanDetailsPage = () => {
               />
             </div>
         </div>
-        
+        <VanDetails/>        
 
     </section>
   )

@@ -1,6 +1,7 @@
 import React from 'react'
 import {FaBell, FaMoon } from 'react-icons/fa';
 import Image from 'next/image';
+import RevenueTable from './revenueTable';
 
 const revenuePage = () => {
   return (
@@ -22,8 +23,9 @@ const revenuePage = () => {
           />
         </div>
       </div>        
-       
-              
+
+      <RevenueTable/>
+
     </section>
   )
 }
