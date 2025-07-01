@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/*------------------------common dashboard styles------------------------------*/
+@layer utilities{
+
+  /*admin and van owner dashboard bg color */
+  .dashboard {
+    @apply bg-[#F4F7FE] h-screen;
+  }
+
+
+/*Top bar style with profile, nitifications and heading */
+  .topBarWrapper {
+    @apply flex justify-between items-center mt-10 mb-2.5;
+  }
+
+  .topBarIcons {
+    @apply bg-white flex justify-end items-center gap-4 mb-6 py-1 px-6 rounded-4xl w-fit;
+  }
+
+  .topBarImage {
+    @apply rounded-full object-cover border-2 ml-14 border-amber-400;
+  }
+
+  .topBarIcon {
+    @apply text-gray-500 hover:text-gray-700 cursor-pointer;
+  }
+
+
+  /*For the search bar and the filters bar*/
+  .filterWrapper {
+    @apply flex flex-wrap gap-2 justify-between items-center bg-white p-4 rounded-md shadow-sm;
+  }
+
+  .filterInput {
+    @apply flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-full text-sm text-gray-600 bg-white focus-within:ring-2 focus-within:ring-yellow-400;
+  }
+
+  .filterDropdown {
+    @apply flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-full text-sm text-gray-600 bg-white relative;
+  }
+
+  .selectField {
+    @apply bg-transparent outline-none text-sm pl-1 pr-6 appearance-none w-full accent-yellow-400 border-amber-300 rounded-2xl;
+  }
+
+  .dateField {
+    @apply bg-transparent outline-none text-sm pl-1 pr-6 appearance-none w-full accent-yellow-400;
+  }
+
+  .dropdownArrow {
+    @apply absolute right-2 pointer-events-none text-sm text-gray-500;
+  }
+
+  .addUserButton {
+    @apply bg-black text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 hover:opacity-90;
+  }
+
+
+
+  /*------------------------ADMIN POST AWARENESS SESSION FORM STYLES -------------------------------------------*/
+
+  .postFormWrapper {
+    @apply bg-white p-6 rounded-md shadow-sm flex gap-6 flex-wrap;
+  }
+
+  .leftColumn {
+    @apply w-full md:w-1/3 flex flex-col gap-4;
+  }
+
+  .rightColumn {
+    @apply w-full md:w-2/3 flex flex-col gap-2;
+  }
+
+  .formLabel {
+    @apply text-sm font-medium text-gray-800;
+  }
+
+  .textInput {
+    @apply border border-yellow-400 focus:ring-yellow-400 focus:outline-none rounded-md px-4 py-2 text-sm w-full;
+  }
+
+  .contentBox {
+    @apply border border-gray-300 rounded-md p-3 h-40 text-sm resize-none;
+  }
+
+  .imageUploadWrapper {
+    @apply flex items-center gap-2 flex-wrap;
+  }
+
+  .imagePreview {
+    @apply relative w-20 h-20 rounded overflow-hidden border border-gray-200;
+  }
+
+  .removeBtn {
+    @apply absolute top-0 right-0 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center cursor-pointer;
+  }
+
+  .toolbar {
+    @apply border-t border-gray-200 pt-2 flex items-center gap-4 text-gray-500 text-sm;
+  }
+
+  .addPhotoBtn {
+    @apply flex items-center gap-2 px-4 py-1 border border-gray-300 rounded-md text-sm bg-white cursor-pointer;
+  }
+
+
+
+}

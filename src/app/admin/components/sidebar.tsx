@@ -10,7 +10,7 @@ const navItems = [
   { name: 'Users', icon: <User className="sidebar-icon" />, path: '/admin/users' },
   { name: 'Applications', icon: <BarChart className="sidebar-icon" />, path: '/admin/applications' },
   { name: 'Payroll', icon: <CreditCard className="sidebar-icon" />, path: '/admin/payroll' },
-  { name: 'Payment History', icon: <RotateCcw className="sidebar-icon" />, path: '/admin/payments' },
+  { name: 'Payments', icon: <RotateCcw className="sidebar-icon" />, path: '/admin/payments' },
   { name: 'Inquiries', icon: <HelpCircle className="sidebar-icon" />, path: '/admin/inquiries' },
   { name: 'Awareness', icon: <Award className="sidebar-icon" />, path: '/admin/awareness' },
 ];

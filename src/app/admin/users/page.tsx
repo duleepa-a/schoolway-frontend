@@ -1,11 +1,22 @@
-import React from 'react'
+'use client';
+import TopBar from '@/app/dashboardComponents/TopBar';
+import UserFilterBar from '@/app/dashboardComponents/SearchFilter';
 
-const AdminUsersPage = () => {
+const AdminDashboard = () => {
+
   return (
-    <div>
-      Manage useres here 
-    </div>
+
+      <section className="p-5 md:p-10 min-h-screen w-full">
+        {/*Top bar with profile icon and the heading*/}
+        <TopBar heading= "Users" />     
+
+        <UserFilterBar />  
+
+        
+
+      
+    </section>
   )
 }
 
-export default AdminUsersPage
+export default AdminDashboard
