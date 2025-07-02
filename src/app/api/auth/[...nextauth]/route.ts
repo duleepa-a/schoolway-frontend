@@ -4,10 +4,14 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import {PrismaAdapter} from "@next-auth/prisma-adapter"
 import {compare} from "bcryptjs" 
 import prisma from "@/lib/prisma"
+import { NextResponse } from "next/server"
 
 //export this authOptions as an object and use with getServerSession in the app directory to access session data in server components
 const authOptions:NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
+    session:{
+        strategy:'jwt'
+    },
     pages: {
         signIn : '/login'
     },
@@ -37,7 +41,7 @@ const authOptions:NextAuthOptions = {
             const existingUser= await prisma.userProfile.findUnique({
                 where:{email: credentials?.email}
             })
-            // console.log(existingUser);
+    console.log("here is the unique usr ", existingUser);
 
             if(!existingUser){
                 return null
@@ -45,13 +49,15 @@ const authOptions:NextAuthOptions = {
 
             const pwmatch = await compare(credentials.password, existingUser.password);
 
-console.log(pwmatch);
+    console.log(pwmatch);
             if(!pwmatch){
                 return null;
             }
             return {
                 id:`${existingUser.id}`,
-                email: existingUser.email
+                email: existingUser.email,
+                name:existingUser.lastname,
+                // last:existingUser.lastname
             }
             // const user = await res.json()
 
@@ -59,14 +65,34 @@ console.log(pwmatch);
             //     return user
             // }
             // return null 
+            // return NextResponse.json({message: "signed in "},{error:"noerror"})
             }
         }),
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        }),
+        // GoogleProvider({
+        //     clientId: process.env.GOOGLE_CLIENT_ID!,
+        //     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        // }),
 
-    ]
+    ],callbacks:{
+        async jwt({token,user,account,profile,isNewUser}){
+            if(user){
+                return {
+                    ...token,
+                    username: user.name
+                }
+            }
+            return token
+        },
+        async session({session,user,token}){
+            return {
+                ...session,
+                user:{
+                    ...session.user,
+                    username:token.lastname
+                }
+            }
+        }
+    }
 }
 
 const handler = NextAuth(authOptions)

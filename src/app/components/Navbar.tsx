@@ -52,7 +52,15 @@ export default function Navbar() {
           } */}
           <div className="dropdown dropdown-end">
             
-            <div tabIndex={0} role="button" className=" btn-ghost rounded-full"><Image src={session.user!.image} width={40} height={40} alt="User image" className='rounded-full'/></div>
+            <div tabIndex={0} role="button" className=" btn-ghost rounded-full">
+              <Image
+                src={ session.user?.image ||  "/illustrations/profile_d2.png"}
+                width={40}
+                height={40}
+                alt="User image"
+                className='rounded-full'
+              />
+            </div>
             <ul
               tabIndex={0}
               className="menu dropdown-content text-base-200 rounded-box z-1 mt-4 w-52 p-2 shadow-sm">
