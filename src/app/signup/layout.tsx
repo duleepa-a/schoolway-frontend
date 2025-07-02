@@ -1,5 +1,7 @@
 import React , {ReactNode} from 'react'
 import Navbar from '../components/Navbar';
+import Authprovider from "../AuthenticatorComp/provider";
+
  
  interface Props {
     children : ReactNode;
@@ -8,7 +10,9 @@ import Navbar from '../components/Navbar';
  const SignupLayout = ( {children}:Props) => {
    return (
      <div className='h-screen'>
-        <Navbar/>
+        <Authprovider>
+          <Navbar />
+        </Authprovider>
         <div>
             {children}
         </div>

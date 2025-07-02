@@ -11,12 +11,16 @@ import Footer from "./components/Footer";
 import AppLink from "./homeComponents/AppLink";
 import Navbar from "./components/Navbar";
 
+import Authprovider from "./AuthenticatorComp/provider";
+
 
 export default function Home() {
   // const session = await getServerSession(authOptions)
   return (
     <main>
-      <Navbar/>
+      <Authprovider>
+        <Navbar/>
+      </Authprovider>
       <HeroSection />
       <WhatWeOffer/>
       <AppDetails/>
