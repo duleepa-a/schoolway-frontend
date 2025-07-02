@@ -14,7 +14,7 @@ const TopBar = ({heading} : Props) => { //for future use
   }, []);
 
   return (
-    <div className="topBarWrapper">
+    <><div className="topBarWrapper">
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-6">{heading}</h2>
       </div>
@@ -27,10 +27,9 @@ const TopBar = ({heading} : Props) => { //for future use
           alt="Profile"
           width={50}
           height={50}
-          className="topBarImage"
-        />
+          className="topBarImage" />
       </div>
-    </div>
+    </div><hr className='mb-5'/></>
   );
 };
 
