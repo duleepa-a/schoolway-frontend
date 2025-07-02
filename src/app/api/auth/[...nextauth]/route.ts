@@ -1,10 +1,10 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
+// import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import {PrismaAdapter} from "@next-auth/prisma-adapter"
 import {compare} from "bcryptjs" 
 import prisma from "@/lib/prisma"
-import { NextResponse } from "next/server"
+// import { NextResponse } from "next/server"
 
 //export this authOptions as an object and use with getServerSession in the app directory to access session data in server components
 const authOptions:NextAuthOptions = {
@@ -56,15 +56,12 @@ const authOptions:NextAuthOptions = {
             return {
                 id:`${existingUser.id}`,
                 email: existingUser.email,
-                name:existingUser.lastname,
+                name:existingUser.firstname,
                 // last:existingUser.lastname
+                role:`${existingUser.role}`,
+                // servicename:existingUser.servicename, fetch service name from vanservice db
             }
-            // const user = await res.json()
-
-            // if (res.ok && user) {
-            //     return user
-            // }
-            // return null 
+            
             // return NextResponse.json({message: "signed in "},{error:"noerror"})
             }
         }),
@@ -74,21 +71,23 @@ const authOptions:NextAuthOptions = {
         // }),
 
     ],callbacks:{
-        async jwt({token,user,account,profile,isNewUser}){
+        async jwt({token,user}){
             if(user){
                 return {
                     ...token,
-                    username: user.name
+                    role:user.role,
+                    // servicename:user.servicename,
                 }
             }
             return token
         },
-        async session({session,user,token}){
+        async session({session,token}){
             return {
                 ...session,
                 user:{
                     ...session.user,
-                    username:token.lastname
+                    role:token.role,
+                    // servicename:token.servicename,
                 }
             }
         }

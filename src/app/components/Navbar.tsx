@@ -43,6 +43,9 @@ export default function Navbar() {
             </button>
           </Link></>
           }
+            {/* <div>
+              <pre>{JSON.stringify(session, null, 2)}</pre>
+            </div> */}
           {
           status === "authenticated" 
           // && <Image src={session.user!.picture}/> 
@@ -65,7 +68,19 @@ export default function Navbar() {
               tabIndex={0}
               className="menu dropdown-content text-base-200 rounded-box z-1 mt-4 w-52 p-2 shadow-sm">
               
-              <li><a>Visit Dashboard</a></li>
+              {session.user?.role === "SERVICE" ? (
+                <li>
+                  <Link href="/dashboard">
+                    <button>Visit Dashboard</button>
+                  </Link>
+                </li>
+              ) : session.user?.role === "ADMIN" ? (
+                <li>
+                  <Link href="/admin_dashboard">
+                    <button>Visit Dashboard</button>
+                  </Link>
+                </li>
+              ) : null}
               <li ><button onClick={() =>
                   signOut({ callbackUrl: "/" }) // Redirect to homepage or custom goodbye page
                 }>Sign out</button>
