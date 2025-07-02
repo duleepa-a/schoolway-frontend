@@ -3,6 +3,8 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { getSession } from "next-auth/react";
+import Image from 'next/image';
+import { Eye, EyeOff } from 'lucide-react';
 
 const session = await getSession();
 if (session) {

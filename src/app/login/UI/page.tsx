@@ -3,17 +3,16 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Client } from '@neondatabase/serverless';
 
 
 
-export default function LLogin() {
+export default function LoginPage() {
   
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className=" bg-left bg-no-repeat py-12 justify-items-end" 
-          style={{backgroundImage: 'url("./illustrations/loginBackground.png")'}}
+          style={{backgroundImage: 'url("../illustrations/loginBackground.png")'}}
     >
       <div className="max-w-md bg-white rounded-xl shadow-xl mr-10 p-10 ">
           <h2 className="text-2xl font-bold text-center mb-2">Log in to Your Account</h2>
@@ -76,4 +75,4 @@ export default function LLogin() {
   );
 }
 
-export default LoginPage;
+// export default LoginPage;
