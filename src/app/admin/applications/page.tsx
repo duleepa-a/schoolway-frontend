@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import StatCard from '@/app/dashboardComponents/StatCard'
 import ApplicationTable from '@/app/dashboardComponents/ApplicationTable'
 import DriverOverviewChart from '@/app/dashboardComponents/DriverOverviewChart'
+import ActivityFeed from '@/app/dashboardComponents/ActivityFeed'
+import DriverRatingChart from '@/app/dashboardComponents/DriverRatingChart'
 import { applicationsData } from '../../../../public/dummy_data/applications'
 import { FaFileAlt, FaHourglassHalf, FaCheckCircle, FaTimesCircle, FaRedo } from 'react-icons/fa'
 
@@ -58,34 +60,39 @@ const Applications = () => {
 
 
         <div className="grid grid-rows-5 grid-flow-col gap-4 mb-10 min-w-[400px] h-[600px]">
-  {/* 3-row section (left side) - Driver Overview Chart */}
-  <div className="row-span-3 dashboard-section-card">
-    <DriverOverviewChart />
-  </div>
+          {/* 3-row section (left side) - Driver Overview Chart */}
+          <div className="row-span-3 dashboard-section-card">
+            <DriverOverviewChart />
+          </div>
 
-  {/* 2-row section (below it) */}
-  <div className="row-span-2 dashboard-section-card">
-    <p>Activity</p>
-  </div>
+          {/* 2-row section (below it) */}
+          <div className="row-span-2 dashboard-section-card">
+            <DriverRatingChart />
+          </div>
+ 
+          {/* Full-height dense section (right column) */}
+          <div className="row-span-5 dashboard-section-card bg-gray-50">
+            <h3 className="text-lg font-semibold mb-4">All Applications</h3>
+            
+            <div className="h-full overflow-y-auto">
+              <ApplicationTable
+                columns={columns}
+                data={applicationsData}
+                actions={[
+                  { type: "review", onClick: handleReview },
+                  { type: "reject", onClick: handleReject },
+                ]}
+                onSelectionChange={handleSelectionChange}
+                defaultItemsPerPage={10}
+              />
+            </div>
+          </div>
+        </div>
 
-  {/* Full-height dense section (right column) */}
-  <div className="row-span-5 dashboard-section-card bg-gray-50">
-    <h3 className="text-lg font-semibold mb-4">All Applications</h3>
-    
-    <div className="h-full overflow-y-auto">
-      <ApplicationTable
-        columns={columns}
-        data={applicationsData}
-        actions={[
-          { type: "review", onClick: handleReview },
-          { type: "reject", onClick: handleReject },
-        ]}
-        onSelectionChange={handleSelectionChange}
-        defaultItemsPerPage={10}
-      />
-    </div>
-  </div>
-</div>
+        <div className="row-span-2 dashboard-section-card">
+          <ActivityFeed />
+        </div>
+
 
 
 
