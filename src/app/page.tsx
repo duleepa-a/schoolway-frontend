@@ -1,20 +1,22 @@
-import Navbar from  "./components/Navbar";
-import HeroSection from "./components/HeroSection";
-import WhatWeOffer from "./components/WhatWeOffer";
-import AppDetails from "./components/AppDetails";
-import HomeInsightBanner from "./components/HomeInsightBanner";
-import HomeInfoCards from "./components/HomeInfoCards";
-import HomeTestimonials from "./components/HomeTestimonials";
+
+import HeroSection from "./homeComponents/HeroSection";
+import WhatWeOffer from "./homeComponents/WhatWeOffer";
+import AppDetails from "./homeComponents/AppDetails";
+import HomeInsightBanner from "./homeComponents/HomeInsightBanner";
+import HomeInfoCards from "./homeComponents/HomeInfoCards";
+import HomeTestimonials from "./homeComponents/HomeTestimonials";
 import Footer from "./components/Footer";
-import AppLink from "./components/AppLink";
-import { getServerSession } from "next-auth";
+// import { getServerSession } from "next-auth";
 // import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import AppLink from "./homeComponents/AppLink";
+import Navbar from "./components/Navbar";
+
 
 export default function Home() {
   // const session = await getServerSession(authOptions)
   return (
     <main>
-
+      <Navbar/>
       <HeroSection />
       <WhatWeOffer/>
       <AppDetails/>

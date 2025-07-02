@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   title: "SchoolWay",
   description: "Smart school van management system",
   icons: {
-    icon: "/illustrations/Logo_dark.svg",
+    icon: "/logo/Logo_dark.svg",
   }
 };
 
