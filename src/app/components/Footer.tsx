@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Logo and copyright */}
         <div>
-          <Link href="/"> <img src="/illustrations/Logo_light.svg" className="mb-3" height={150} width={150} alt="" /></Link>
+          <Link href="/"> <img src="/logo/Logo_light.svg" className="mb-3" height={150} width={150} alt="" /></Link>
           <p className="text-sm mb-2">Copyright © 2025 SchoolWay.<br />All rights reserved</p>
           <div className="flex space-x-3 mt-4">
             <FaInstagram className="text-xl hover:text-primary cursor-pointer" />
