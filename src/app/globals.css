@@ -24,6 +24,8 @@
   --color-search-bar-bg: #e8edf5;
 
 
+  --color-error-color: #fb2c36;
+
   /* button properties : padding, width, height, margine, hover effects*/
 
   --shadow-sha: red;
@@ -91,7 +93,7 @@
 body {
   background: var(--background);
   color: #4D4D4D;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'poppins',Arial, Helvetica, sans-serif;
 }
 
 .slick-dots {
@@ -124,6 +126,7 @@ h1 , h2 {
   color: #4D4D4D;
 
 }
+
 
 
 @layer utilities {

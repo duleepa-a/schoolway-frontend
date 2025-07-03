@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { FaBell, FaMoon, FaPowerOff } from 'react-icons/fa';
+import { BiLogOut } from "react-icons/bi";
 import Image from 'next/image';
 
 interface Props{
@@ -21,7 +22,7 @@ const TopBar = ({heading} : Props) => { //for future use
       <div className="topBarIcons">
         <FaBell className="topBarIcon ml-5" />
         <FaMoon className="topBarIcon" />
-        <FaPowerOff className='topBarIcon' />
+        <BiLogOut className='topBarIcon text-2xl' />
         <Image
           src="/Images/male_pro_pic_placeholder.png"
           alt="Profile"
