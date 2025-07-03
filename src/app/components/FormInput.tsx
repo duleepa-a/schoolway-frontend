@@ -23,7 +23,7 @@ const FormInput: React.FC<FormInputProps> = ({
 }) => {
   return (
           <div className="mb-2">
-              <label htmlFor={name} className="text-sm block font-semibold text-active-text mb-2">
+              <label htmlFor={name} className="form-label">
                 {label}
               </label>
               <input
@@ -33,14 +33,14 @@ const FormInput: React.FC<FormInputProps> = ({
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className={`w-full px-4 py-2 text-sm rounded-xl border transition-all outline-none 
+                className={`form-input-field 
                   ${
                     error
-                      ? 'border-red-500 focus:ring-2 focus:ring-red-300'
-                      : 'border-gray-300 focus:border-yellow-400 '
+                      ? 'form-input-field-error'
+                      : 'form-input-field-valid  '
                   }`}
               />
-              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+              {error && <p className="error-msg">{error}</p>}
           </div>
 
   );

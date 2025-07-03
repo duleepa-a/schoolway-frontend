@@ -93,7 +93,7 @@ export default function HeroSection() {
                   <p className="text-xl font-semibold text-gray-700">{slide.subtitle}</p>
                   <p className="text-gray-600">{slide.description}</p>
                   <Link href="/register">
-                    <button className="cursor-pointer bg-primary text-white px-6 py-2 rounded font-semibold hover:bg-gray-900">
+                    <button className="btn-primary">
                       Register
                     </button>
                   </Link>
