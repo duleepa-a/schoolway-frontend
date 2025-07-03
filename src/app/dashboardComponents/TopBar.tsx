@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import { FaBell, FaMoon } from 'react-icons/fa';
+import { FaBell, FaMoon, FaPowerOff } from 'react-icons/fa';
 import Image from 'next/image';
 
 interface Props{
@@ -21,6 +21,7 @@ const TopBar = ({heading} : Props) => { //for future use
       <div className="topBarIcons">
         <FaBell className="topBarIcon ml-5" />
         <FaMoon className="topBarIcon" />
+        <FaPowerOff className='topBarIcon' />
         <Image
           src="/Images/male_pro_pic_placeholder.png"
           alt="Profile"

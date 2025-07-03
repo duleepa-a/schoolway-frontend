@@ -1,8 +1,63 @@
 'use client';
 
-import { FaSearch, FaUser, FaRegCalendarAlt, FaLightbulb, FaChevronDown} from 'react-icons/fa';
+import { FaSearch, FaUser, FaRegCalendarAlt, FaLightbulb, FaChevronDown, FaTimes} from 'react-icons/fa';
 
-const UserFilterBar = () => {
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
+interface FilterConfig {
+  searchPlaceholder?: string;
+  roleOptions?: FilterOption[];
+  statusOptions?: FilterOption[];
+  showDateFilter?: boolean;
+  showAddButton?: boolean;
+  addButtonText?: string;
+  showClearButton?: boolean;
+  onAddClick?: () => void;
+}
+
+interface SearchFilterProps {
+  onSearchChange: (searchTerm: string) => void;
+  onRoleChange: (role: string) => void;
+  onStatusChange: (status: string) => void;
+  onDateChange: (date: string) => void;
+  onClearFilters: () => void;
+  config?: FilterConfig;
+}
+
+const defaultConfig: FilterConfig = {
+  searchPlaceholder: "Search",
+  roleOptions: [
+    { value: "", label: "Role" },
+    { value: "admin", label: "Admin" },
+    { value: "van owner", label: "Van Owner" },
+    { value: "driver", label: "Driver" },
+    { value: "parent", label: "Parent" },
+  ],
+  statusOptions: [
+    { value: "", label: "Status" },
+    { value: "Active", label: "Active" },
+    { value: "Inactive", label: "Inactive" },
+    { value: "Pending", label: "Pending" },
+  ],
+  showDateFilter: true,
+  showAddButton: true,
+  showClearButton: true,
+  addButtonText: "+ Add User",
+};
+
+const SearchFilter = ({ 
+  onSearchChange, 
+  onRoleChange, 
+  onStatusChange, 
+  onDateChange,
+  onClearFilters,
+  config = {}
+}: SearchFilterProps) => {
+  const finalConfig = { ...defaultConfig, ...config };
+
   return (
     <div className="filterWrapper">
       <div className="flex flex-wrap gap-2">
@@ -11,49 +66,87 @@ const UserFilterBar = () => {
           <FaSearch />
           <input
             type="text"
-            placeholder="Search"
+            placeholder={finalConfig.searchPlaceholder}
             className="outline-none bg-transparent text-sm w-full"
+            onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
 
         {/* Role Dropdown */}
-        <div className="filterDropdown">
-          <FaUser />
-          <select className="selectField">
-            <option value="">Role</option>
-            <option value="admin">Admin</option>
-            <option value="owner">Van Owner</option>
-            <option value="driver">Driver</option>
-            <option value="parent">Parent</option>
-          </select>
-          <span className="dropdownArrow"><FaChevronDown /></span>
-        </div>
+        {finalConfig.roleOptions && (
+          <div className="filterDropdown">
+            <FaUser />
+            <select 
+              className="selectField"
+              onChange={(e) => onRoleChange(e.target.value)}
+            >
+              {finalConfig.roleOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="dropdownArrow"><FaChevronDown /></span>
+          </div>
+        )}
 
         {/* Status Dropdown */}
-        <div className="filterDropdown">
-          <FaLightbulb />
-          <select className="selectField">
-            <option value="">Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="restricted">Restricted</option>
-            <option value="deleted">Deleted</option>
-          </select>
-          <span className="dropdownArrow"><FaChevronDown /></span>
-        </div>
+        {finalConfig.statusOptions && (
+          <div className="filterDropdown">
+            <FaLightbulb />
+            <select 
+              className="selectField"
+              onChange={(e) => onStatusChange(e.target.value)}
+            >
+              {finalConfig.statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="dropdownArrow"><FaChevronDown /></span>
+          </div>
+        )}
 
         {/* Date Picker */}
-        <div className="filterDropdown">
-          <FaRegCalendarAlt />
-          <input type="date" className="dateField" />
-          <span className="dropdownArrow"><FaChevronDown /></span>
-        </div>
+        {finalConfig.showDateFilter && (
+          <div className="filterDropdown">
+            <FaRegCalendarAlt />
+            <input 
+              type="date" 
+              className="dateField"
+              onChange={(e) => onDateChange(e.target.value)}
+            />
+            <span className="dropdownArrow"><FaChevronDown /></span>
+          </div>
+        )}
       </div>
 
-      {/* Add User Button */}
-      <button className="addUserButton">+ Add User</button>
+      <div className="flex gap-2">
+        {/* Clear Filters Button */}
+        {finalConfig.showClearButton && (
+          <button 
+            className="clearFiltersButton"
+            onClick={onClearFilters}
+            title="Clear all filters"
+          >
+            <FaTimes size={14} />
+            Clear Filters
+          </button>
+        )}
+
+        {/* Add Button */}
+        {finalConfig.showAddButton && (
+          <button 
+            className="addUserButton"
+            onClick={finalConfig.onAddClick}
+          >
+            {finalConfig.addButtonText}
+          </button>
+        )}
+      </div>
     </div>
   );
 };
 
-export default UserFilterBar;
+export default SearchFilter;
