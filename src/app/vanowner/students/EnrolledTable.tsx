@@ -23,7 +23,7 @@ const students = [
   {
     name: 'Lehan Munasinghe',
     grade: '5',
-    status: 'Banned',
+    status: 'Inactive',
     van: 'Van 2',
     contactNo: '0783152739',
     date: 'January 8, 2024',
@@ -32,7 +32,7 @@ const students = [
   {
     name: 'Ayanaga Wethmini',
     grade: '5',
-    status: 'Pending',
+    status: 'Active',
     van: 'Van 3',
     contactNo: '0783152739',
     date: 'October 5, 2021',
@@ -43,8 +43,6 @@ const students = [
 const statusColors = {
   Active: 'bg-green-100 text-green-600 border-green-500',
   Inactive: 'bg-gray-100 text-gray-600 border-gray-400',
-  Banned: 'bg-red-100 text-red-600 border-red-500',
-  Pending: 'bg-yellow-100 text-yellow-600 border-yellow-500',
 };
 
 export default function EnrolledTable() {
