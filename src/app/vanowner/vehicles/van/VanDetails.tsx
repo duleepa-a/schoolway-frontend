@@ -20,9 +20,9 @@ const VanDetails = () => {
   ];
 
   return (
-    <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className=" grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Van Details */}
-      <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-2">
+      <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-1">
         <h2 className="text-lg font-semibold mb-4">Toyota HIACE Spec 10</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
@@ -80,7 +80,7 @@ const VanDetails = () => {
                     <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
                   </div>
                 </div>
-                <button className="btn-small-primary">More Options</button>
+                <button className="btn-small-primary ml-4">More Options</button>
               </div>
               <h2 className="text-base font-semibold mb-4">Assistant</h2>
               <div className="flex items-center justify-between">
@@ -94,7 +94,7 @@ const VanDetails = () => {
                     <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
                   </div>
                 </div>
-                <button className="btn-small-primary">More Options</button>
+                <button className="btn-small-primary ml-4">More Options</button>
               </div>
             </div>
 

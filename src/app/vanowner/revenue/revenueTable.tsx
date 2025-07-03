@@ -2,7 +2,7 @@ import { FaSearch } from 'react-icons/fa';
 
 const payrolls = [
   {
-    name: 'Ruwan Perera',
+    name: 'Duleepa Edirisinghe',
     vanNumber: 'Van 1',
     amountPaid: 'Rs. 45,000',
     datePaid: 'June 15, 2025',
@@ -10,15 +10,15 @@ const payrolls = [
     avatar: '/Images/male_pro_pic_placeholder.png',
   },
   {
-    name: 'Dilani Fernando',
+    name: 'Duleepa Edirisinghe',
     vanNumber: 'Van 2',
     amountPaid: 'Rs. 40,000',
     datePaid: 'June 10, 2025',
     status: 'Paid',
-    avatar: '/Images/female_pro_pic_placeholder.png',
+    avatar: '/Images/male_pro_pic_placeholder.png',
   },
   {
-    name: 'Thilina Ranasinghe',
+    name: 'Duleepa Edirisinghe',
     vanNumber: 'Van 3',
     amountPaid: 'Rs. 38,000',
     datePaid: 'June 5, 2025',
@@ -35,7 +35,7 @@ export default function RevenueTable() {
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
-            placeholder="Search van owners"
+            placeholder="Search payroll.."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg"
           />
         </div>
