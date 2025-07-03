@@ -1,3 +1,4 @@
+import TablePagination from '@/app/components/TablePagination';
 import { FaSearch } from 'react-icons/fa';
 
 const payrolls = [
@@ -39,6 +40,7 @@ export default function RevenueTable() {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg"
           />
         </div>
+        <TablePagination totalPages={5}/>
       </div>
 
       {/* Table */}
@@ -46,9 +48,6 @@ export default function RevenueTable() {
         <table className="w-full border-collapse rounded-md overflow-hidden">
           <thead>
             <tr className="bg-primary text-white text-left text-sm">
-              <th className="p-3 font-medium">
-                <input type="checkbox" />
-              </th>
               <th className="p-3">Owner Name</th>
               <th className="p-3">Van Number</th>
               <th className="p-3">Amount Paid</th>
@@ -64,9 +63,6 @@ export default function RevenueTable() {
                   index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                 } border-b border-border-light-shade`}
               >
-                <td className="p-3">
-                  <input type="checkbox" />
-                </td>
                 <td className="p-3 flex items-center gap-2">
                   <img
                     src={p.avatar}

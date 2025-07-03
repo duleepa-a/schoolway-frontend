@@ -20,9 +20,9 @@ const VanDetails = () => {
   ];
 
   return (
-    <div className=" grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Van Details */}
-      <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-1">
+      <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-2">
         <h2 className="text-lg font-semibold mb-4">Toyota HIACE Spec 10</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
@@ -66,8 +66,7 @@ const VanDetails = () => {
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
-          <div className="flex grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
               <h2 className="text-base font-semibold mb-4">Driver</h2>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
@@ -97,44 +96,38 @@ const VanDetails = () => {
                 <button className="btn-small-primary ml-4">More Options</button>
               </div>
             </div>
-
-            {/* Student List */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg col-span-1">
-              <h2 className="text-base font-semibold mb-4">Student List</h2>
-              <ul className="space-y-4">
-                {students.map((s, i) => (
-                  <li key={i} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Image
-                        src={s.image}
-                        alt={s.name}
-                        width={36}
-                        height={36}
-                        className="rounded-full"
-                      />
-                      <span className="text-xs font-medium text-gray-700">{s.name}</span>
-                    </div>
-                    <span className="text-xs text-gray-500 ml-1">pickup – {s.time}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className='w-full grid grid-cols-3 gap-4'>
+          <div className='w-full grid grid-cols-4 gap-4'>
             {/* Route & Safety */}
               <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
                 <h2 className="text-base font-semibold mb-4">Current Route</h2>
                 <Image
-                  src="/map/route.png"
+                  src="/Images/routePlaceholder.png"
                   alt="Route"
                   width={200}
                   height={125}
                   className="rounded-lg"
                 />
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <h2 className="text-base font-semibold mb-4">Safety Tests</h2>
-                <p className="text-gray-500 text-sm">(Add content or graph here)</p>
+                {/* Student List */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
+                <h2 className="text-base font-semibold mb-4">Student List</h2>
+                <ul className="space-y-4">
+                  {students.map((s, i) => (
+                    <li key={i} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Image
+                          src={s.image}
+                          alt={s.name}
+                          width={36}
+                          height={36}
+                          className="rounded-full"
+                        />
+                        <span className="text-xs font-medium text-gray-700">{s.name}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 ml-1">pickup - {s.time}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
           </div>
       </div>

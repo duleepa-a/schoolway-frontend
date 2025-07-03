@@ -1,4 +1,5 @@
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaChevronDown } from 'react-icons/fa';
+import TablePagination from '@/app/components/TablePagination';
 
 const privateHires = [
   {
@@ -49,6 +50,21 @@ export default function PrivatehireTable() {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg"
           />
         </div>
+        <div className="relative w-full md:w-48">
+          <select
+            className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none"
+            defaultValue="Van 1"
+          >
+            <option disabled>Select Van</option>
+            <option>All</option>
+            <option>Van 1</option>
+            <option>Van 2</option>
+          </select>
+          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
+        </div>
+        
+        <TablePagination totalPages={5} />
+
       </div>
 
       {/* Table */}

@@ -7,6 +7,7 @@ import TopBar from '@/app/dashboardComponents/TopBar';
 import FormInput from '@/app/components/FormInput';
 import { MdOutlineClose } from "react-icons/md";
 import FormDateInput from '@/app/components/FormDateInput';
+import TablePagination from '@/app/components/TablePagination';
 
 
 const VehiclesPage = () => {
@@ -116,6 +117,7 @@ const VehiclesPage = () => {
           <span>Add Vehicle</span>
           <IoMdAddCircle className="size-5" />
         </button>
+        <TablePagination totalPages={5}/>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

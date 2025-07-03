@@ -1,5 +1,5 @@
-import { FiEdit2, FiTrash } from 'react-icons/fi';
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
+import TablePagination from '@/app/components/TablePagination';
 
 const students = [
   {
@@ -60,13 +60,32 @@ export default function EnrolledTable() {
           />
         </div>
         <div className="relative w-full md:w-48">
-          <button className="w-full flex justify-between items-center px-4 py-3 bg-search-bar-bg rounded-md text-sm
-                             cursor-pointer
-                            ">
-            Van 1 
-            <FaChevronDown className="ml-2" />
-          </button>
+          <select
+            className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none"
+            defaultValue="Van 1"
+          >
+            <option disabled>Select Van</option>
+            <option>Van 1</option>
+            <option>Van 2</option>
+            <option>Van 3</option>
+          </select>
+          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
         </div>
+        <div className="relative w-full md:w-48">
+          <select
+            className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none"
+            defaultValue="Van 1"
+          >
+            <option disabled>Student Status</option>
+            <option>All</option>
+            <option>Active</option>
+            <option>Inactive</option>
+          </select>
+          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
+        </div>
+
+        <TablePagination totalPages={5} />
+
       </div>
 
       {/* Table */}
@@ -120,9 +139,15 @@ export default function EnrolledTable() {
                 <td className="p-3 text-gray-700">{s.contactNo}</td>
                 <td className="p-3 text-gray-500">{s.date}</td>
                 <td className="p-3">
-                  <button className="text-red-500 hover:text-red-700 cursor-pointer items-center">
-                    Remove
+                  {s.status === 'Active' ?
+                  <button className="text-white bg-black px-3 py-1 rounded-lg hover:bg-red-700 cursor-pointer items-center">
+                      Inactive
                   </button>
+                  :
+                  <button className="text-white bg-red-500 px-3 py-1 rounded-lg  hover:bg-red-700 cursor-pointer items-center">
+                      Remove
+                  </button>
+                  }
                 </td>
               </tr>
             ))}
