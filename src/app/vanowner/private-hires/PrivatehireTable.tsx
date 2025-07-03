@@ -4,8 +4,10 @@ const privateHires = [
   {
     name: 'Duleepa Edirisinghe',
     vanNumber: 'Van 1',
+    seats:2,
     amount: 'Rs. 12,000',
-    date: 'July 10, 2025',
+    pickupDate: 'July 10, 2025',
+    dropoffDate: 'July 10, 2025',
     pickupLocation: 'Colombo 07',
     dropoffLocation: 'Kandy',
     avatar: '/Images/male_pro_pic_placeholder.png',
@@ -13,8 +15,10 @@ const privateHires = [
   {
     name: 'Tharindu Perera',
     vanNumber: 'Van 2',
+    seats:2,
     amount: 'Rs. 15,000',
-    date: 'July 12, 2025',
+    pickupDate: 'July 12, 2025',
+    dropoffDate: 'July 12, 2025',
     pickupLocation: 'Galle',
     dropoffLocation: 'Matara',
     avatar: '/Images/male_pro_pic_placeholder.png',
@@ -22,8 +26,10 @@ const privateHires = [
   {
     name: 'Nimasha Fernando',
     vanNumber: 'Van 3',
+    seats:2,
     amount: 'Rs. 10,500',
-    date: 'July 13, 2025',
+    pickupDate: 'July 13, 2025',
+    dropoffDate: 'July 13, 2025',
     pickupLocation: 'Nugegoda',
     dropoffLocation: 'Negombo',
     avatar: '/Images/female_pro_pic_placeholder.png',
@@ -50,15 +56,14 @@ export default function PrivatehireTable() {
         <table className="w-full border-collapse rounded-md overflow-hidden">
           <thead>
             <tr className="bg-primary text-white text-left text-sm">
-              <th className="p-3 font-medium">
-                <input type="checkbox" />
-              </th>
               <th className="p-3">Customer</th>
-              <th className="p-3">Van Number</th>
-              <th className="p-3">Pickup Location</th>
-              <th className="p-3">Drop-off Location</th>
-              <th className="p-3">Amount</th>
-              <th className="p-3">Date</th>
+              <th className="p-3">Van</th>
+              <th className="p-3">Seats</th>
+              <th className="p-3">Pickup</th>
+              <th className="p-3">Pickup Date</th>
+              <th className="p-3">Drop-off</th>
+              <th className="p-3">Drop of Date</th>
+              <th className="p-3">Estimated Fare</th>
               <th className="p-3">Actions</th>
             </tr>
           </thead>
@@ -70,27 +75,21 @@ export default function PrivatehireTable() {
                   index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                 } border-b border-border-light-shade`}
               >
-                <td className="p-3">
-                  <input type="checkbox" />
-                </td>
                 <td className="p-3 flex items-center gap-2">
-                  <img
-                    src={hire.avatar}
-                    alt={hire.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <span className="text-gray-800 font-medium">{hire.name}</span>
+                  <span className="text-gray-700">{hire.name}</span>
                 </td>
                 <td className="p-3 text-gray-700">{hire.vanNumber}</td>
+                <td className="p-3 text-gray-700">{hire.seats}</td>
                 <td className="p-3 text-gray-700">{hire.pickupLocation}</td>
+                <td className="p-3 text-gray-700">{hire.pickupDate}</td>
                 <td className="p-3 text-gray-700">{hire.dropoffLocation}</td>
+                <td className="p-3 text-gray-700">{hire.dropoffDate}</td>
                 <td className="p-3 text-gray-700">{hire.amount}</td>
-                <td className="p-3 text-gray-500">{hire.date}</td>
-                <td className="p-3 flex gap-2">
-                  <button className="text-xs bg-green-100 text-green-700 border border-green-500 rounded-full px-3 py-1 hover:bg-green-200 transition">
+                <td className="p-3 flex gap-1 justify-center align-middle">
+                  <button className="text-xs bg-green-300 text-white rounded-lg px-3 py-3 hover:bg-green-200 transition cursor-pointer">
                     Accept
                   </button>
-                  <button className="text-xs bg-red-100 text-red-700 border border-red-500 rounded-full px-3 py-1 hover:bg-red-200 transition">
+                  <button className="text-xs bg-red-400 text-white rounded-lg px-3 py-3 hover:bg-red-200 transition cursor-pointer">
                     Reject
                   </button>
                 </td>
