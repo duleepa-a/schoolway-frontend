@@ -67,7 +67,12 @@
   .btn-primary-viewinfo {
     @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600;
   }
-  
+
+  .form-field{
+              
+    @apply w-full px-4 py-2 text-sm rounded-xl border transition-all outline-none;
+    
+  }
 }
 
 :root {
@@ -81,7 +86,7 @@
 body {
   background: var(--background);
   color: #4D4D4D;
-  font-family: 'poppins',Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .slick-dots {
