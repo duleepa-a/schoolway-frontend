@@ -16,9 +16,9 @@ const AppDetails = () => {
           <h2 className="text-3xl font-bold text-gray-800 md:text-3xl mb-4">
             The safety of your child's journey,<br className="hidden md:block" /> tracked live!
           </h2>
-          <p className="text-sm mb-6">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet justo ipsum. Sed accumsan quam vitae est varius fringilla. Pellentesque placerat vestibulum lorem sed porta. Nullam mattis tristique iaculis. Nullam pulvinar sit amet risus pretium auctor. Etiam quis massa pulvinar, aliquam quam vitae, tempus sem. Donec elementum pulvinar odio.
-          </p>
+            <p className="text-sm mb-6">
+            With our advanced real-time tracking system, you can monitor your child's school journey every step of the way. Receive instant updates, route notifications, and peace of mind knowing exactly where your child is during transit. Safety and transparency are at the heart of our service, ensuring your child’s journey is secure and worry-free.
+            </p>
 
           <div className="flex gap-4">
             <button className="btn-primary">

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import FormInput from '@/app/components/FormInput';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // interface FormData {
 //   firstName: string;
@@ -224,7 +225,7 @@ const validateStep1 = () => {
 
   return (
     <>
-    <div className="flex w-3/4  bg-primary h-4/5 justify-between rounded-br-2xl rounded-tr-2xl">
+    <div className="flex w-3/4  bg-primary h-4/5 justify-between rounded-br-2xl rounded-tr-2xl rounded-2xl">
       {/* Left side - Yellow background with logo */}
       <div className="hidden lg:block overflow-hidden justify-items-center pl-20 pt-4">
         <Image
@@ -233,15 +234,23 @@ const validateStep1 = () => {
         width={200}
         height={200}
         />
+        <h1 className='mt-10 m-0'>add some description over here</h1>
       </div>
 
       {/* Right side - Form */}
       <div className="w-full lg:w-2/3 flex items-center justify-center h-min">
         <div className="w-full ">
           <div className="bg-white rounded-2xl shadow-xl pt-14 pl-14 pr-7 pb-7 ">
-            {currentStep === 1 && (
-              <>
-              <div className='flex justify-start'>
+          <AnimatePresence mode="wait">
+    {currentStep === 1 && (
+      <motion.div
+        key="step1"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -50 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className='flex justify-start'>
                 <h2 className="text-lg font-semibold text-active-text text-center mb-2.5">
                     Create Account
                 </h2>
@@ -349,12 +358,18 @@ const validateStep1 = () => {
                 <span className="text-gray-700 font-medium text-sm">Sign up with Google</span>
               </button>
             </div>
-              </>
-            )}
+      </motion.div>
+    )}
 
-            {currentStep === 2 && (
-              <>
-              <div className='flex justify-start'>
+    {currentStep === 2 && (
+      <motion.div
+        key="step2"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -50 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className='flex justify-start'>
                 <h2 className="text-lg font-semibold text-active-text text-center mb-2.5">
                 Service Details
                 </h2>
@@ -398,26 +413,30 @@ const validateStep1 = () => {
                 </div>
 
                 {/* Navigation buttons */}
-                <div className="flex justify-between mt-4">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2.5 rounded-xs transition-colors duration-200 text-sm"
-                >
-                  Back
-                </button>
-                <button
+                {/* <div className="flex justify-between mt-4"> */}
+                <div className="flex flex-col items-center mt-4 space-y-2">
+                  
+                  <button
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-black hover:bg-active-text text-white font-semibold px-8 py-2.5 rounded-xs transition-colors duration-200 text-sm"
-                >
+                  className="w-max bg-black hover:bg-active-text text-white font-semibold px-18 py-2.5 rounded-xs transition-colors duration-200  cursor-pointer text-sm"
+                  >
                   {isSubmitting ? 'Submitting...' : 'Sign Up'}
-                </button>
+                  </button>
+                  <button
+                  type="button"
+                  onClick={handleBack}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2.5 rounded-xs transition-colors duration-200 text-sm"
+                  >
+                  Back
+                  </button>
                 </div>
+                
               </form>
-              </>
-            )}
+      </motion.div>
+    )}
+  </AnimatePresence>
           </div>
         </div>
       </div>
