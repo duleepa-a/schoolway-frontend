@@ -29,7 +29,7 @@ const TopBar = ({heading} : Props) => { //for future use
           height={50}
           className="topBarImage" />
       </div>
-    </div><hr className='mb-5'/></>
+    </div></>
   );
 };
 
