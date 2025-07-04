@@ -3,11 +3,11 @@ import { FaInstagram, FaTwitter, FaYoutube, FaDribbble } from "react-icons/fa";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#5D5E60] text-white py-30 px-15">
+    <footer className=" bg-swblue text-white py-30 px-15">  {/* bg-[#5D5E60] */}
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Logo and copyright */}
         <div>
-          <Link href="/"> <img src="/logo/Logo_light.svg" className="mb-3" height={150} width={150} alt="" /></Link>
+          <Link href="/"> <img src="/logo/Logo_dark.svg" className="mb-3" height={150} width={150} alt="" /></Link>
           <p className="text-sm mb-2">Copyright © 2025 SchoolWay.<br />All rights reserved</p>
           <div className="flex space-x-3 mt-4">
             <FaInstagram className="text-xl hover:text-primary cursor-pointer" />
@@ -44,13 +44,14 @@ const Footer = () => {
         {/* Newsletter */}
         <div>
           <h3 className="font-semibold text-lg mb-4">Stay up to date</h3>
-          <div className="flex items-center bg-gray-700 rounded px-3 py-2">
+          {/* <div className="flex items-center bg-gray-700 rounded px-3 py-2"> */}
+          <div className="flex items-center bg-swblue-600 border-1 rounded px-3 py-2">
             <input
               type="email"
               placeholder="Your email address"
-              className="bg-transparent outline-none w-full text-sm placeholder-gray-400 text-white"
+              className="bg-transparent outline-none w-full text-sm placeholder-gray-300 text-white"
             />
-            <button className="text-primary hover:text-yellow-300 ml-2">
+            <button className="text-white hover:text-primary ml-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor"
