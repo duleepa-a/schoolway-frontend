@@ -1,17 +1,9 @@
 'use client';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { getSession } from "next-auth/react";
 import Image from 'next/image';
+import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-
-const session = await getSession();
-if (session) {
-  console.log("User is authenticated:", session.user);
-} else {
-  console.log("User is not authenticated");
-}
 
 type Errors = {
   email?: string;
@@ -19,7 +11,8 @@ type Errors = {
   credentials?:String;
 };
 
-const LoginPage = () => {
+
+export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
@@ -27,23 +20,24 @@ const LoginPage = () => {
   });
   const [errors, setErrors] = useState<Errors>({});
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name as keyof Errors]) {
-      setErrors(prev => ({
+  const [showPassword, setShowPassword] = useState(false);
+  
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
         ...prev,
-        [name]: ''
+        [name]: value
       }));
-    }
-  };
-
-  const validateForm = () => {
+      // Clear error when user starts typing
+      if (errors[name as keyof Errors]) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: ''
+        }));
+      }
+    };
+  
+    const validateForm = () => {
     const newErrors :Errors = {};
     
     if (!formData.email.trim()) {
@@ -61,126 +55,128 @@ const LoginPage = () => {
   };
 
   const handleLogin = async () => {
-    
-    if (!validateForm()) {
-      return;
-    }
-    setIsLoading(true);
-    
-    try {
-      // const response = await fetch('/api/login', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(formData),
-      // });
       
-const newErrors :Errors = {};
-console.log(formData);
-
-// await new Promise(resolve => setTimeout(resolve, 3000));
-      const handleSignIn = async (data : {email:String, password:String}) => {
-        
-        const signInData  = await signIn('credentials', {
-          email: data.email,
-          password: data.password,
-          redirect:false,
-        });
-
-        console.log("clicekd2");
-// console.log(signInData);
-// }
-        if(signInData?.status===401){
-          console.log("Error is : ", signInData)
-          // show the credentials are wrong
-          
-          newErrors.credentials = 'Your credentials do not seem to match with ours';
-          setErrors(newErrors);
-        }else{
-          console.log("User Logged in!");
-          
-        // Reset form
-        setFormData({
-          email: '',
-          password: ''
-        });
-
-          router.push("/");
-        }
-      };
-      const signInData_ = await handleSignIn(formData);
+      if (!validateForm()) {
+        return;
+      }
+      setIsLoading(true);
       
-
-
-      // const data = await response.json();
-
-      // if (response.ok) {
-      //   alert('Login successful!');
-        // Store token or user data if needed
-        // localStorage.setItem('token_yo', data.token); // if using JWT
-        // localStorage.setItem('user', JSON.stringify(data.user));
-
-        // Redirect to dashboard or home page
-        // console.log('User logged in:', data.user);
+      try {
         
-
-      // } else {
-      //   alert(`Login failed: ${data.message || 'Invalid credentials'}`);
-      // }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        const newErrors :Errors = {};
+        console.log(formData);
+  
+        const handleSignIn = async (data : {email:String, password:String}) => {
+          
+          const signInData  = await signIn('credentials', {
+            email: data.email,
+            password: data.password,
+            redirect:false,
+          });
+  
+          if(signInData?.status===401){
+            console.log("Error is : ", signInData)            
+            newErrors.credentials = 'Your credentials do not seem to match with ours! Check again?';
+            setErrors(newErrors);
+          }else{
+            console.log("User Logged in!");
+            
+          // Reset form
+          setFormData({
+            email: '',
+            password: ''
+          });
+  
+            router.push("/");
+          }
+        };
+        const signInData_ = await handleSignIn(formData);
+    
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+  
 
   return (
-    <main>
-      <h1>Login</h1>
-      {errors.credentials && <div style={{color: 'red'}}>{errors.credentials}</div>}
-      <div>
-        <label htmlFor="email">Email:</label>
-        <br />
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          required
-        />
-        {errors.email && <div style={{color: 'red'}}>{errors.email}</div>}
-      </div>
-      <br />
+    <div
+      className="bg-left bg-no-repeat bg-cover py-12 justify-items-end"
+      style={{ backgroundImage: 'url("../illustrations/loginBackground.png")' }}
+    >
+      <div className="max-w-md bg-white rounded-xl shadow-xl mr-10 p-10 ">
+          <h2 className="text-2xl font-bold text-center mb-2">Log in to Your Account</h2>
+          <p className="text-gray-500 text-center mb-6">Welcome back! Choose your preferred sign-in method.</p>
+          {errors.credentials && <div style={{color: 'red'}}>{errors.credentials}</div>}
+          <form className="space-y-5">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
+              />
+              {errors.email && <div style={{color: 'red'}}>{errors.email}</div>}
+            </div>
 
-      <div>
-        <label htmlFor="password">Password:</label>
-        <br />
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          required
-        />
-        {errors.password && <div style={{color: 'red'}}>{errors.password}</div>}
-      </div>
-      <br />
+            <div>
+              <label className="text-sm font-medium text-gray-700">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your Password"id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-4 text-gray-500"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && <div style={{color: 'red'}}>{errors.password}</div>}
+            </div>
 
-      <button onClick={handleLogin} disabled={isLoading}>
-        {isLoading ? 'Logging in...' : 'Login'}
-      </button>
-      
-      <br />
-      <br />
-      <div>
-        <a href="/signup">Don't have an account? Sign up here</a>
-      </div>
-    </main>
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" />
+                <span>Remember me for 30 days</span>
+              </label>
+              <a href="#" className="text-blue-500 hover:underline">Forgot password?</a>
+            </div>
+
+            <button onClick={handleLogin} disabled={isLoading} className="form-btn-full-width">
+              {isLoading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+
+          <div className="flex items-center my-6">
+            <hr className="flex-grow border-gray-300" />
+            <span className="px-4 text-sm text-gray-500">or</span>
+            <hr className="flex-grow border-gray-300" />
+          </div>
+
+          <div className="flex justify-center gap-4">
+            <button className="bg-white  rounded-full cursor-pointer">
+              <Image src="/Images/google.svg" alt="Google" width={24} height={24} />
+            </button>
+          </div>
+        </div>
+    </div>
   );
 }
 
-export default LoginPage;
+// export default LoginPage;

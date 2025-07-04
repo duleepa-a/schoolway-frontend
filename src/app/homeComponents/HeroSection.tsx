@@ -71,11 +71,11 @@ export default function HeroSection() {
   const settings = {
     dots: true,
     infinite: true,
-    speed: 600,
+    speed: 1200,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 3300,
     pauseOnHover: true,
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,

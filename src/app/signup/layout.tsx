@@ -1,6 +1,7 @@
 import React , {ReactNode} from 'react'
 import Navbar from '../components/Navbar';
 import Authprovider from "../AuthenticatorComp/provider";
+import Footer from '../components/Footer';
 
  
  interface Props {
@@ -16,6 +17,7 @@ import Authprovider from "../AuthenticatorComp/provider";
         <div>
             {children}
         </div>
+        <Footer/>
      </div>
    )
  }
