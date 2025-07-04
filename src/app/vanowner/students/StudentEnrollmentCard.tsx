@@ -139,22 +139,6 @@ const StudentEnrollmentCard = ({
             <p className="text-xs text-gray-600 pl-6">{request.school}</p>
           </div>
         </div>
-
-        {/* Special Notes */}
-        {/* {request.specialNotes && (
-          <div className="mb-6">
-            <div className="flex items-start space-x-1 mb-2">
-              <MessageSquare className="w-4 h-4 text-orange-600 mt-0.5" />
-              <span className="text-sm font-medium text-gray-700">Special Notes from Parent</span>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-              <p className="text-sm text-gray-700 leading-relaxed">
-                {request.specialNotes}
-              </p>
-            </div>
-          </div>
-        )} */}
-
         {/* Action Buttons */}
         {request.status === 'pending' && (
           <div className="flex space-x-1">

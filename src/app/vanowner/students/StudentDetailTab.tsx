@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { FiEdit2, FiTrash } from 'react-icons/fi';
-import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import EnrolledTable from './EnrolledTable';
 import StudentRequests from './StudentRequests';
 
