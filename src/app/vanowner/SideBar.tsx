@@ -20,7 +20,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-
+  
   return (
     <aside className="w-72 h-screen bg-white flex flex-col ">
 
@@ -35,26 +35,33 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-4 py-10 pl-10">
-        {navItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`flex items-center gap-3 pl-3 pr-13 my-2 transition  no-underline hover:text-active-text
-              ${pathname === item.href ? 'border-r-4 border-primary' : ' '}
+        
+        {navItems.map((item) => {
+
+          const isActive = item.href === '/vanowner' ? pathname === '/vanowner' : pathname.startsWith(item.href);
+
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex items-center gap-3 pl-3 pr-13 my-2 transition no-underline hover:text-active-text
+                ${isActive ? 'border-r-4 border-primary' : ''}
               `}
-          >
+            >
               <span className={`text-lg mr-2
-                ${pathname === item.href ? ' text-primary font-semibold ' : 'text-inactive-text '}        
+                ${isActive ? 'text-primary font-semibold' : 'text-inactive-text'}        
               `}>
                 {item.icon}
               </span>
-              <span className={`
-                ${pathname === item.href ? ' text-lg font-semibold  text-active-text' : 'text-inactive-text'}        
+              <span className={` 
+                ${isActive ? 'text-lg font-semibold text-active-text' : 'text-inactive-text'}        
               `}>
                 {item.label}
               </span>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
+
       </nav>
     </aside>
   );

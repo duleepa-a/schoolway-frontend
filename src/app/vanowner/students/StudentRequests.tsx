@@ -1,4 +1,6 @@
 import StudentEnrollmentCard from "./StudentEnrollmentCard";
+import { FaSearch, FaChevronDown } from 'react-icons/fa';
+import TablePagination from '@/app/components/TablePagination';
 
 const StudentRequests = () => {
   const sampleRequests = [
@@ -71,16 +73,56 @@ const StudentRequests = () => {
   };
 
   return (
-    <div className="flex grid-cols-3 gap-2.5">
-        {sampleRequests.map((request) => (
-            <StudentEnrollmentCard
-                key={request.id}
-                request={request}
-                onAccept={handleAccept}
-                onReject={handleReject}
-                onViewDetails={handleViewDetails}
-            />
-        ))}
+    <div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start  mb-4 gap-4">
+        <div className="relative w-full md:w-1/3">
+          <FaSearch className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search students"
+            className="
+            w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md  bg-search-bar-bg"
+          />
+        </div>
+        <div className="relative w-full md:w-48">
+          <select
+            className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none"
+            defaultValue="Van 1"
+          >
+            <option disabled>Select Van</option>
+            <option>Van 1</option>
+            <option>Van 2</option>
+            <option>Van 3</option>
+          </select>
+          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
+        </div>
+        <div className="relative w-full md:w-48">
+          <select
+            className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none"
+            defaultValue="Van 1"
+          >
+            <option disabled>Student Status</option>
+            <option>All</option>
+            <option>Active</option>
+            <option>Inactive</option>
+          </select>
+          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
+        </div>
+
+        <TablePagination totalPages={5} />
+
+      </div>
+      <div className="flex grid-cols-3 gap-2.5">
+          {sampleRequests.map((request) => (
+              <StudentEnrollmentCard
+                  key={request.id}
+                  request={request}
+                  onAccept={handleAccept}
+                  onReject={handleReject}
+                  onViewDetails={handleViewDetails}
+              />
+          ))}
+      </div>
     </div>
   );
 };

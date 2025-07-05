@@ -1,32 +1,130 @@
 'use client';
-
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Client } from '@neondatabase/serverless';
+
+type Errors = {
+  email?: string;
+  password?: string;
+  credentials?:String;
+};
 
 
-
-export default function Login() {
-  
+export default function LoginPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState<Errors>({});
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      // Clear error when user starts typing
+      if (errors[name as keyof Errors]) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: ''
+        }));
+      }
+    };
+  
+    const validateForm = () => {
+    const newErrors :Errors = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleLogin = async () => {
+      
+      if (!validateForm()) {
+        return;
+      }
+      setIsLoading(true);
+      
+      try {
+        
+        const newErrors :Errors = {};
+        console.log(formData);
+  
+        const handleSignIn = async (data : {email:String, password:String}) => {
+          
+          const signInData  = await signIn('credentials', {
+            email: data.email,
+            password: data.password,
+            redirect:false,
+          });
+  
+          if(signInData?.status===401){
+            console.log("Error is : ", signInData)            
+            newErrors.credentials = 'Your credentials do not seem to match with ours! Check again?';
+            setErrors(newErrors);
+          }else{
+            console.log("User Logged in!");
+            
+          // Reset form
+          setFormData({
+            email: '',
+            password: ''
+          });
+  
+            router.push("/");
+          }
+        };
+        const signInData_ = await handleSignIn(formData);
+    
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+  
 
   return (
-    <div className=" bg-left bg-no-repeat py-12 justify-items-end" 
-          style={{backgroundImage: 'url("./illustrations/loginBackground.png")'}}
+    <div
+      className="bg-left bg-no-repeat bg-cover py-12 justify-items-end"
+      style={{ backgroundImage: 'url("../illustrations/loginBackground.png")' }}
     >
       <div className="max-w-md bg-white rounded-xl shadow-xl mr-10 p-10 ">
           <h2 className="text-2xl font-bold text-center mb-2">Log in to Your Account</h2>
           <p className="text-gray-500 text-center mb-6">Welcome back! Choose your preferred sign-in method.</p>
-
+          {errors.credentials && <div style={{color: 'red'}}>{errors.credentials}</div>}
           <form className="space-y-5">
             <div>
               <label className="text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
                 placeholder="Enter your email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
                 className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
               />
+              {errors.email && <div style={{color: 'red'}}>{errors.email}</div>}
             </div>
 
             <div>
@@ -34,7 +132,11 @@ export default function Login() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your Password"
+                  placeholder="Enter your Password"id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
                   className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
                 />
                 <button
@@ -45,6 +147,7 @@ export default function Login() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {errors.password && <div style={{color: 'red'}}>{errors.password}</div>}
             </div>
 
             <div className="flex items-center justify-between text-sm">
@@ -55,8 +158,8 @@ export default function Login() {
               <a href="#" className="text-blue-500 hover:underline">Forgot password?</a>
             </div>
 
-            <button className="form-btn-full-width">
-              Sign In
+            <button onClick={handleLogin} disabled={isLoading} className="form-btn-full-width">
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
@@ -75,3 +178,5 @@ export default function Login() {
     </div>
   );
 }
+
+// export default LoginPage;
