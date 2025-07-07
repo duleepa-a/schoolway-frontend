@@ -24,27 +24,21 @@ const TopBar = ({heading} : Props) => { //for future use
           <FaBell className="topBarIcon ml-5" />
           <FaMoon className="topBarIcon" />
           
-          {
-          status === "authenticated"
-          && <>
-            <BiLogOut className='topBarIcon text-2xl' 
-                    onClick={() =>
-                              signOut({ callbackUrl: "/" })
-                            }
-            />
-</>}
-            <Image
-              // src="/Images/male_pro_pic_placeholder.png"
-              src={ session?.user?.image ||  "/Images/male_pro_pic_placeholder.png"}
-              alt="Profile"
-              width={50}
-              height={50}
-              className="topBarImage" 
-            />
+          <BiLogOut className='topBarIcon text-2xl' 
+                  onClick={() =>
+                            signOut({ callbackUrl: "/" })
+                          }
+          />
+          <Image
+            // src="/Images/male_pro_pic_placeholder.png"
+            src={ session?.user?.image ||  "/Images/male_pro_pic_placeholder.png"}
+            alt="Profile"
+            width={50}
+            height={50}
+            className="topBarImage" 
+          />
 
-            {/* </>
-          } */}
-        </div>
+          </div>
       </div>
     </>
   );
