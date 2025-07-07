@@ -1,5 +1,7 @@
 'use client';
+
 import { useEffect } from 'react';
+import { useSession,signOut } from 'next-auth/react';
 import { FaBell, FaMoon } from 'react-icons/fa';
 import { BiLogOut } from "react-icons/bi";
 import Image from 'next/image';
@@ -10,9 +12,7 @@ interface Props{
 
 const TopBar = ({heading} : Props) => { //for future use
   
-  useEffect(() => {
-    
-  }, []);
+  const {status, data: session} = useSession();
 
   return (
     <>
@@ -23,13 +23,26 @@ const TopBar = ({heading} : Props) => { //for future use
         <div className="topBarIcons">
           <FaBell className="topBarIcon ml-5" />
           <FaMoon className="topBarIcon" />
-          <BiLogOut className='topBarIcon text-2xl' />
-          <Image
-            src="/Images/male_pro_pic_placeholder.png"
-            alt="Profile"
-            width={50}
-            height={50}
-            className="topBarImage" />
+          
+          {
+          status === "authenticated"
+          && <>
+            <BiLogOut className='topBarIcon text-2xl' 
+                    onClick={() =>
+                              signOut({ callbackUrl: "/" })
+                            }
+            />
+
+            <Image
+              src="/Images/male_pro_pic_placeholder.png"
+              alt="Profile"
+              width={50}
+              height={50}
+              className="topBarImage" 
+            />
+
+            </>
+          }
         </div>
       </div>
     </>

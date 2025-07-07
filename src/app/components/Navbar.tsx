@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useSession,signOut } from 'next-auth/react';
 import Image from 'next/image';
-import { signOut} from 'next-auth/react';
+
 
 export default function Navbar() {
 
@@ -43,7 +43,8 @@ export default function Navbar() {
             <button className="btn-small-primary">
               Sign up
             </button>
-          </Link></>
+          </Link>
+          </>
           }
             {/* <div>
               <pre>{JSON.stringify(session, null, 2)}</pre>
@@ -55,37 +56,33 @@ export default function Navbar() {
           {/* {
           JSON.parse(localStorage.getItem('user') || '{}').serviceName
           } */}
-          <div className="dropdown dropdown-end">
+          <div className="flex justify-center align-middle">
             
-            <div tabIndex={0} role="button" className=" btn-ghost rounded-full">
-              <Image
-                src={ session.user?.image ||  "/illustrations/profile_d2.png"}
-                width={40}
-                height={40}
-                alt="User image"
-                className='rounded-full'
-              />
-            </div>
             <ul
               tabIndex={0}
-              className="menu dropdown-content text-base-200 rounded-box z-1 mt-4 w-52 p-2 shadow-sm">
+              className="flex gap-2 ">
               
               {session.user?.role === "SERVICE" ? (
                 <li>
-                  <Link href="/dashboard">
-                    <button>Visit Dashboard</button>
+                  <Link href="/vanowner" className='no-underline hover:text-primary'>
+                    <button className="cursor-pointer text-gray-700 px-4 py-2 text-sm">Dashboard</button>
                   </Link>
                 </li>
               ) : session.user?.role === "ADMIN" ? (
                 <li>
-                  <Link href="/admin_dashboard">
-                    <button>Visit Dashboard</button>
+                  <Link href="/admin">
+                    <button className='cursor-pointer'>
+                      Dashboard
+                    </button>
                   </Link>
                 </li>
               ) : null}
-              <li ><button onClick={() =>
-                  signOut({ callbackUrl: "/" }) // Redirect to homepage or custom goodbye page
-                }>Sign out</button>
+              <li>
+                <button className='btn-small-primary' onClick={() =>
+                  signOut({ callbackUrl: "/" })  // Redirect to homepage or custom goodbye page
+                }>
+                  Log Out
+                </button>
               </li>
             </ul>
           </div> </>
