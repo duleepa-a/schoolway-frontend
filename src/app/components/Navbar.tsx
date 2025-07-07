@@ -57,6 +57,15 @@ export default function Navbar() {
           JSON.parse(localStorage.getItem('user') || '{}').serviceName
           } */}
           <div className="flex justify-center align-middle">
+             <div tabIndex={0} role="button" className=" btn-ghost rounded-full">
+              <Image
+                src={ session.user?.image ||  "/illustrations/profile_d2.png"}
+                width={40}
+                height={40}
+                alt="User image"
+                className='rounded-full'
+              />
+            </div>
             
             <ul
               tabIndex={0}
