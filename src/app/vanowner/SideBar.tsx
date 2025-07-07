@@ -25,13 +25,15 @@ export default function Sidebar() {
     <aside className="w-72 h-screen bg-white flex flex-col ">
 
       <div className="flex justify-center border-b-border-light-shade border-b-1 p-10 mt-10">
-        <Image
-          src="/logo/Logo_light.svg"
-          alt="Hero Slide"
-          width={120}
-          height={120}
-          className="object-contain"
-        />
+        <Link href="/">
+          <Image
+            src="/logo/Logo_light.svg"
+            alt="Hero Slide"
+            width={120}
+            height={120}
+            className="object-contain"
+          />
+        </Link>
       </div>
 
       <nav className="flex flex-col gap-4 py-10 pl-10">

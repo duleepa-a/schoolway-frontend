@@ -57,36 +57,21 @@ export default function Navbar() {
           JSON.parse(localStorage.getItem('user') || '{}').serviceName
           } */}
           <div className="flex justify-center align-middle">
-            {(session.user?.role === "SERVICE" || session.user?.role === "ADMIN") ? (
-              <Link href={session.user?.role === "SERVICE" ? "/vanowner" : "/admin"}>
-                <div tabIndex={0} role="button" className="btn-ghost rounded-full mr-5"> 
-                  {/* border-2 border-amber-400 class data for DP contrast */}
-                  <Image
-                    src={session.user?.image || "/Images/male_pro_pic_placeholder.png"}
-                    width={40}
-                    height={40}
-                    alt="User image"
-                    className="rounded-full"
-                  />
-                </div>
-              </Link>
-            ) : (
-              <div tabIndex={0} role="button" className="btn-ghost rounded-full">
-                <Image
-                  src={session.user?.image || "/Images/male_pro_pic_placeholder.png"}
-                  width={40}
-                  height={40}
-                  alt="User image"
-                  className="rounded-full"
-                />
-              </div>
-            )}
+             <div tabIndex={0} role="button" className=" btn-ghost rounded-full">
+              <Image
+                src={ session.user?.image ||  "/illustrations/profile_d2.png"}
+                width={40}
+                height={40}
+                alt="User image"
+                className='rounded-full'
+              />
+            </div>
             
             <ul
               tabIndex={0}
               className="flex gap-2 ">
               
-              {/* {session.user?.role === "SERVICE" ? (
+              {session.user?.role === "SERVICE" ? (
                 <li>
                   <Link href="/vanowner" className='no-underline hover:text-primary'>
                     <button className="cursor-pointer text-gray-700 px-4 py-2 text-sm">Dashboard</button>
@@ -100,18 +85,13 @@ export default function Navbar() {
                     </button>
                   </Link>
                 </li>
-              ) : null} */}
+              ) : null}
               <li>
-                <div className="flex items-center h-full">
-                  <button
-                  className="btn-small-primary"
-                  onClick={() =>
-                    signOut({ callbackUrl: "/" })
-                  }
-                  >
+                <button className='btn-small-primary' onClick={() =>
+                  signOut({ callbackUrl: "/" })  // Redirect to homepage or custom goodbye page
+                }>
                   Log Out
-                  </button>
-                </div>
+                </button>
               </li>
             </ul>
           </div> </>
