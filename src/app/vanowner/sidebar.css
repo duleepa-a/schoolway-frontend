@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@layer utilities{
+
+    .sidebar-main-div{
+        @apply w-72 h-screen bg-white flex flex-col;
+    }
+
+    .sidebar-img-div{
+        @apply flex justify-center border-b-border-light-shade border-b-1 p-10 mt-10;
+    }
+
+    .sidebar-nav{
+        @apply flex flex-col gap-4 py-10 pl-10;
+    }
+
+    .sidebar-nav-link{
+        @apply group flex items-center gap-3 pl-3 pr-13 my-2 transition no-underline ;
+    }
+
+    .sidebar-nav-link-active{
+        @apply border-r-4 border-primary ;
+    }
+
+    .sidebar-link-icon{
+        @apply text-lg mr-2 group-hover:text-primary group-hover:font-semibold;
+    }
+
+    .sidebar-link-icon-active{
+        @apply text-primary font-semibold;
+    }
+
+    .sidebar-link-icon-inactive{
+        @apply  text-inactive-text;
+    }
+
+    .sidebar-link-text{
+        @apply group-hover:text-active-text group-hover:font-semibold group-hover:text-lg;
+    }
+
+    .sidebar-link-text-active{
+        @apply text-lg font-semibold text-active-text;
+    }
+
+    .sidebar-link-text-inactive{
+        @apply  text-inactive-text;
+    }
+
+}
+
