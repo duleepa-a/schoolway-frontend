@@ -32,17 +32,18 @@ const TopBar = ({heading} : Props) => { //for future use
                               signOut({ callbackUrl: "/" })
                             }
             />
-
+</>}
             <Image
-              src="/Images/male_pro_pic_placeholder.png"
+              // src="/Images/male_pro_pic_placeholder.png"
+              src={ session?.user?.image ||  "/Images/male_pro_pic_placeholder.png"}
               alt="Profile"
               width={50}
               height={50}
               className="topBarImage" 
             />
 
-            </>
-          }
+            {/* </>
+          } */}
         </div>
       </div>
     </>
