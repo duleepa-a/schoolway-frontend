@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, User, BarChart, CreditCard, RotateCcw, HelpCircle, Award } from 'lucide-react';
+import { Home, User, BarChart, CreditCard, RotateCcw, HelpCircle, Award, School2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -9,6 +9,7 @@ const navItems = [
   { name: 'Dashboard', icon: <Home className="sidebar-icon" />, path: '/admin' },
   { name: 'Users', icon: <User className="sidebar-icon" />, path: '/admin/users' },
   { name: 'Applications', icon: <BarChart className="sidebar-icon" />, path: '/admin/applications' },
+  { name: 'Schools', icon: <School2 className="sidebar-icon" />, path: '/admin/school' },
   { name: 'Payroll', icon: <CreditCard className="sidebar-icon" />, path: '/admin/payroll' },
   { name: 'Payments', icon: <RotateCcw className="sidebar-icon" />, path: '/admin/payments' },
   { name: 'Inquiries', icon: <HelpCircle className="sidebar-icon" />, path: '/admin/inquiries' },
