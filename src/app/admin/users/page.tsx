@@ -4,6 +4,7 @@ import TopBar from '@/app/dashboardComponents/TopBar';
 import SearchFilter from '@/app/dashboardComponents/SearchFilter';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import PopupForm from '@/app/dashboardComponents/PopupForm';
+import ConfirmationBox from '@/app/dashboardComponents/ConfirmationBox';
 import { userData } from '../../../../public/dummy_data/users';
 
 
@@ -22,6 +23,8 @@ const AdminDashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Record<string, string> | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<Record<string, string> | null>(null);
 
   // Define form fields for the edit user popup
   const userFormFields = [
@@ -128,7 +131,23 @@ const AdminDashboard = () => {
   };
 
   const handleDelete = (row: Record<string, string | number | boolean | null | undefined>) => {
-    console.log("Delete clicked:", row);
+    setUserToDelete(row as Record<string, string>);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      console.log("Deleting user:", userToDelete);
+      // Here you would typically call your API to delete the user
+      // For now, we'll just log it
+      setIsDeleteConfirmOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteConfirmOpen(false);
+    setUserToDelete(null);
   };
 
   return (
@@ -176,6 +195,19 @@ const AdminDashboard = () => {
             setIsEditPopupOpen(false);
             setSelectedUser(null);
           }}
+        />
+
+        {/* Delete Confirmation Box */}
+        <ConfirmationBox
+          isOpen={isDeleteConfirmOpen}
+          title="Delete User"
+          confirmationMessage="Are you sure you want to delete this user?"
+          objectName={userToDelete ? `${userToDelete.Name} (${userToDelete.User_ID})` : ''}
+          message="This action will permanently remove the user and all associated data."
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          confirmText="Delete User"
+          cancelText="Cancel"
         />
         </section>
       </div>
