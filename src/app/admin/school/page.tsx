@@ -1,7 +1,6 @@
 'use client';
 import { useState, useMemo } from 'react';
 import TopBar from '@/app/dashboardComponents/TopBar';
-import SearchFilter from '@/app/dashboardComponents/SearchFilter';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { schoolsData } from '../../../../public/dummy_data/schools';
 import { School, Trash2} from 'lucide-react';
