@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import TopBar from '@/app/dashboardComponents/TopBar';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { schoolsData } from '../../../../public/dummy_data/schools';
-import { School, Trash2, Plus } from 'lucide-react';
+import { School, Trash2} from 'lucide-react';
 
 
 
