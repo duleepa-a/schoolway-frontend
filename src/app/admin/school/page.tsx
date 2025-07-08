@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import TopBar from '@/app/dashboardComponents/TopBar';
+import SearchFilter from '@/app/dashboardComponents/SearchFilter';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { schoolsData } from '../../../../public/dummy_data/schools';
 import { School, Trash2} from 'lucide-react';
@@ -11,8 +12,10 @@ const columns = [
   { key: "Name", label: "School Name" },
   { key: "User_ID", label: "School ID" },
   { key: "Email", label: "Email" },
-  { key: "Status", label: "Guardian Name" },
-  { key: "Role", label: "Contact" },
+  { key: "GuardianName", label: "Guardian Name" },
+  { key: "Contact", label: "Contact" },
+  { key: "NumberOfStudents", label: "No. of Students" },
+  { key: "Status", label: "Status" },
 ];
 
 const ManageSchoolsPage = () => {
