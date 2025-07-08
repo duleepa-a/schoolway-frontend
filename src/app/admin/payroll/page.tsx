@@ -4,6 +4,7 @@ import TopBar from '@/app/dashboardComponents/TopBar'
 import SearchFilter from '@/app/dashboardComponents/SearchFilter';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { transactionsData } from '../../../../public/dummy_data/transactions';
+import { Eye, DollarSign } from 'lucide-react';
 
 const columns = [
   { key: "AccountID", label: "Account ID" },
@@ -108,8 +109,20 @@ const PayrollPage = () => {
               columns={columns}
               data={formattedData}
               actions={[
-                { type: "edit", onClick: handleView },
-                { type: "delete", onClick: handleSettle },
+                { 
+                  type: "custom", 
+                  icon: <Eye size={16} />,
+                  label: "View Transaction Details",
+                  className: "text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-100 transition-colors",
+                  onClick: handleView 
+                },
+                { 
+                  type: "custom", 
+                  icon: <DollarSign size={16} />,
+                  label: "Settle Payment",
+                  className: "text-green-600 hover:text-green-900 p-2 rounded-full hover:bg-green-100 transition-colors",
+                  onClick: handleSettle 
+                },
               ]}
             />
           </div>
