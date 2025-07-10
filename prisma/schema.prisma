@@ -15,9 +15,16 @@ model UserProfile {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   lastname   String?
+  nic        String?
+  nic_pic    String?
+  birthDate  DateTime?
+  mobile     String?
+  address    String?
   role       UserRole?
+  activeStatus Boolean     @default(true)
   password   String
   vanService VanService?
+  driverProfile DriverProfile?
 }
 
 model VanService {
@@ -26,6 +33,17 @@ model VanService {
   contactNo        String
   serviceRegNumber String
   businessDocument String?
+  userId           String      @unique
+  user             UserProfile @relation(fields: [userId], references: [id])
+}
+
+model DriverProfile {
+  id               String      @id @default(cuid())
+  licenseId        String
+  licenseExpiry    DateTime
+  licenseFront     String?
+  licenseBack      String?
+  policeReport     String?
   userId           String      @unique
   user             UserProfile @relation(fields: [userId], references: [id])
 }
