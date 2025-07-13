@@ -1,6 +1,8 @@
 import React , {ReactNode} from 'react'
 import Navbar from '../components/Navbar';
- 
+
+import Authprovider from "../AuthenticatorComp/provider";
+
  interface Props {
     children : ReactNode;
  }
@@ -8,7 +10,9 @@ import Navbar from '../components/Navbar';
  const ContactUsLayout = ( {children}:Props) => {
    return (
      <div className='h-screen flex flex-col'>
-        <Navbar/>
+      <Authprovider>
+          <Navbar/>
+      </Authprovider>
         <main className='overflow-y-auto'>
             {children}
         </main>
