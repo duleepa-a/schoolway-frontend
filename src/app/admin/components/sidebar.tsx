@@ -1,43 +1,71 @@
-'use client'
+'use client';
 
-import { Home, User, BarChart, CreditCard, RotateCcw, HelpCircle, Award, School2 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
+
+import { FaUser, FaUserAlt } from 'react-icons/fa';
+import { HiHome } from "react-icons/hi";
+import { FaChartSimple } from "react-icons/fa6";
+import { TbBriefcase2Filled } from "react-icons/tb";
+import { HiRectangleGroup } from "react-icons/hi2";
+import { MdCreditCard, MdOutlinePayments } from "react-icons/md";
+import { RiQuestionAnswerFill } from "react-icons/ri";
+import { GiLaurelsTrophy } from "react-icons/gi";
+import { PiStudentFill } from "react-icons/pi";
 
 const navItems = [
-  { name: 'Dashboard', icon: <Home className="sidebar-icon" />, path: '/admin' },
-  { name: 'Users', icon: <User className="sidebar-icon" />, path: '/admin/users' },
-  { name: 'Applications', icon: <BarChart className="sidebar-icon" />, path: '/admin/applications' },
-  { name: 'Schools', icon: <School2 className="sidebar-icon" />, path: '/admin/school' },
-  { name: 'Payroll', icon: <CreditCard className="sidebar-icon" />, path: '/admin/payroll' },
-  { name: 'Payments', icon: <RotateCcw className="sidebar-icon" />, path: '/admin/payments' },
-  { name: 'Inquiries', icon: <HelpCircle className="sidebar-icon" />, path: '/admin/inquiries' },
-  { name: 'Awareness', icon: <Award className="sidebar-icon" />, path: '/admin/awareness' },
+  { label: 'Dashboard', icon: <HiHome />, href: '/admin' },
+  { label: 'Users', icon: <FaUser />, href: '/admin/users' },
+  { label: 'Applications', icon: <FaChartSimple />, href: '/admin/applications' },
+  { label: 'Schools', icon: <PiStudentFill />, href: '/admin/school' },
+  { label: 'Payroll', icon: <MdCreditCard />, href: '/admin/payroll' },
+  { label: 'Payments', icon: <MdOutlinePayments />, href: '/admin/payments' },
+  { label: 'Inquiries', icon: <RiQuestionAnswerFill />, href: '/admin/inquiries' },
+  { label: 'Awareness', icon: <GiLaurelsTrophy />, href: '/admin/awareness' },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sidebar-container">
-      <div className="sidebar-logo">
-        <Image src="/logo/Logo_light.svg" alt="Logo" width={120} height={60} className="object-contain" />
+    <aside className="w-72 h-screen bg-white flex flex-col">
+      <div className="flex justify-center border-b-border-light-shade border-b-1 p-10 mt-10">
+        <Link href="/">
+          <Image
+            src="/logo/Logo_light.svg"
+            alt="Logo"
+            width={120}
+            height={120}
+            className="object-contain"
+          />
+        </Link>
       </div>
-      <nav className="sidebar-section">
+
+      <nav className="flex flex-col gap-4 py-10 pl-10">
         {navItems.map((item) => {
-          const isActive =
-            item.path === '/admin'
-              ? pathname === '/admin'
-              : pathname === item.path || pathname.startsWith(item.path + '/');
+          const isActive = item.href === '/admin'
+            ? pathname === '/admin'
+            : pathname.startsWith(item.href);
+
           return (
             <Link
-              key={item.name}
-              href={item.path}
-              className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
+              key={item.label}
+              href={item.href}
+              className={`group flex items-center gap-3 pl-3 pr-13 my-2 transition no-underline 
+                ${isActive ? 'border-r-4 border-primary' : ''}
+              `}
             >
-              {item.icon}
-              <span>{item.name}</span>
+              <span className={`text-lg mr-2 group-hover:text-primary group-hover:font-semibold 
+                ${isActive ? 'text-primary font-semibold' : 'text-inactive-text'}        
+              `}>
+                {item.icon}
+              </span>
+              <span className={` group-hover:text-active-text group-hover:font-semibold group-hover:text-lg
+                ${isActive ? 'text-lg font-semibold text-active-text' : 'text-inactive-text'}        
+              `}>
+                {item.label}
+              </span>
             </Link>
           );
         })}

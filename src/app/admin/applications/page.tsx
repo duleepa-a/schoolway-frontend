@@ -4,7 +4,6 @@ import React, { useState } from 'react'
 import StatCard from '@/app/dashboardComponents/StatCard'
 import ApplicationTable from '@/app/dashboardComponents/ApplicationTable'
 import DriverOverviewChart from '@/app/dashboardComponents/DriverOverviewChart'
-import ActivityFeed from '@/app/dashboardComponents/ActivityFeed'
 import DriverRatingChart from '@/app/dashboardComponents/DriverRatingChart'
 import ReviewApplication from '@/app/dashboardComponents/ReviewApplication'
 import { applicationsData } from '../../../../public/dummy_data/applications'
@@ -141,9 +140,7 @@ const Applications = () => {
               />
             </div>
           </div>
-        </div>        <div className="row-span-2 dashboard-section-card">
-          <ActivityFeed />
-        </div>
+        </div>        
 
         {/* Review Application Popup */}
         {selectedApplication && (
@@ -163,3 +160,4 @@ const Applications = () => {
 }
 
 export default Applications
+
