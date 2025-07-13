@@ -16,7 +16,7 @@ const TopBar = ({heading} : Props) => { //for future use
 
   return (
     <>
-      <div className="topBarWrapper">
+      <div className="topBarWrapper sticky top-0 z-10 bg-[#F4F7FE]">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 mb-6">{heading}</h2>
         </div>
