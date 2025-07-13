@@ -79,16 +79,25 @@ export default function LoginPage() {
             newErrors.credentials = 'Your credentials do not seem to match with ours! Check again?';
             setErrors(newErrors);
           }else{
-            console.log("User Logged in!");
+
+            const session = await fetch('/api/auth/session').then(res => res.json());
+            const userRole = session?.user?.role;
             
-          // Reset form
-          setFormData({
-            email: '',
-            password: ''
-          });
-  
-            router.push("/");
-          }
+            if (userRole === 'ADMIN') {
+              router.push('/admin');
+            } else if (userRole === 'SERVICE') {
+              router.push('/vanowner');
+            } else if (userRole === 'PARENT') {
+              router.push('/parent');
+            } else {
+              router.push('/'); 
+            }
+            
+            setFormData({
+              email: '',
+              password: ''
+            });             
+        }    
         };
         const signInData_ = await handleSignIn(formData);
     
@@ -179,4 +188,3 @@ export default function LoginPage() {
   );
 }
 
-// export default LoginPage;

@@ -4,6 +4,7 @@ import TopBar from '@/app/dashboardComponents/TopBar';
 import SearchFilter from '@/app/dashboardComponents/SearchFilter';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { userData } from '../../../../public/dummy_data/users';
+import { UserPen, UserX } from 'lucide-react';
 
 
 
@@ -82,8 +83,20 @@ const AdminDashboard = () => {
           columns={columns}
           data={filteredData}
           actions={[
-          { type: "edit", onClick: handleEdit },
-          { type: "delete", onClick: handleDelete },
+          { 
+            type: "custom", 
+            icon: <UserPen size={16} />,
+            label: "Edit User",
+            className: "text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-100 transition-colors",
+            onClick: handleEdit 
+          },
+          { 
+            type: "custom", 
+            icon: <UserX size={16} />,
+            label: "Delete User",
+            className: "text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-100 transition-colors",
+            onClick: handleDelete 
+          },
           ]}
         />
         </div>
