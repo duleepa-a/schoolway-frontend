@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import TopBar from '@/app/dashboardComponents/TopBar';
-import DataTable from '@/app/dashboardComponents/CustomTableEnh';
+import DataTable from '@/app/dashboardComponents/CustomTable';
 import { paymentsData } from '../../../../public/dummy_data/paymentsData';
 import {MdDeleteSweep} from  'react-icons/md';
 import { FileText } from 'lucide-react';
@@ -163,7 +163,12 @@ const Payments = () => {
           <DataTable
             columns={columns}
             data={filteredData}
-            actions={[{ title: 'view', icon:<FileText className= "ml-5"size={16} color='blue' /> , onClick: handleView }]}
+            actions={[{ 
+                      type: "custom", 
+                      icon:<FileText className= "ml-5"size={16} color='blue' />,
+                      label: "View Payment",
+                      onClick: handleView},
+                      ]}
           />
         </div>
       </section>

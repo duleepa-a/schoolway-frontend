@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import TopBar from '@/app/dashboardComponents/TopBar';
 import SearchFilter from '@/app/dashboardComponents/SearchFilter';
-import DataTable from '@/app/dashboardComponents/CustomTableEnh';
+import DataTable from '@/app/dashboardComponents/CustomTable';
 import { inquiriesData } from '../../../../public/dummy_data/inquiriesData.tsx';
 import { FileText,FileCheck } from 'lucide-react';
 
@@ -87,9 +87,18 @@ const InquiriesPage = () => {
             columns={columns}
             data={filteredData}
             actions={[
-            { title: 'view', icon:<FileText size={16} color='blue'/> , onClick: handleView },
-            { title: 'resolve', icon:<FileCheck size={16} color='green'/> , onClick: handleView },
-            
+              { 
+                      type: "custom", 
+                      icon: <FileText size={16} color='blue'/>,
+                      label: "View Inquiry",
+                      onClick: handleView
+                 },
+              { 
+                      type: "custom", 
+                      icon: <FileCheck size={16} color='green'/> ,
+                      label: "Resolve",
+                      onClick: handleResolve 
+                    },          
              
             ]}
           />
