@@ -25,6 +25,8 @@ model UserProfile {
   password   String
   vanService VanService?
   driverProfile DriverProfile?
+
+  vans          Van[]
 }
 
 model VanService {
@@ -46,6 +48,28 @@ model DriverProfile {
   policeReport     String?
   userId           String      @unique
   user             UserProfile @relation(fields: [userId], references: [id])
+}
+
+model Van {
+  id                       Int      @id @default(autoincrement())
+  registrationNumber       String   @unique
+  licensePlateNumber       String 
+  makeAndModel             String
+  seatingCapacity          Int
+  acCondition              Boolean     
+
+  routeStart               String?
+  routeEnd                 String?
+
+  rBookUrl                 String   
+  revenueLicenseUrl        String
+  fitnessCertificateUrl    String
+  insuranceCertificateUrl  String
+  photoUrl                 String
+   
+  createdAt                DateTime @default(now())
+  ownerId                  String
+  user                     UserProfile @relation(fields: [ownerId], references: [id])
 }
 
 enum UserRole {

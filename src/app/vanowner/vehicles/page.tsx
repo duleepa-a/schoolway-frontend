@@ -6,68 +6,135 @@ import VehicleCard from './VehicleCard';
 import TopBar from '@/app/dashboardComponents/TopBar';
 import FormInput from '@/app/components/FormInput';
 import { MdOutlineClose } from "react-icons/md";
-import FormDateInput from '@/app/components/FormDateInput';
 import TablePagination from '@/app/components/TablePagination';
+
+interface VanFormProps {
+  showForm: boolean;
+  handleCloseForm: () => void;
+}
+
+interface FormData {
+  registrationNumber: string;
+  licensePlateNumber: string;
+  makeAndModel: string;
+  seatingCapacity: string;
+  acCondition: string;
+  routeStart: string;
+  routeEnd: string;
+}
+
+interface FileData {
+  rBook: File | null;
+  revenueLicense: File | null;
+  fitnessCertificate: File | null;
+  insuranceCertificate: File | null;
+  vanPhoto: File | null;
+}
+
 
 
 const VehiclesPage = () => {
 
-  const [formData, setFormData] = useState({
-    model: '',
-    seats: '',
-    ac: '',
-    license: '',
-    fuel: '',
-    expireDate: '',
-    image: null as File | null
+ const [formData, setFormData] = useState<FormData>({
+    registrationNumber: '',
+    licensePlateNumber: '',
+    makeAndModel: '',
+    seatingCapacity: '',
+    acCondition: '',
+    routeStart: '',
+    routeEnd: '',
   });
 
-  const [errors, setErrors] = useState<any>({});
+  const [files, setFiles] = useState<FileData>({
+    rBook: null,
+    revenueLicense: null,
+    fitnessCertificate: null,
+    insuranceCertificate: null,
+    vanPhoto: null,
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-   
+    const { name, files: selectedFiles } = e.target;
+    if (selectedFiles && selectedFiles[0]) {
+      setFiles((prev) => ({ ...prev, [name]: selectedFiles[0] }));
+    }
   };
 
-  const validateForm = () => {
-    const newErrors: any = {};
-    if (!formData.model.trim()) newErrors.model = 'Model is required';
-    if (!formData.seats) newErrors.seats = 'Seating capacity is required';
-    if (!formData.ac) newErrors.ac = 'Select A/C condition';
-    if (!formData.license.trim()) newErrors.license = 'License plate required';
-    if (!formData.fuel.trim()) newErrors.fuel = 'Fuel type required';
-    if (!formData.image) newErrors.image = 'Vehicle image required';
+  const toBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+    });
+  };
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.registrationNumber) newErrors.registrationNumber = 'Required';
+    if (!formData.licensePlateNumber) newErrors.licensePlateNumber = 'Required';
+    if (!formData.makeAndModel) newErrors.makeAndModel = 'Required';
+    if (!formData.seatingCapacity) newErrors.seatingCapacity = 'Required';
+    if (!formData.acCondition) newErrors.acCondition = 'Required';
+    if (!files.rBook) newErrors.rBook = 'Required';
+    if (!files.revenueLicense) newErrors.revenueLicense = 'Required';
+    if (!files.fitnessCertificate) newErrors.fitnessCertificate = 'Required';
+    if (!files.insuranceCertificate) newErrors.insuranceCertificate = 'Required';
+    if (!files.vanPhoto) newErrors.vanPhoto = 'Required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log('Submitting:', formData);
-      // handle actual submit logic here (e.g., API call)
-      setShowForm(false);
-      setFormData({
-        model: '',
-        seats: '',
-        ac: '',
-        license: '',
-        fuel: '',
-        expireDate: '',
-        image: null
+    if (!validate()) return;
+
+    try {
+      const uploads = await Promise.all([
+        toBase64(files.rBook!),
+        toBase64(files.revenueLicense!),
+        toBase64(files.fitnessCertificate!),
+        toBase64(files.insuranceCertificate!),
+        toBase64(files.vanPhoto!),
+      ]);
+
+      const payload = {
+        ...formData,
+        seatingCapacity: parseInt(formData.seatingCapacity),
+        acCondition: formData.acCondition === 'A/C',
+        rBookBase64: uploads[0],
+        revenueLicenseBase64: uploads[1],
+        fitnessCertificateBase64: uploads[2],
+        insuranceCertificateBase64: uploads[3],
+        photoBase64: uploads[4],
+      };
+
+      const response = await fetch('/api/vans/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
+
+      if (response.ok) {
+        alert('Vehicle added successfully');
+        handleCloseForm();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to add vehicle');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to add vehicle');
     }
   };
+
 
 
   const [showForm, setShowForm] = useState(false);
@@ -128,159 +195,74 @@ const VehiclesPage = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 relative">
-            {/* Close Button */}
-            <button
-              onClick={handleCloseForm}
-              className="absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
-            >
-              <MdOutlineClose className='hover:text-error-color'/>
-            </button>
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 relative">
+          <button
+            onClick={handleCloseForm}
+            className="absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
+          >
+            <MdOutlineClose />
+          </button>
 
-            {/* Heading */}
-            <h2 className="text-xl font-semibold text-active-text mb-6">Add New Vehicle</h2>
+          <h2 className="text-xl font-semibold text-active-text mb-6">Add New Vehicle</h2>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit}>
-              {/* Row 1: Image Upload + Model */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput
-                  label="Vehicle Model"
-                  name="model"
-                  placeholder="e.g. Toyota HIACE Spec 10"
-                  value={formData.model}
-                  onChange={handleInputChange}
-                  error={errors.model}
-                />
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput label="Registration Number" name="registrationNumber" value={formData.registrationNumber} onChange={handleInputChange} placeholder="WP-XXXX" error={errors.registrationNumber} />
+              <FormInput label="License Plate Number" name="licensePlateNumber" value={formData.licensePlateNumber} onChange={handleInputChange} placeholder="ABC-1234" error={errors.licensePlateNumber} />
+            </div>
 
-                <div>
-                  <label className="block mb-1 font-medium">Vehicle Image</label>
-                  <input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  />
-                  {errors.image && (
-                    <p className="text-red-500 text-sm mt-1">{errors.image}</p>
-                  )}
-                </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <FormInput label="Make & Model" name="makeAndModel" value={formData.makeAndModel} onChange={handleInputChange} placeholder="e.g. Toyota HiAce 2015" error={errors.makeAndModel} />
+              <FormInput label="Seating Capacity" name="seatingCapacity" type="number" value={formData.seatingCapacity} onChange={handleInputChange} placeholder="15" error={errors.seatingCapacity} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <FormInput label="Route Start" name="routeStart" value={formData.routeStart} onChange={handleInputChange} placeholder="Start location" error={errors.routeStart} />
+              <FormInput label="Route End" name="routeEnd" value={formData.routeEnd} onChange={handleInputChange} placeholder="End location" error={errors.routeEnd} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block mb-1 font-medium">R Book</label>
+                <input type="file" name="rBook" onChange={handleFileChange} className="w-full border rounded px-3 py-2" />
               </div>
-
-              {/* Row 2: Seats + A/C */}
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <FormInput
-                  label="Seating Capacity"
-                  name="seats"
-                  type="number"
-                  placeholder="e.g. 15"
-                  value={formData.seats}
-                  onChange={handleInputChange}
-                  error={errors.seats}
-                />
-
-                <div>
-                  <label className="block mb-1 font-medium">A/C Condition</label>
-                  <select
-                    name="ac"
-                    value={formData.ac}
-                    onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2"
-                  >
-                    <option value="">Select</option>
-                    <option value="A/C">A/C</option>
-                    <option value="Non A/C">Non A/C</option>
-                  </select>
-                  {errors.ac && (
-                    <p className="text-red-500 text-sm mt-1">{errors.ac}</p>
-                  )}
-                </div>
+              <div>
+                <label className="block mb-1 font-medium">Revenue License</label>
+                <input type="file" name="revenueLicense" onChange={handleFileChange} className="w-full border rounded px-3 py-2" />
               </div>
-
-              {/* Row 3: License + Fuel */}
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <FormInput
-                  label="License Plate"
-                  name="license"
-                  placeholder="e.g. ABC-1234"
-                  value={formData.license}
-                  onChange={handleInputChange}
-                  error={errors.license}
-                />
-
-                <FormInput
-                  label="Fuel Type"
-                  name="fuel"
-                  placeholder="e.g. Petrol"
-                  value={formData.fuel}
-                  onChange={handleInputChange}
-                  error={errors.fuel}
-                />
+              <div>
+                <label className="block mb-1 font-medium">Fitness Certificate</label>
+                <input type="file" name="fitnessCertificate" onChange={handleFileChange} className="w-full border rounded px-3 py-2" />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-1 font-medium">License Documents</label>
-                  <input
-                    type="file"
-                    name="license documents"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  />
-                  {errors.image && (
-                    <p className="text-red-500 text-sm mt-1">{errors.image}</p>
-                  )}
-                </div>
-
-                <FormDateInput
-                  label="License Expire Date"
-                  name="expireDate"
-                  value={formData.expireDate}
-                  onChange={handleInputChange}
-                  error={errors.registrationDate}
-                />
+              <div>
+                <label className="block mb-1 font-medium">Insurance Certificate</label>
+                <input type="file" name="insuranceCertificate" onChange={handleFileChange} className="w-full border rounded px-3 py-2" />
               </div>
-                  
-              <h1 className='my-4'>
-                Add Initial Route Information
-              </h1>
-
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <FormInput
-                  label="Start Place"
-                  name="startPlace"
-                  placeholder="State the area that the route starts.."
-                  value={formData.license}
-                  onChange={handleInputChange}
-                  error={errors.license}
-                />
-
-                <FormInput
-                  label="End Place"
-                  name="endPlace"
-                  placeholder="State the area that the route ends.."
-                  value={formData.fuel}
-                  onChange={handleInputChange}
-                  error={errors.fuel}
-                />
+              <div>
+                <label className="block mb-1 font-medium">Van Photo (front + side)</label>
+                <input type="file" name="vanPhoto" onChange={handleFileChange} className="w-full border rounded px-3 py-2" />
               </div>
-            
-              {/* Submit */}
-              <div className="w-full flex justify-center mt-6">
-                <button
-                  type="submit"
-                  className="btn-secondary px-8 py-2"
-                >
-                  Save Vehicle
-                </button>
+              <div>
+                <label className="block mb-1 font-medium">A/C Condition</label>
+              <select name="acCondition" value={formData.acCondition} onChange={handleInputChange} className="w-full border rounded px-3 py-2">
+                <option value="">Select</option>
+                <option value="A/C">A/C</option>
+                <option value="Non A/C">Non A/C</option>
+              </select>
+              {errors.acCondition && <p className="text-red-500 text-sm mt-1">{errors.acCondition}</p>}
               </div>
-            </form>
-          </div>
+            </div>
+
+            <div className="w-full flex justify-center mt-6">
+              <button type="submit" className="btn-secondary px-8 py-2">
+                Save Vehicle
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </div>
+    )}
 
     </section>
   );
