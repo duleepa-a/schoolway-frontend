@@ -76,6 +76,7 @@ const authOptions:NextAuthOptions = {
                 return {
                     ...token,
                     role:user.role,
+                    id: user.id,
                     // servicename:user.servicename,
                 }
             }
@@ -87,6 +88,7 @@ const authOptions:NextAuthOptions = {
                 user:{
                     ...session.user,
                     role:token.role,
+                    id: token.id, 
                     // servicename:token.servicename,
                 }
             }

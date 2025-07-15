@@ -7,6 +7,9 @@ import TopBar from '@/app/dashboardComponents/TopBar';
 import FormInput from '@/app/components/FormInput';
 import { MdOutlineClose } from "react-icons/md";
 import TablePagination from '@/app/components/TablePagination';
+import { useSession,signOut } from 'next-auth/react';
+import { useEffect } from 'react';
+
 
 interface VanFormProps {
   showForm: boolean;
@@ -21,6 +24,7 @@ interface FormData {
   acCondition: string;
   routeStart: string;
   routeEnd: string;
+  ownerId: string;
 }
 
 interface FileData {
@@ -35,7 +39,10 @@ interface FileData {
 
 const VehiclesPage = () => {
 
- const [formData, setFormData] = useState<FormData>({
+  const {status, data: session} = useSession();
+
+
+  const [formData, setFormData] = useState<FormData>({
     registrationNumber: '',
     licensePlateNumber: '',
     makeAndModel: '',
@@ -43,7 +50,19 @@ const VehiclesPage = () => {
     acCondition: '',
     routeStart: '',
     routeEnd: '',
+    ownerId:'',
   });
+
+  useEffect(() => {
+      if (session?.user?.id) {
+        setFormData((prev) => ({
+          ...prev,
+          ownerId: session.user.id, // 👈 Set ownerId from session
+        }));
+      }
+
+      console.log("SESSION:", session);
+  }, [session])
 
   const [files, setFiles] = useState<FileData>({
     rBook: null,
@@ -116,7 +135,7 @@ const VehiclesPage = () => {
         photoBase64: uploads[4],
       };
 
-      const response = await fetch('/api/vans/create', {
+      const response = await fetch('/api/vans/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -204,7 +223,10 @@ const VehiclesPage = () => {
             <MdOutlineClose />
           </button>
 
-          <h2 className="text-xl font-semibold text-active-text mb-6">Add New Vehicle</h2>
+          <h2 className="text-xl font-semibold text-active-text mb-6">Add New Vehicle </h2>
+          <p className="text-sm text-gray-600 mb-2">
+            Logged in as: {session?.user?.name} (ID: {session?.user?.id})
+          </p>
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
@@ -221,6 +243,8 @@ const VehiclesPage = () => {
               <FormInput label="Route Start" name="routeStart" value={formData.routeStart} onChange={handleInputChange} placeholder="Start location" error={errors.routeStart} />
               <FormInput label="Route End" name="routeEnd" value={formData.routeEnd} onChange={handleInputChange} placeholder="End location" error={errors.routeEnd} />
             </div>
+
+            <input type="hidden" name="ownerId" value={formData.ownerId}/>
 
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div>

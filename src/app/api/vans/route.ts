@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       fitnessCertificateBase64,
       insuranceCertificateBase64,
       photoBase64,
+      ownerId,
     } = body;
 
     if (
@@ -40,9 +41,9 @@ export async function POST(req: NextRequest) {
 
     const newVan = await prisma.van.create({
       data: {
-        registrationNumber,
-        licensePlateNumber,
-        makeAndModel,
+        registrationNumber : registrationNumber,
+        licensePlateNumber : licensePlateNumber,
+        makeAndModel : makeAndModel,
         seatingCapacity: parseInt(seatingCapacity),
         acCondition: Boolean(acCondition),
         routeStart: routeStart || null,
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
         fitnessCertificateUrl: uploads[2].secure_url,
         insuranceCertificateUrl: uploads[3].secure_url,
         photoUrl: uploads[4].secure_url,
+        ownerId: ownerId
       },
     });
 
