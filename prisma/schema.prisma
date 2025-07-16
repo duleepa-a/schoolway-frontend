@@ -9,22 +9,25 @@ datasource db {
 }
 
 model UserProfile {
-  id         String      @id @default(cuid())
-  email      String      @unique
-  firstname  String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  lastname   String?
-  nic        String?
-  nic_pic    String?
-  birthDate  DateTime?
-  mobile     String?
-  address    String?
-  role       UserRole?
-  activeStatus Boolean     @default(true)
-  password   String
-  vanService VanService?
+  id            String         @id @default(cuid())
+  email         String         @unique
+  firstname     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  lastname      String?
+  dp            String?  @default("/Images/male_pro_pic_placeholder.png")
+  role          UserRole?
+  password      String
+  activeStatus  Boolean        @default(true)
+  address       String?
+  district      String?
+  birthDate     DateTime?
+  mobile        String?
+  nic           String?
+  nic_pic       String?
   driverProfile DriverProfile?
+  Van           Van[]
+  vanService    VanService?
 }
 
 model VanService {
@@ -38,14 +41,36 @@ model VanService {
 }
 
 model DriverProfile {
-  id               String      @id @default(cuid())
-  licenseId        String
-  licenseExpiry    DateTime
-  licenseFront     String?
-  licenseBack      String?
-  policeReport     String?
-  userId           String      @unique
-  user             UserProfile @relation(fields: [userId], references: [id])
+  id            String      @id @default(cuid())
+  licenseId     String
+  licenseExpiry DateTime
+  licenseFront  String?
+  licenseBack   String?
+  policeReport  String?
+  rating        Float       @default(0)
+  ratingCount   Int         @default(0)
+  startedDriving DateTime? @default(now())
+  userId        String      @unique
+  user          UserProfile @relation(fields: [userId], references: [id])
+}
+
+model Van {
+  id                      Int         @id @default(autoincrement())
+  registrationNumber      String      @unique
+  licensePlateNumber      String
+  makeAndModel            String
+  seatingCapacity         Int
+  acCondition             Boolean
+  routeStart              String?
+  routeEnd                String?
+  rBookUrl                String
+  revenueLicenseUrl       String
+  fitnessCertificateUrl   String
+  insuranceCertificateUrl String
+  photoUrl                String
+  createdAt               DateTime    @default(now())
+  ownerId                 String
+  UserProfile             UserProfile @relation(fields: [ownerId], references: [id])
 }
 
 enum UserRole {

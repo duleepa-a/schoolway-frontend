@@ -146,6 +146,8 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    console.log('User profile created:', userdata);
+    
     if (textFields.role === 'DRIVER') {
       const driverData: any = {
         userId: userdata.id,

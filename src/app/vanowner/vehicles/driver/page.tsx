@@ -7,7 +7,7 @@ const AssignDriverPage = () => {
 
     return (
         <section className="p-6 md:p-10 min-h-screen w-full">
-            <TopBar heading='Assign Driver'/>
+            <TopBar heading='Find a Driver'/>
             <AssignDriver/>
         </section>
     )
