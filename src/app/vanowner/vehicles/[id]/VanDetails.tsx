@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 
 interface Van {
@@ -117,7 +118,9 @@ const VanDetails = ({ van }: { van: Van }) => {
                 <div className=" my-6">
                   <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
                   <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
-                  <button className="btn-small-primary">Assign Driver</button>
+                  <Link href="/vanowner/vehicles/driver">
+                    <button className="btn-small-primary">Assign Driver</button>
+                  </Link>
                 </div>
             ) } 
             </div>
