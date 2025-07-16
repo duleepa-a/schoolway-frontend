@@ -37,6 +37,18 @@
   /* custom breakpoints */
   --breakpoint-xsbreak: 320px; /* xsbreak:text-xs (here xs is 16px standard tailwind font side) for mobile responsive styles*/
 
+  /* status tags */
+  --color-statusorange : #ffa500;
+  --color-statusbackgroundorange : #fff3e0;
+  --color-statusblue : #2195f3;
+  --color-statusbackgroundblue : #e8f5e8; 
+  --color-statusgreen : #4caf50; 
+  --color-statusbackgroundgreen :  #e8f5e8;
+  --color-statusgrey : #757575;
+  --color-statusbackgroundgrey : #f5f5f5;
+  --color-statusred: "#f44336";               
+  --color-statusbackgroundred: #ffebee;
+
 }
 
   /* layer based custom styling => global style */

@@ -70,6 +70,7 @@ model Van {
   createdAt                DateTime @default(now())
   ownerId                  String
   user                     UserProfile @relation(fields: [ownerId], references: [id])
+  haveDriver Boolean       @default(false)
 }
 
 enum UserRole {
