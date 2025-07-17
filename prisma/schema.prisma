@@ -9,24 +9,25 @@ datasource db {
 }
 
 model UserProfile {
-  id         String      @id @default(cuid())
-  email      String      @unique
-  firstname  String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  lastname   String?
-  nic        String?
-  nic_pic    String?
-  birthDate  DateTime?
-  mobile     String?
-  address    String?
-  role       UserRole?
-  activeStatus Boolean     @default(true)
-  password   String
-  vanService VanService?
+  id            String         @id @default(cuid())
+  email         String         @unique
+  firstname     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  lastname      String?
+  role          UserRole?
+  password      String
+  activeStatus  Boolean        @default(true)
+  address       String?
+  birthDate     DateTime?
+  mobile        String?
+  nic           String?
+  nic_pic       String?
+  district      String?
+  dp            String?        @default("/Images/male_pro_pic_placeholder.png")
   driverProfile DriverProfile?
-
   vans          Van[]
+  vanService    VanService?
 }
 
 model VanService {
@@ -40,36 +41,48 @@ model VanService {
 }
 
 model DriverProfile {
-  id               String      @id @default(cuid())
-  licenseId        String
-  licenseExpiry    DateTime
-  licenseFront     String?
-  licenseBack      String?
-  policeReport     String?
-  userId           String      @unique
-  user             UserProfile @relation(fields: [userId], references: [id])
+  id             String      @id @default(cuid())
+  licenseId      String
+  licenseExpiry  DateTime
+  licenseFront   String?
+  licenseBack    String?
+  policeReport   String?
+  userId         String      @unique
+  rating         Float       @default(0)
+  ratingCount    Int         @default(0)
+  startedDriving DateTime?   @default(now())
+  user           UserProfile @relation(fields: [userId], references: [id])
 }
 
 model Van {
-  id                       Int      @id @default(autoincrement())
-  registrationNumber       String   @unique
-  licensePlateNumber       String 
-  makeAndModel             String
-  seatingCapacity          Int
-  acCondition              Boolean     
+  id                      Int         @id @default(autoincrement())
+  registrationNumber      String      @unique
+  licensePlateNumber      String
+  makeAndModel            String
+  seatingCapacity         Int
+  acCondition             Boolean
+  routeStart              String?
+  routeEnd                String?
+  rBookUrl                String
+  revenueLicenseUrl       String
+  fitnessCertificateUrl   String
+  insuranceCertificateUrl String
+  photoUrl                String
+  createdAt               DateTime    @default(now())
+  ownerId                 String
+  haveDriver              Boolean     @default(false)
+  user                    UserProfile @relation(fields: [ownerId], references: [id])
+}
 
-  routeStart               String?
-  routeEnd                 String?
-
-  rBookUrl                 String   
-  revenueLicenseUrl        String
-  fitnessCertificateUrl    String
-  insuranceCertificateUrl  String
-  photoUrl                 String
-   
-  createdAt                DateTime @default(now())
-  ownerId                  String
-  user                     UserProfile @relation(fields: [ownerId], references: [id])
+model ContactUs {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  userType  String
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
 }
 
 enum UserRole {
