@@ -1,31 +1,24 @@
 'use client';
 
 import Image from 'next/image';
-import React from 'react';
-import { FaDownload, FaArrowLeft, FaStar } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaArrowLeft, FaStar } from 'react-icons/fa';
+import { CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { DriverDetails as DriverDetailsType, DriverDetailsResponse } from '@/types/driverDetails';
 
-const DriverDetails = () => {
+interface DriverDetailsProps {
+  driverId: string;
+}
+
+const DriverDetails = ({ driverId }: DriverDetailsProps) => {
     const router = useRouter();
+    const [driver, setDriver] = useState<DriverDetailsType | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Sample driver data - you can replace this with props or API data
-    const driver = {
-        id: 'D001',
-        name: 'Duleepa Edirisinghe',
-        profilePic: '/Images/male_pro_pic_placeholder.png',
-        address: '123 Main Street, Colombo 07, Sri Lanka',
-        contactNumber: '+94 77 123 4567',
-        nic: '199012345678',
-        licenseNumber: 'DL-2019-123456',
-        licenseExpiryDate: 'March 15, 2026',
-        experience: '6 years',
-        rating: 4.8,
-        totalReviews: 45,
-        documents: {
-            driverLicense: '/documents/driver_license_D001.pdf',
-            policeReport: '/documents/police_report_D001.pdf',
-            medicalReport: '/documents/medical_report_D001.pdf'
-        },
+    // Mock data for fields not in database
+    const mockData = {
         pastExperience: [
             {
                 company: 'Lanka Transport Services',
@@ -62,20 +55,45 @@ const DriverDetails = () => {
         ]
     };
 
-    const handleDownload = (documentType: string, filePath: string) => {
-        // Handle document download logic here
-        console.log(`Downloading ${documentType} from ${filePath}`);
-        // You can implement actual download functionality here
-    };
+    useEffect(() => {
+        const fetchDriverDetails = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const response = await fetch(`/api/van_service/drivers/${driverId}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Driver not found');
+                    }
+                    throw new Error('Failed to fetch driver details');
+                }
+                
+                const data: DriverDetailsResponse = await response.json();
+                setDriver(data.driver);
+            } catch (error) {
+                console.error('Error fetching driver details:', error);
+                setError(error instanceof Error ? error.message : 'Failed to load driver details');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (driverId) {
+            fetchDriverDetails();
+        }
+    }, [driverId]);
 
     const handleBackClick = () => {
         router.back();
     };
 
     const handleAssignDriver = () => {
-        // Handle driver assignment logic here
-        console.log(`Assigning driver ${driver.name} (ID: ${driver.id})`);
-        // You can implement actual assignment functionality here
+        if (driver) {
+            console.log(`Assigning driver ${driver.name} (ID: ${driver.id})`);
+            // You can implement actual assignment functionality here
+        }
     };
 
     const renderStars = (rating: number) => {
@@ -83,6 +101,43 @@ const DriverDetails = () => {
             <FaStar key={index} className={index < Math.floor(rating) ? 'text-yellow-500' : 'text-gray-300'} />
         ));
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[400px]">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-gray-500 mt-2 ml-4">Loading driver details...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-8">
+                <p className="text-red-500 mb-4">{error}</p>
+                <button 
+                    onClick={handleBackClick}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                >
+                    Go Back
+                </button>
+            </div>
+        );
+    }
+
+    if (!driver) {
+        return (
+            <div className="text-center py-8">
+                <p className="text-gray-500">Driver not found</p>
+                <button 
+                    onClick={handleBackClick}
+                    className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                >
+                    Go Back
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -116,8 +171,8 @@ const DriverDetails = () => {
                                     {renderStars(driver.rating)}
                                 </div>
                                 <span className="text-gray-600">
-                    {driver.rating} ({driver.totalReviews} reviews)
-                  </span>
+                                    {driver.rating} ({driver.totalReviews} reviews)
+                                </span>
                             </div>
                             <p className="text-gray-600 mb-2">Experience: {driver.experience}</p>
                         </div>
@@ -129,7 +184,7 @@ const DriverDetails = () => {
                             onClick={handleAssignDriver}
                             className="w-full lg:w-auto bg-primary text-white px-40 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium"
                         >
-                            Assign Driver
+                            Request Driver
                         </button>
                     </div>
                 </div>
@@ -141,71 +196,67 @@ const DriverDetails = () => {
                     <h2 className="text-lg font-semibold mb-4 text-gray-800">Personal Information</h2>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                            <p className="text-gray-600">{driver.address}</p>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                            <p className="text-gray-600">{driver.district}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <p className="text-gray-600">{driver.city}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
                             <p className="text-gray-600">{driver.contactNumber}</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">NIC</label>
-                            <p className="text-gray-600">{driver.nic}</p>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <p className="text-gray-600">{driver.email}</p>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Driver's License</label>
-                            <p className="text-gray-600">{driver.licenseNumber}</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">License Expiry Date</label>
-                            <p className="text-gray-600">{driver.licenseExpiryDate}</p>
-                        </div>
+                        
                     </div>
                 </div>
 
                 {/* Documents */}
                 <div className="bg-white rounded-2xl p-6 shadow-lg">
                     <h2 className="text-lg font-semibold mb-4 text-gray-800">Documents</h2>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <span className="text-gray-700">Driver's License</span>
-                            <button
-                                onClick={() => handleDownload('Driver License', driver.documents.driverLicense)}
-                                className="flex items-center space-x-2 bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                            >
-                                <FaDownload className="text-xs" />
-                                <span>Download</span>
-                            </button>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">Driver&apos;s License</h4>
+                            </div>
+                            <p className="text-sm text-gray-600">Status: Approved</p>
+                            <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-medium">
+                                <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verified
+                            </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <span className="text-gray-700">Police Report</span>
-                            <button
-                                onClick={() => handleDownload('Police Report', driver.documents.policeReport)}
-                                className="flex items-center space-x-2 bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                            >
-                                <FaDownload className="text-xs" />
-                                <span>Download</span>
-                            </button>
+                        
+                        <div className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">Police Report</h4>
+                            </div>
+                            <p className="text-sm text-gray-600">Status: Approved</p>
+                            <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-medium">
+                                <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verified
+                            </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <span className="text-gray-700">Medical Report</span>
-                            <button
-                                onClick={() => handleDownload('Medical Report', driver.documents.medicalReport)}
-                                className="flex items-center space-x-2 bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                            >
-                                <FaDownload className="text-xs" />
-                                <span>Download</span>
-                            </button>
+                        
+                        <div className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">Medical Report</h4>
+                            </div>
+                            <p className="text-sm text-gray-600">Status: Approved</p>
+                            <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-medium">
+                                <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verified
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Past Experience */}
+            {/* Past Experience - Keep as mock data */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h2 className="text-lg font-semibold mb-4 text-gray-800">Past Experience</h2>
                 <div className="space-y-4">
-                    {driver.pastExperience.map((exp, index) => (
+                    {mockData.pastExperience.map((exp, index) => (
                         <div key={index} className="border-l-4 border-primary pl-4 pb-4">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                                 <h3 className="font-medium text-gray-800">{exp.position}</h3>
@@ -218,20 +269,21 @@ const DriverDetails = () => {
                 </div>
             </div>
 
-            {/* Reviews */}
+            {/* Reviews - Keep as mock data */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h2 className="text-lg font-semibold mb-4 text-gray-800">Customer Reviews</h2>
                 <div className="space-y-4">
-                    {driver.reviews.map((review, index) => (
+                    {mockData.reviews.map((review, index) => (
                         <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center space-x-3">
                                     <span className="font-medium text-gray-800">{review.customerName}</span>
-                                    <div className="flex space-x-1">
-                                        {renderStars(review.rating)}
-                                    </div>
+                                    
                                 </div>
                                 <span className="text-sm text-gray-500">{review.date}</span>
+                            </div>
+                            <div className="flex space-x-1 mt-0 mb-3">
+                                {renderStars(review.rating)}
                             </div>
                             <p className="text-gray-600 text-sm">{review.comment}</p>
                         </div>
