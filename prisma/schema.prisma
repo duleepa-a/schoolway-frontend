@@ -21,6 +21,7 @@ model UserProfile {
   activeStatus  Boolean        @default(true)
   address       String?
   district      String?
+  city          String?
   birthDate     DateTime?
   mobile        String?
   nic           String?

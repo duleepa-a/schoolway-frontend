@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
-import { FaDownload, FaArrowLeft, FaStar } from 'react-icons/fa';
+import { FaArrowLeft, FaStar } from 'react-icons/fa';
+import { CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { DriverDetails as DriverDetailsType, DriverDetailsResponse } from '@/types/driverDetails';
 
@@ -83,12 +84,6 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
             fetchDriverDetails();
         }
     }, [driverId]);
-
-    const handleDownload = (documentType: string, filePath: string) => {
-        // Handle document download logic here
-        console.log(`Downloading ${documentType} from ${filePath}`);
-        // You can implement actual download functionality here
-    };
 
     const handleBackClick = () => {
         router.back();
@@ -201,8 +196,12 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
                     <h2 className="text-lg font-semibold mb-4 text-gray-800">Personal Information</h2>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                            <p className="text-gray-600">{driver.address}</p>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                            <p className="text-gray-600">{driver.district}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <p className="text-gray-600">{driver.city}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
@@ -212,54 +211,42 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <p className="text-gray-600">{driver.email}</p>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">NIC</label>
-                            <p className="text-gray-600">{driver.nic}</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Driver's License</label>
-                            <p className="text-gray-600">{driver.licenseNumber}</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">License Expiry Date</label>
-                            <p className="text-gray-600">{driver.licenseExpiryDate}</p>
-                        </div>
+                        
                     </div>
                 </div>
 
                 {/* Documents */}
                 <div className="bg-white rounded-2xl p-6 shadow-lg">
                     <h2 className="text-lg font-semibold mb-4 text-gray-800">Documents</h2>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <span className="text-gray-700">Driver's License</span>
-                            <button
-                                onClick={() => handleDownload('Driver License', driver.documents.driverLicense)}
-                                className="flex items-center space-x-2 bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                            >
-                                <FaDownload className="text-xs" />
-                                <span>Download</span>
-                            </button>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">Driver&apos;s License</h4>
+                            </div>
+                            <p className="text-sm text-gray-600">Status: Approved</p>
+                            <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-medium">
+                                <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verified
+                            </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <span className="text-gray-700">Police Report</span>
-                            <button
-                                onClick={() => handleDownload('Police Report', driver.documents.policeReport)}
-                                className="flex items-center space-x-2 bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                            >
-                                <FaDownload className="text-xs" />
-                                <span>Download</span>
-                            </button>
+                        
+                        <div className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">Police Report</h4>
+                            </div>
+                            <p className="text-sm text-gray-600">Status: Approved</p>
+                            <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-medium">
+                                <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verified
+                            </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <span className="text-gray-700">Medical Report</span>
-                            <button
-                                onClick={() => handleDownload('Medical Report', driver.documents.medicalReport)}
-                                className="flex items-center space-x-2 bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                            >
-                                <FaDownload className="text-xs" />
-                                <span>Download</span>
-                            </button>
+                        
+                        <div className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">Medical Report</h4>
+                            </div>
+                            <p className="text-sm text-gray-600">Status: Approved</p>
+                            <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-medium">
+                                <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verified
+                            </div>
                         </div>
                     </div>
                 </div>
