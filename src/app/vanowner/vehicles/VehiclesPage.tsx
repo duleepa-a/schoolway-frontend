@@ -10,6 +10,7 @@ import TablePagination from '@/app/components/TablePagination';
 import { useSession,signOut } from 'next-auth/react';
 import { useEffect } from 'react';
 import { Session } from "next-auth";
+import DriverTable from './DriverTable';
 
 
 interface VanFormProps {
@@ -164,26 +165,37 @@ const VehiclesPage = ({ serverSession }: Props) => {
   const [showForm, setShowForm] = useState(false);
 
   const [vehicles, setVehicles] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchVans = async () => {
+    try {
+      const query = new URLSearchParams({
+        search: searchTerm,
+        page: page.toString(),
+        limit: '3' 
+      });
+
+      const res = await fetch(`/api/vans/user?${query}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        setVehicles(data.vans);
+        setTotalPages(data.totalPages);
+      } else {
+        console.error(data.error);
+      }
+    } catch (err) {
+      console.error('Error fetching vans:', err);
+    }
+  };
 
   useEffect(() => {
-    const fetchVans = async () => {
-      try {
-        const res = await fetch('/api/vans/user');
-        const data = await res.json();
-        if (res.ok) {
-          setVehicles(data);
-        } else {
-          console.error(data.error);
-        }
-      } catch (err) {
-        console.error('Error fetching vans:', err);
-      }
-    };
-
     if (session?.user?.id) {
       fetchVans();
     }
-  }, [session]);
+  }, [searchTerm, page, session]);
 
   const handleAddVehicleClick = () => setShowForm(true);
   const handleCloseForm = () => setShowForm(false);
@@ -227,15 +239,20 @@ const VehiclesPage = ({ serverSession }: Props) => {
               <input
                 type="text"
                 placeholder="Search vehicle"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1); // reset to page 1 when searching
+                }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg"
               />
-            </div>
+          </div>
 
             <button onClick={handleAddVehicleClick} className="btn-secondary flex items-center gap-2">
               <span>Add Vehicle</span>
               <IoMdAddCircle className="size-5" />
             </button>
-            <TablePagination totalPages={5}/>
+            <TablePagination totalPages={totalPages} onPageChange={(p) => setPage(p)} currentPage={page} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -324,9 +341,7 @@ const VehiclesPage = ({ serverSession }: Props) => {
       )}
 
       {activeTab === 'drivers' && (
-        <>
-        </>
-
+        <DriverTable/>
       )}
       
 
