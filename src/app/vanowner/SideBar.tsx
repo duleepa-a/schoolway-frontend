@@ -55,7 +55,7 @@ export default function Sidebar() {
               `}>
                 {item.icon}
               </span>
-              <span className={` group-hover:text-active-text group-hover:font-semibold group-hover:text-lg
+              <span className={` group-hover:text-active-text group-hover:font-semibold group-hover:scale-105
                 ${isActive ? 'text-lg font-semibold text-active-text' : 'text-inactive-text'}        
               `}>
                 {item.label}
