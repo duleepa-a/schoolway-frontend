@@ -15,18 +15,19 @@ model UserProfile {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   lastname      String?
+  dp            String?  @default("/Images/male_pro_pic_placeholder.png")
   role          UserRole?
   password      String
   activeStatus  Boolean        @default(true)
   address       String?
+  district      String?
+  city          String?
   birthDate     DateTime?
   mobile        String?
   nic           String?
   nic_pic       String?
-  district      String?
-  dp            String?        @default("/Images/male_pro_pic_placeholder.png")
   driverProfile DriverProfile?
-  vans          Van[]
+  Van           Van[]
   vanService    VanService?
 }
 
@@ -41,17 +42,17 @@ model VanService {
 }
 
 model DriverProfile {
-  id             String      @id @default(cuid())
-  licenseId      String
-  licenseExpiry  DateTime
-  licenseFront   String?
-  licenseBack    String?
-  policeReport   String?
-  userId         String      @unique
-  rating         Float       @default(0)
-  ratingCount    Int         @default(0)
-  startedDriving DateTime?   @default(now())
-  user           UserProfile @relation(fields: [userId], references: [id])
+  id            String      @id @default(cuid())
+  licenseId     String
+  licenseExpiry DateTime
+  licenseFront  String?
+  licenseBack   String?
+  policeReport  String?
+  rating        Float       @default(0)
+  ratingCount   Int         @default(0)
+  startedDriving DateTime? @default(now())
+  userId        String      @unique
+  user          UserProfile @relation(fields: [userId], references: [id])
 }
 
 model Van {
@@ -70,20 +71,8 @@ model Van {
   photoUrl                String
   createdAt               DateTime    @default(now())
   ownerId                 String
-  hasDriver               Boolean     @default(false)
-  isApproved              Boolean     @default(false)
-  user                    UserProfile @relation(fields: [ownerId], references: [id])
-}
-
-model ContactUs {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String
-  subject   String
-  message   String
-  userType  String
-  status    String   @default("Pending")
-  createdAt DateTime @default(now())
+  haveDriver              Boolean     @default(false)
+  UserProfile             UserProfile @relation(fields: [ownerId], references: [id])
 }
 
 enum UserRole {
@@ -93,3 +82,4 @@ enum UserRole {
   DRIVER
   TEACHER
 }
+
