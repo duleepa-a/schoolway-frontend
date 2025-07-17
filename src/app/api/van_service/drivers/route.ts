@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     
     // Calculate pagination
     const skip = (page - 1) * limit;
-    
+     
     // Build where clause for filtering
     const whereClause: any = {
       user: {

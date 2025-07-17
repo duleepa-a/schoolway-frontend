@@ -145,7 +145,7 @@ const AssignDriver = () => {
                                     >
                                         Request Driver
                                     </button>
-                                    <Link href={'/vanowner/vehicles/driver/details'}>
+                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}`}>
                                         <button className="flex-1 border border-primary text-primary text-xs py-2 px-3 rounded-lg hover:bg-primary/10 transition-colors">
                                             View Details
                                         </button>

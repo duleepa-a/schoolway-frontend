@@ -70,6 +70,7 @@ model Van {
   photoUrl                String
   createdAt               DateTime    @default(now())
   ownerId                 String
+  haveDriver              Boolean     @default(false)
   UserProfile             UserProfile @relation(fields: [ownerId], references: [id])
 }
 
