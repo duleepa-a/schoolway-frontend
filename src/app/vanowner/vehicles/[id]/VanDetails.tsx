@@ -14,8 +14,7 @@ interface Van {
   routeStart?: string;
   routeEnd?: string;
   photoUrl: string;
-  haveDriver: boolean;
- 
+  hasDriver: boolean;
 }
 
 
@@ -84,7 +83,7 @@ const VanDetails = ({ van }: { van: Van }) => {
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-              {van.haveDriver ?? <>
+              {van.hasDriver ?? <>
                 <h2 className="text-base font-semibold mb-4">Driver</h2>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
@@ -114,7 +113,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                   <button className="btn-small-primary ml-4">More Options</button>
                 </div>
               </> } 
-              {!van.haveDriver && (
+              {!van.hasDriver && (
                 <div className=" my-6">
                   <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
                   <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>

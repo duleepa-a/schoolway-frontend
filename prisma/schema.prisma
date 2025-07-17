@@ -25,7 +25,6 @@ model UserProfile {
   nic_pic       String?
   district      String?
   dp            String?        @default("/Images/male_pro_pic_placeholder.png")
-  city          String?
   driverProfile DriverProfile?
   vans          Van[]
   vanService    VanService?
@@ -71,9 +70,20 @@ model Van {
   photoUrl                String
   createdAt               DateTime    @default(now())
   ownerId                 String
-  haveDriver              Boolean     @default(false)
+  hasDriver               Boolean     @default(false)
   isApproved              Boolean     @default(false)
   user                    UserProfile @relation(fields: [ownerId], references: [id])
+}
+
+model ContactUs {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  userType  String
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
 }
 
 enum UserRole {
