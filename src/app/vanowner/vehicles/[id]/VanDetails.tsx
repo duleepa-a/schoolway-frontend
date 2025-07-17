@@ -1,9 +1,25 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 
-const VanDetails = () => {
+interface Van {
+  id: number;
+  makeAndModel: string;
+  licensePlateNumber: string;
+  registrationNumber: string;
+  seatingCapacity: number;
+  acCondition: boolean;
+  routeStart?: string;
+  routeEnd?: string;
+  photoUrl: string;
+  hasDriver: boolean;
+}
+
+
+const VanDetails = ({ van }: { van: Van }) => {
+
   const schools = [
     'Good Shephard Convent - Watthala',
     "St. Lucia's Collage",
@@ -26,8 +42,8 @@ const VanDetails = () => {
         <h2 className="text-lg font-semibold mb-4">Toyota HIACE Spec 10</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
-            <Image
-              src="/Images/vehicle_placeholder.png"
+            <img
+              src={van.photoUrl || '/Images/vehicle_placeholder.png'}
               alt="Van"
               width={250}
               height={150}
@@ -35,8 +51,8 @@ const VanDetails = () => {
             />
           </div>
           <div className='p-2.5 w-full gap-5'>
-            <p className='text-sm'><span className="font-medium">Van ID:</span> <span className="text-active-text">V000245</span></p>
-            <p className='text-sm'><span className="font-medium">Model:</span> Toyota HiAce</p>
+            <p className='text-sm'><span className="font-medium">Van ID:</span> <span className="text-active-text">{van.id}</span></p>
+            <p className='text-sm'><span className="font-medium">Model:</span> {van.makeAndModel}</p>
             <div className="my-2">
               <div className="text-xs mb-1">Seats: 12 / 15</div>
               <div className='w-full flex justify-end'>
@@ -67,34 +83,45 @@ const VanDetails = () => {
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <h2 className="text-base font-semibold mb-4">Driver</h2>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4">
-                  <div className=''> 
-                    <Image src="/Images/male_pro_pic_placeholder.png" alt="Driver" width={50} height={50} className="rounded-full" />
+              {van.hasDriver ?? <>
+                <h2 className="text-base font-semibold mb-4">Driver</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className=''> 
+                      <Image src="/Images/male_pro_pic_placeholder.png" alt="Driver" width={50} height={50} className="rounded-full" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Duleepa Edirisinghe</p>
+                      <p className="text-xs text-gray-500">Experience: 6 years</p>
+                      <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">Duleepa Edirisinghe</p>
-                    <p className="text-xs text-gray-500">Experience: 6 years</p>
-                    <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
-                  </div>
+                  <button className="btn-small-primary ml-4">More Options</button>
                 </div>
-                <button className="btn-small-primary ml-4">More Options</button>
-              </div>
-              <h2 className="text-base font-semibold mb-4">Assistant</h2>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className=''> 
-                    <Image src="/Images/male_pro_pic_placeholder.png" alt="Assistant" width={50} height={50} className="rounded-full" />
+                <h2 className="text-base font-semibold mb-4">Assistant</h2>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className=''> 
+                      <Image src="/Images/male_pro_pic_placeholder.png" alt="Assistant" width={50} height={50} className="rounded-full" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Ayanga Wethmini</p>
+                      <p className="text-xs text-gray-500">Experience: 7 years</p>
+                      <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">Ayanga Wethmini</p>
-                    <p className="text-xs text-gray-500">Experience: 7 years</p>
-                    <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
-                  </div>
+                  <button className="btn-small-primary ml-4">More Options</button>
                 </div>
-                <button className="btn-small-primary ml-4">More Options</button>
-              </div>
+              </> } 
+              {!van.hasDriver && (
+                <div className=" my-6">
+                  <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
+                  <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
+                  <Link href="/vanowner/vehicles/driver">
+                    <button className="btn-small-primary">Assign Driver</button>
+                  </Link>
+                </div>
+            ) } 
             </div>
           <div className='w-full grid grid-cols-4 gap-4'>
             {/* Route & Safety */}
