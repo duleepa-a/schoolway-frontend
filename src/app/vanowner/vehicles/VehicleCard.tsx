@@ -16,6 +16,7 @@ interface Vehicle {
   routeEnd?: string;
   photoUrl: string;
   hasDriver: boolean;
+  isApproved: boolean;
 }
 
 const VehicleCard = ({ vehicle }: { vehicle: Vehicle }) => {
@@ -36,9 +37,9 @@ const VehicleCard = ({ vehicle }: { vehicle: Vehicle }) => {
               {vehicle.makeAndModel}
             </h3>
             <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-              vehicle.hasDriver ? 'bg-statusbackgroundblue text-statusbackgroundblue' : 'bg-statusbackgroundorange text-statusorange'
+              !(vehicle.isApproved) ? 'bg-statusbackgroundyellow text-statusyellow' :  vehicle.hasDriver ? 'bg-statusbackgroundblue text-statusbackgroundblue' : 'bg-statusbackgroundorange text-statusorange'
             }`}>
-              {vehicle.hasDriver ? 'With Driver' : 'Driver Not Assigned'}
+              {!(vehicle.isApproved) ? 'Pending': vehicle.hasDriver ? 'With Driver' : 'Driver Not Assigned'}
             </span>
         </div>
 
