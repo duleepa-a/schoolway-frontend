@@ -40,7 +40,7 @@ export default function RevenueTable() {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg"
           />
         </div>
-        <TablePagination totalPages={5}/>
+        <TablePagination totalPages={5} />
       </div>
 
       {/* Table */}
@@ -50,8 +50,8 @@ export default function RevenueTable() {
             <tr className="bg-primary text-white text-left text-sm">
               <th className="p-3">Owner Name</th>
               <th className="p-3">Van Number</th>
-              <th className="p-3">Amount Paid</th>
-              <th className="p-3">Date Paid</th>
+              <th className="p-3">Amount Recieved</th>
+              <th className="p-3">Date Recieved</th>
               <th className="p-3">Status</th>
             </tr>
           </thead>
