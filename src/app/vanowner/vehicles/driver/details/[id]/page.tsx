@@ -8,11 +8,13 @@ interface DriverDetailsPageProps {
   };
 }
 
-const DriverDetailsPage = ({ params }: DriverDetailsPageProps) => {
+const DriverDetailsPage = async ({ params }: DriverDetailsPageProps) => {
+  const {id} = await params;
+
   return (
     <section className="p-6 md:p-10 min-h-screen w-full">
       <TopBar heading='Driver Details' />
-      <DriverDetails driverId={params.id} />
+      <DriverDetails driverId={id} />
     </section>
   );
 };
