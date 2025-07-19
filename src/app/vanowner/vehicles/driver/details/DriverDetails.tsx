@@ -2,20 +2,30 @@
 
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaStar } from 'react-icons/fa';
 import { CheckCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { FaDownload, FaArrowLeft, FaStar, FaCheck, FaPaperPlane } from 'react-icons/fa';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DriverDetails as DriverDetailsType, DriverDetailsResponse } from '@/types/driverDetails';
+import JobOfferModal from '@/app/dashboardComponents/JobOfferModal';
 
 interface DriverDetailsProps {
   driverId: string;
 }
 
-const DriverDetails = ({ driverId }: DriverDetailsProps) => {
+export default function DriverDetails({ driverId }: DriverDetailsProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const vanId = searchParams.get('vanId');
+    const vanMakeAndModel = searchParams.get('vanMakeAndModel');
+
     const [driver, setDriver] = useState<DriverDetailsType | null>(null);
+    const [vanDetails, setVanDetails] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [requestLoading, setRequestLoading] = useState(false);
+    const [showJobOfferModal, setShowJobOfferModal] = useState(false);
+    const [hasExistingOffer, setHasExistingOffer] = useState(false);
+    const [checkingOffer, setCheckingOffer] = useState(true);
 
     // Mock data for fields not in database
     const mockData = {
@@ -85,14 +95,116 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
         }
     }, [driverId]);
 
+    // Fetch van details if vanId is provided
+    useEffect(() => {
+        const fetchVanDetails = async () => {
+            if (vanId) {
+                try {
+                    const response = await fetch(`/api/vanowner/vans/${vanId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setVanDetails(data.van);
+                    }
+                } catch (error) {
+                    console.error('Error fetching van details:', error);
+                }
+            }
+        };
+
+        fetchVanDetails();
+    }, [vanId]);
+
+    // Check for existing job offer
+    useEffect(() => {
+        const checkExistingOffer = async () => {
+            if (!driver?.id || !vanId) return;
+
+            try {
+                setCheckingOffer(true);
+                const response = await fetch(
+                    `/api/van_service/job_offer?driverId=${driver.id}&vanId=${vanId}`
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setHasExistingOffer(data.hasExistingRequest);
+                }
+            } catch (error) {
+                console.error('Error checking existing offer:', error);
+            } finally {
+                setCheckingOffer(false);
+            }
+        };
+
+        checkExistingOffer();
+    }, [driver?.id, vanId]);
+
+    const handleDownload = (documentType: string, filePath: string) => {
+        // Handle document download logic here
+        console.log(`Downloading ${documentType} from ${filePath}`);
+        // You can implement actual download functionality here
+    };
+
     const handleBackClick = () => {
         router.back();
     };
 
-    const handleAssignDriver = () => {
-        if (driver) {
-            console.log(`Assigning driver ${driver.name} (ID: ${driver.id})`);
-            // You can implement actual assignment functionality here
+    const handleSendJobOffer = () => {
+        setShowJobOfferModal(true);
+    };
+
+    const handleConfirmJobOffer = async () => {
+        if (!driver || !vanId) {
+            alert('Missing required information. Please try again.');
+            return;
+        }
+
+        try {
+            setRequestLoading(true);
+            
+            const requestPayload = {
+                driverId: driver.id,
+                vanId: parseInt(vanId),
+                message: `Job offer for ${vanDetails?.makeAndModel || 'your van'}`,
+                proposedSalary: vanDetails?.salaryPercentage || 25.0,
+                turn: vanDetails?.shiftDetails || 'To be discussed'
+            };
+
+            console.log('Sending job offer:', requestPayload);
+
+            const response = await fetch('/api/van_service/job_offer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestPayload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send job offer');
+            }
+
+            setShowJobOfferModal(false);
+            
+            // Show success message
+            alert(`Job offer sent successfully!\n\nDriver: ${driver.name}\nVan: ${vanDetails?.makeAndModel || vanId}\n\nThe driver will receive a notification and can accept or decline the offer.`);
+            
+            // Navigate back to van details or driver list
+            router.push(`/vanowner/vehicles/${vanId}`);
+            
+        } catch (error) {
+            console.error('Error sending job offer:', error);
+            alert(error instanceof Error ? error.message : 'Failed to send job offer. Please try again.');
+        } finally {
+            setRequestLoading(false);
+        }
+    };
+
+    const handleCloseModal = () => {
+        if (!requestLoading) {
+            setShowJobOfferModal(false);
         }
     };
 
@@ -100,6 +212,44 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
         return Array.from({ length: 5 }, (_, index) => (
             <FaStar key={index} className={index < Math.floor(rating) ? 'text-yellow-500' : 'text-gray-300'} />
         ));
+    };
+
+    const renderJobOfferButton = () => {
+        if (checkingOffer) {
+            return (
+                <button 
+                disabled = {true}
+                className='w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'>
+                    <div className="flex items-center justify-center">
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Sending Request...
+                    </div>
+                </button>
+            )
+        }
+
+        if (hasExistingOffer) {
+            return (
+                <button 
+                disabled = {true}
+                className='flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg  transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center space-x-2 '>
+                    <FaCheck className="text-green-400" />
+                    <div className="flex items-center justify-center">                        
+                        Already Sent
+                    </div>
+                </button>
+            );
+        }
+
+        return (
+            <button 
+            onClick={handleSendJobOffer}
+            className="flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 items-center justify-center space-x-2 hover:cursor-pointer"
+            >
+            <FaPaperPlane />
+            <span>Send Job Offer</span>
+            </button>
+        );
     };
 
     if (loading) {
@@ -141,6 +291,24 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
 
     return (
         <div className="space-y-6">
+            {/* Van Information Banner (if vanId is provided) */}
+            {vanId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                        Request {driver.name} for Van
+                    </h3>
+                    {vanDetails ? (
+                        <div className="text-sm text-blue-700">
+                            <p><span className="font-medium">Van ID:</span> {vanDetails.id}</p>
+                            <p><span className="font-medium">Model:</span> {vanDetails.makeAndModel}</p>
+                            <p><span className="font-medium">License Plate:</span> {vanDetails.licensePlateNumber}</p>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-blue-700">Van : {vanMakeAndModel}</p>
+                    )}
+                </div>
+            )}
+
             {/* Back Button */}
             <button
                 onClick={handleBackClick}
@@ -178,14 +346,9 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
                         </div>
                     </div>
 
-                    {/* Assign Driver Button */}
+                    {/* Request Driver Button */}
                     <div className="mt-6 lg:mt-0 lg:ml-8">
-                        <button
-                            onClick={handleAssignDriver}
-                            className="w-full lg:w-auto bg-primary text-white px-40 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-                        >
-                            Request Driver
-                        </button>
+                        {renderJobOfferButton()}
                     </div>
                 </div>
             </div>
@@ -290,8 +453,16 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
                     ))}
                 </div>
             </div>
+
+            {/* Job Offer Modal */}
+            <JobOfferModal
+                isOpen={showJobOfferModal}
+                onClose={handleCloseModal}
+                onConfirm={handleConfirmJobOffer}
+                driverName={driver?.name || ''}
+                vanModel={vanMakeAndModel}
+                isLoading={requestLoading}
+            />
         </div>
     );
 };
-
-export default DriverDetails;

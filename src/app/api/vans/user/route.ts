@@ -4,37 +4,23 @@ import { authOptions } from '../../auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const search = searchParams.get('search') || '';
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '6');
-  const offset = (page - 1) * limit;
+  const session = await getServerSession(authOptions);
 
-  const vans = await prisma.van.findMany({
-    where: {
-      OR: [
-        { registrationNumber: { contains: search, mode: 'insensitive' } },
-        { licensePlateNumber: { contains: search, mode: 'insensitive' } },
-        { makeAndModel: { contains: search, mode: 'insensitive' } }
-      ]
-    },
-    skip: offset,
-    take: limit
-  });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  console.log('Fetching vans for owner:', session.user.id);
+  try {
+    const vans = await prisma.van.findMany({
+      where: {
+        ownerId: session.user.id,
+      },
+    });
 
-  const totalCount = await prisma.van.count({
-    where: {
-      OR: [
-        { registrationNumber: { contains: search, mode: 'insensitive' } },
-        { licensePlateNumber: { contains: search, mode: 'insensitive' } },
-        { makeAndModel: { contains: search, mode: 'insensitive' } }
-      ]
-    }
-  });
-
-  return NextResponse.json({
-    vans,
-    totalPages: Math.ceil(totalCount / limit)
-  });
+    console.log('Vans fetched for owner:', session.user.id, vans);
+    return NextResponse.json(vans);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+  }
 }
-

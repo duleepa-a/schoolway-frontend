@@ -9,25 +9,28 @@ datasource db {
 }
 
 model UserProfile {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  firstname     String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  lastname      String?
-  role          UserRole?
-  password      String
-  activeStatus  Boolean        @default(true)
-  address       String?
-  birthDate     DateTime?
-  mobile        String?
-  nic           String?
-  nic_pic       String?
-  district      String?
-  dp            String?        @default("/Images/male_pro_pic_placeholder.png")
-  driverProfile DriverProfile?
-  Van           Van[]
-  vanService    VanService?
+  id                        String                @id @default(cuid())
+  email                     String                @unique
+  firstname                 String?
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+  lastname                  String?
+  role                      UserRole?
+  password                  String
+  activeStatus              Boolean               @default(true)
+  address                   String?
+  birthDate                 DateTime?
+  mobile                    String?
+  nic                       String?
+  nic_pic                   String?
+  district                  String?
+  dp                        String?               @default("/Images/male_pro_pic_placeholder.png")
+  driverProfile             DriverProfile?
+  vans                      Van[]
+  vanService                VanService?
+  // Separate relations for different roles in requests
+  driverJobRequests         DriverVanJobRequest[] @relation("DriverJobRequests")
+  vanOwnerJobRequests       DriverVanJobRequest[] @relation("VanOwnerJobRequests")
 }
 
 model VanService {
@@ -51,12 +54,13 @@ model DriverProfile {
   rating         Float       @default(0)
   ratingCount    Int         @default(0)
   startedDriving DateTime?   @default(now())
+  status         Int         @default(2)
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
 model Van {
-  id                      Int         @id @default(autoincrement())
-  registrationNumber      String      @unique
+  id                      Int                   @id @default(autoincrement())
+  registrationNumber      String                @unique
   licensePlateNumber      String
   makeAndModel            String
   seatingCapacity         Int
@@ -68,11 +72,15 @@ model Van {
   fitnessCertificateUrl   String
   insuranceCertificateUrl String
   photoUrl                String
-  createdAt               DateTime    @default(now())
+  createdAt               DateTime              @default(now())
   ownerId                 String
-  hasDriver               Boolean     @default(false)
-  isApproved              Boolean     @default(false)
-  UserProfile             UserProfile @relation(fields: [ownerId], references: [id])
+  hasDriver               Boolean               @default(false)
+  isApproved              Boolean               @default(false)
+  assignedDriverId        String?               // Current assigned driver
+  salaryPercentage        Float?                @default(25.0) // Driver salary percentage
+  shiftDetails            String?               // e.g., "7:00 AM - 4:00 PM, Morning shift"
+  user                    UserProfile           @relation(fields: [ownerId], references: [id])
+  jobRequests             DriverVanJobRequest[]
 }
 
 model ContactUs {
@@ -92,4 +100,52 @@ enum UserRole {
   SERVICE
   DRIVER
   TEACHER
+}
+
+enum JobRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+enum JobRequestType {
+  VAN_OWNER_TO_DRIVER
+}
+
+model DriverVanJobRequest {
+  id              String           @id @default(cuid())
+  
+  // Core relationship fields
+  driverId        String           // The driver being offered the job or applying
+  vanId           Int              // The van for which the job is offered
+  vanOwnerId      String           // The van owner offering the job
+  
+  // Request details
+  status          JobRequestStatus @default(PENDING)
+  message         String?         
+  
+  // Job details
+  proposedSalary  Float?           // Proposed monthly salary percentage
+  turn            String?          // e.g., "12, 1, 1.30pm other"
+  
+  // Response details
+  responseMessage String?          // Response message from the recipient
+  respondedAt     DateTime?        // When the request was responded to
+  
+  // Timestamps
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  expiresAt       DateTime?        @default(dbgenerated("(now() + interval '21 days')"))
+  // Relations
+  driver          UserProfile      @relation("DriverJobRequests", fields: [driverId], references: [id])
+  van             Van              @relation(fields: [vanId], references: [id])
+  vanOwner        UserProfile      @relation("VanOwnerJobRequests", fields: [vanOwnerId], references: [id])
+  
+  // Constraints
+  @@unique([driverId, vanOwnerId, vanId], name: "unique_driver_van_request")
+  // @@index([driverId, status])
+  // @@index([vanOwnerId, status])
+  // @@index([vanId, status])
 }
