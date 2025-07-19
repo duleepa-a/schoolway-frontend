@@ -64,7 +64,7 @@ const AssignDriver = () => {
     return (
         <div>
             {/* Van Information Banner (if vanId is provided) */}
-            {vanId && (
+            {/* {vanId && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                     <h3 className="text-lg font-semibold text-blue-800 mb-2">
                         Finding Driver for Van
@@ -81,7 +81,7 @@ const AssignDriver = () => {
                         <p className="text-sm text-blue-700">Van ID: {vanMakeAndModel}</p>
                     )}
                 </div>
-            )}
+            )} */}
 
             {/* Search Bar and Filters */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
@@ -191,7 +191,7 @@ const AssignDriver = () => {
                                     >
                                         {vanId ? 'Request for Van' : 'Request Driver'}
                                     </button>
-                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${vanId ? `?vanId=${vanId}` : ''}`}>
+                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`}>
                                         <button className="flex-1 border border-primary text-primary text-xs py-2 px-3 rounded-lg hover:bg-primary/10 transition-colors">
                                             View Details
                                         </button>

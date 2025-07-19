@@ -5,11 +5,14 @@ import TopBar from '@/app/dashboardComponents/TopBar';
 interface DriverDetailsPageProps {
   params: {
     id: string;
+    vanId?: string;
+    vanMakeAndModel?: string;
   };
 }
 
 const DriverDetailsPage = async ({ params }: DriverDetailsPageProps) => {
   const param = await params;
+  console.log('DriverDetailsPage params:', param);
   return (
     <section className="p-6 md:p-10 min-h-screen w-full">
       <TopBar heading='Driver Details' />
