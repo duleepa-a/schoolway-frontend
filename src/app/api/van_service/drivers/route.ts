@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     
     // Extract query parameters
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '6');
     const search = searchParams.get('search') || '';
     const district = searchParams.get('district') || '';
     
