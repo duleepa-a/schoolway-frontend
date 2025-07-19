@@ -5,6 +5,17 @@ import { Edit2, Save, X, Camera, User} from 'lucide-react';
 import Image from 'next/image';
 import FormInput from '../../components/FormInput';
 
+interface data{
+  firstname: string;
+  lastname: string;
+  mobile: string;
+  dp: string;
+  vanService?: {
+    serviceName: string;
+    serviceRegNumber: string;
+  };
+}
+
 const ProfileDetailForm = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('personalInfo');
@@ -44,6 +55,15 @@ const ProfileDetailForm = () => {
     setIsEditing(true);
   };
 
+  const transformApiData = (data : data) => ({
+    firstname: data.firstname || 'Enter your first name',
+    lastname: data.lastname || 'Enter your last name',
+    contactNo: data.mobile || 'Enter your contact number',
+    dp: data.dp || '',
+    serviceName: data.vanService?.serviceName || 'Enter your service name',
+    serviceRegNumber: data.vanService?.serviceRegNumber || 'Enter your business registration number',
+  });
+
   const handleSave = async () => {
     const res = await fetch('/api/vanowner/profile', {
       method: 'PUT',
@@ -55,7 +75,10 @@ const ProfileDetailForm = () => {
 
     if (res.ok) {
       const updated = await res.json();
-      setProfileData(updated);
+      const transformedData = transformApiData(updated);
+      
+      setProfileData(transformedData);
+      setTempData(transformedData); // Also update tempData to keep them in sync
       setIsEditing(false);
     } else {
       console.error('Failed to save');

@@ -43,6 +43,9 @@ export async function PUT(req: NextRequest) {
           },
         },
       },
+      include: { 
+        vanService: true   
+      }
     });
 
     return NextResponse.json(user);
