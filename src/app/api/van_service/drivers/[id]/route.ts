@@ -6,14 +6,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Get driver profile with user data
     const driver = await prisma.driverProfile.findFirst({
       where: {
         userId: id,
         user: {
-          activeStatus: false,
+          activeStatus: true,
           role: 'DRIVER'
         }
       },
@@ -26,7 +26,7 @@ export async function GET(
             email: true,
             district: true,
             mobile: true,
-            city: true,
+            // city: true,
             nic: true,
             dp: true,
             activeStatus: true,

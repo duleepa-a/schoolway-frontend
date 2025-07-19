@@ -117,8 +117,8 @@ const VanDetails = ({ van }: { van: Van }) => {
                 <div className=" my-6">
                   <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
                   <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
-                  <Link href="/vanowner/vehicles/driver">
-                    <button className="btn-small-primary">Assign Driver</button>
+                  <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${van.makeAndModel}`}>
+                    <button className="btn-small-primary">Find a Driver</button>
                   </Link>
                 </div>
             ) } 
