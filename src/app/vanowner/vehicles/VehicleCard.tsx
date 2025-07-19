@@ -14,6 +14,10 @@ interface Vehicle {
   acCondition: boolean;
   routeStart?: string;
   routeEnd?: string;
+  startTime?: string;
+  endTime?: string;
+  studentRating?: number;
+  driverRating?: number;
   photoUrl: string;
   hasDriver: boolean;
   isApproved: boolean;
@@ -51,8 +55,7 @@ const VehicleCard = ({ vehicle }: { vehicle: Vehicle }) => {
 
         <div className="flex items-center justify-start gap-4 text-sm text-gray-600 mb-5">
           <div className="flex items-center space-x-1">
-            <MdLocalGasStation className="text-base" />
-            <span className="text-xs">Petrol</span> 
+            <span className="text-xs">Rating per Km : Rs.{vehicle.studentRating}</span> 
           </div>
 
           <div className="flex items-center space-x-1">
