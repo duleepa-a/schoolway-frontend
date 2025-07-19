@@ -189,6 +189,8 @@ export async function GET(req: NextRequest) {
       whereClause.vanId = parseInt(vanId);
     }
 
+    console.log('Fetching job requests with where clause:', searchParams.toString());
+
     const jobRequests = await prisma.driverVanJobRequest.findMany({
       where: whereClause,
       include: {

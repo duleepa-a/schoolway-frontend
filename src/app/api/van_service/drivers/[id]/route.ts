@@ -26,7 +26,7 @@ export async function GET(
             email: true,
             district: true,
             mobile: true,
-            city: true,
+            // city: true,
             nic: true,
             dp: true,
             activeStatus: true,

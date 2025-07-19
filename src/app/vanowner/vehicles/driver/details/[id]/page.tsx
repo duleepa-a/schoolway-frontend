@@ -1,6 +1,7 @@
 import React from 'react';
 import DriverDetails from '../DriverDetails';
 import TopBar from '@/app/dashboardComponents/TopBar';
+// import Driverinf from '../Driverinf';
 
 interface DriverDetailsPageProps {
   params: {
