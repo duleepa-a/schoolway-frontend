@@ -145,21 +145,7 @@ const ManageSchoolsPage = () => {
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="schoolId" className="block text-sm font-medium text-gray-700 mb-1">
-                      School ID *
-                    </label>
-                    <input
-                      type="text"
-                      id="schoolId"
-                      name="schoolId"
-                      value={formData.schoolId}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter school ID"
-                    />
-                  </div>
+                  
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -177,21 +163,7 @@ const ManageSchoolsPage = () => {
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="guardianName" className="block text-sm font-medium text-gray-700 mb-1">
-                      Principal/Guardian Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="guardianName"
-                      name="guardianName"
-                      value={formData.guardianName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter principal/guardian name"
-                    />
-                  </div>
+                  
 
                   <div>
                     <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
