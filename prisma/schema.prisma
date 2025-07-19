@@ -9,7 +9,6 @@ datasource db {
 }
 
 model UserProfile {
-<<<<<<< HEAD
   id                                                              String                @id @default(cuid())
   email                                                           String                @unique
   firstname                                                       String?
@@ -31,30 +30,6 @@ model UserProfile {
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
   Van                                                             Van[]
   vanService                                                      VanService?
-=======
-  id                        String                @id @default(cuid())
-  email                     String                @unique
-  firstname                 String?
-  createdAt                 DateTime              @default(now())
-  updatedAt                 DateTime              @updatedAt
-  lastname                  String?
-  role                      UserRole?
-  password                  String
-  activeStatus              Boolean               @default(true)
-  address                   String?
-  birthDate                 DateTime?
-  mobile                    String?
-  nic                       String?
-  nic_pic                   String?
-  district                  String?
-  dp                        String?               @default("/Images/male_pro_pic_placeholder.png")
-  driverProfile             DriverProfile?
-  vans                      Van[]
-  vanService                VanService?
-  // Separate relations for different roles in requests
-  driverJobRequests         DriverVanJobRequest[] @relation("DriverJobRequests")
-  vanOwnerJobRequests       DriverVanJobRequest[] @relation("VanOwnerJobRequests")
->>>>>>> Dev_stage
 }
 
 model VanService {
