@@ -56,11 +56,12 @@ model DriverProfile {
   ratingCount    Int         @default(0)
   bio            String?
   languages      String[]
-  relocate       Boolean
+  relocate       Boolean    @default(false)
   startedDriving DateTime?   @default(now())
   status         Int         @default(2)
   user           UserProfile @relation(fields: [userId], references: [id])
 }
+
 
 model Van {
   id                      Int                   @id @default(autoincrement())
@@ -81,6 +82,8 @@ model Van {
   hasDriver               Boolean               @default(false)
   isApproved              Boolean               @default(false)
   assignedDriverId        String?
+  salaryPercentage        Float?                @default(25.0)
+  shiftDetails            String?
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
 }
