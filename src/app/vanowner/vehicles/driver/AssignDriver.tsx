@@ -1,12 +1,19 @@
 'use client';
 
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
+import { FaDownload, FaArrowLeft, FaStar } from 'react-icons/fa';
 import Link from "next/link";
+import { useSearchParams } from 'next/navigation';
 import { useDrivers } from '@/hooks/useDrivers';
 
 const AssignDriver = () => {
+    const searchParams = useSearchParams();
+    const vanId = searchParams.get('vanId');
+    const vanMakeAndModel = searchParams.get('vanMakeAndModel');
+    const [vanDetails, setVanDetails] = useState<any>(null);
+
     const {
         searchQuery,
         setSearchQuery,
@@ -21,22 +28,61 @@ const AssignDriver = () => {
         handlePageChange
     } = useDrivers();
 
+    // Fetch van details if vanId is provided
+    useEffect(() => {
+        const fetchVanDetails = async () => {
+            if (vanId) {
+                try {
+                    const response = await fetch(`/api/vanowner/vans/${vanId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setVanDetails(data.van);
+                        console.log("van info", data)
+                    }
+                } catch (error) {
+                    console.error('Error fetching van details:', error);
+                }
+            }
+            console.log("van reuste")
+        };
+
+        fetchVanDetails();
+    }, [vanId]);
+
     const renderStars = (rating: number) => {
         return Array.from({ length: 5 }, (_, index) => (
-            <span key={index} className={index < rating ? 'text-yellow-500' : 'text-gray-300'}>
-                ⭐
-            </span>
+                <FaStar key={index} className={index < Math.floor(rating) ? 'text-yellow-500' : 'text-gray-300'} />
         ));
     };
 
     const handleAssignDriver = (driverId: string, driverName: string) => {
         // Handle driver assignment logic here
-        console.log(`Assigning driver ${driverName} (ID: ${driverId}) to van`);
+        console.log(`Assigning driver ${driverName} (ID: ${driverId}) to van ${vanId}`);
         // You can add your API call or state management logic here
     };
 
     return (
         <div>
+            {/* Van Information Banner (if vanId is provided) */}
+            {/* {vanId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                        Finding Driver for Van
+                    </h3>
+                    {vanDetails ? (
+                        <div className="flex items-center gap-4">
+                            <div className="text-sm text-blue-700">
+                                <p><span className="font-medium">Van ID:</span> {vanDetails.id}</p>
+                                <p><span className="font-medium">Model:</span> {vanDetails.makeAndModel}</p>
+                                <p><span className="font-medium">License Plate:</span> {vanDetails.licensePlateNumber}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-blue-700">Van ID: {vanMakeAndModel}</p>
+                    )}
+                </div>
+            )} */}
+
             {/* Search Bar and Filters */}
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-6 gap-4">
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
@@ -215,12 +261,16 @@ const AssignDriver = () => {
                                         className="flex-1 bg-primary text-white py-2.5 px-3 rounded-lg hover:bg-primary/90 transition-all font-medium text-xs flex items-center justify-center gap-1 shadow-sm"
                                         onClick={() => handleAssignDriver(driver.id, driver.name)}
                                     >
+                                        {/* {vanId ? 'Request for Van' : 'Request Driver'}
+                                    </button>
+                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`}>
+                                        <button className="flex-1 border border-primary text-primary text-xs py-2 px-3 rounded-lg hover:bg-primary/10 transition-colors"> */}
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                         Request Driver
                                     </button>
-                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}`}>
+                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`}>
                                         <button className="flex-1 border border-primary text-primary py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-all font-medium text-xs flex items-center justify-center gap-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

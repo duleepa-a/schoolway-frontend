@@ -84,7 +84,7 @@ export default function EnrolledTable() {
           <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
         </div>
 
-        <TablePagination totalPages={5} />
+        <TablePagination totalPages={5} onPageChange={(p) =>{}} currentPage={1}/>
 
       </div>
 

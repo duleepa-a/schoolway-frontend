@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     
     // Extract query parameters
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '6');
     const search = searchParams.get('search') || '';
     const district = searchParams.get('district') || '';
     
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // Build where clause for filtering
     const whereClause: any = {
       user: {
-        activeStatus: false, // Only fetch active drivers
+        activeStatus: true, // Only fetch active drivers
         role: 'DRIVER'
       }
     };
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
     const uniqueDistricts = await prisma.userProfile.findMany({
       where: {
         role: 'DRIVER',
-        activeStatus: false,
+        activeStatus: true,
         district: {
           not: null
         }

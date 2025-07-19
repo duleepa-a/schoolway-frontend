@@ -10,7 +10,7 @@ export const useDrivers = () => {
     currentPage: 1,
     totalPages: 1,
     totalCount: 0,
-    limit: 12,
+    limit: 6,
     hasNextPage: false,
     hasPrevPage: false
   });
@@ -28,14 +28,17 @@ export const useDrivers = () => {
         ...(searchQuery && { search: searchQuery }),
         ...(selectedDistrict !== 'All' && { district: selectedDistrict })
       });
-      
+      // console.log('Fetching drivers with params:', params.toString());
       const response = await fetch(`/api/van_service/drivers?${params}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch drivers');
       }
+
       
       const data: DriverResponse = await response.json();
+      
+      // console.log('Fetching drivers with params:', data);
       setAvailableDrivers(data.drivers);
       setPagination(data.pagination);
       setAvailableDistricts(data.availableDistricts);
