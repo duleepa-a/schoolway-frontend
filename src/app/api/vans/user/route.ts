@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
+  console.log('Fetching vans for owner:', session.user.id);
   try {
     const vans = await prisma.van.findMany({
       where: {
@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    console.log('Vans fetched for owner:', session.user.id, vans);
     return NextResponse.json(vans);
   } catch (error) {
     console.error(error);

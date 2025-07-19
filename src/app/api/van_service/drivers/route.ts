@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // Build where clause for filtering
     const whereClause: any = {
       user: {
-        activeStatus: false, // Only fetch active drivers
+        activeStatus: true, // Only fetch active drivers
         role: 'DRIVER'
       }
     };
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
     const uniqueDistricts = await prisma.userProfile.findMany({
       where: {
         role: 'DRIVER',
-        activeStatus: false,
+        activeStatus: true,
         district: {
           not: null
         }

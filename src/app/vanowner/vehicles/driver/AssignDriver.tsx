@@ -1,12 +1,19 @@
 'use client';
 
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
+import { FaDownload, FaArrowLeft, FaStar } from 'react-icons/fa';
 import Link from "next/link";
+import { useSearchParams } from 'next/navigation';
 import { useDrivers } from '@/hooks/useDrivers';
 
 const AssignDriver = () => {
+    const searchParams = useSearchParams();
+    const vanId = searchParams.get('vanId');
+    const vanMakeAndModel = searchParams.get('vanMakeAndModel');
+    const [vanDetails, setVanDetails] = useState<any>(null);
+
     const {
         searchQuery,
         setSearchQuery,
@@ -21,22 +28,61 @@ const AssignDriver = () => {
         handlePageChange
     } = useDrivers();
 
+    // Fetch van details if vanId is provided
+    useEffect(() => {
+        const fetchVanDetails = async () => {
+            if (vanId) {
+                try {
+                    const response = await fetch(`/api/vanowner/vans/${vanId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setVanDetails(data.van);
+                        console.log("van info", data)
+                    }
+                } catch (error) {
+                    console.error('Error fetching van details:', error);
+                }
+            }
+            console.log("van reuste")
+        };
+
+        fetchVanDetails();
+    }, [vanId]);
+
     const renderStars = (rating: number) => {
         return Array.from({ length: 5 }, (_, index) => (
-            <span key={index} className={index < rating ? 'text-yellow-500' : 'text-gray-300'}>
-        ⭐
-      </span>
+                <FaStar key={index} className={index < Math.floor(rating) ? 'text-yellow-500' : 'text-gray-300'} />
         ));
     };
 
     const handleAssignDriver = (driverId: string, driverName: string) => {
         // Handle driver assignment logic here
-        console.log(`Assigning driver ${driverName} (ID: ${driverId}) to van`);
+        console.log(`Assigning driver ${driverName} (ID: ${driverId}) to van ${vanId}`);
         // You can add your API call or state management logic here
     };
 
     return (
         <div>
+            {/* Van Information Banner (if vanId is provided) */}
+            {vanId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                        Finding Driver for Van
+                    </h3>
+                    {vanDetails ? (
+                        <div className="flex items-center gap-4">
+                            <div className="text-sm text-blue-700">
+                                <p><span className="font-medium">Van ID:</span> {vanDetails.id}</p>
+                                <p><span className="font-medium">Model:</span> {vanDetails.makeAndModel}</p>
+                                <p><span className="font-medium">License Plate:</span> {vanDetails.licensePlateNumber}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-blue-700">Van ID: {vanMakeAndModel}</p>
+                    )}
+                </div>
+            )}
+
             {/* Search Bar and Filters */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
                 <div className="relative w-full md:w-1/3">
@@ -109,15 +155,15 @@ const AssignDriver = () => {
                 )}
 
                 {!loading && !error && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                         {availableDrivers.map((driver) => (
                             <div key={driver.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                 <div className="flex items-center space-x-4 mb-3">
                                     <Image
                                         src={driver.image}
                                         alt={driver.name}
-                                        width={50}
-                                        height={50}
+                                        width={100}
+                                        height={100}
                                         className="rounded-full"
                                     />
                                     <div className="flex-1">
@@ -143,9 +189,9 @@ const AssignDriver = () => {
                                         className="flex-1 bg-primary text-white text-xs py-2 px-3 rounded-lg hover:bg-primary/90 transition-colors"
                                         onClick={() => handleAssignDriver(driver.id, driver.name)}
                                     >
-                                        Request Driver
+                                        {vanId ? 'Request for Van' : 'Request Driver'}
                                     </button>
-                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}`}>
+                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${vanId ? `?vanId=${vanId}` : ''}`}>
                                         <button className="flex-1 border border-primary text-primary text-xs py-2 px-3 rounded-lg hover:bg-primary/10 transition-colors">
                                             View Details
                                         </button>

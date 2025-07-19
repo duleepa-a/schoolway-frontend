@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { FaDownload, FaArrowLeft, FaStar } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DriverDetails as DriverDetailsType, DriverDetailsResponse } from '@/types/driverDetails';
 
 interface DriverDetailsProps {
@@ -12,9 +12,14 @@ interface DriverDetailsProps {
 
 const DriverDetails = ({ driverId }: DriverDetailsProps) => {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const vanId = searchParams.get('vanId');
+    
     const [driver, setDriver] = useState<DriverDetailsType | null>(null);
+    const [vanDetails, setVanDetails] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [requestLoading, setRequestLoading] = useState(false);
 
     // Mock data for fields not in database
     const mockData = {
@@ -84,6 +89,25 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
         }
     }, [driverId]);
 
+    // Fetch van details if vanId is provided
+    useEffect(() => {
+        const fetchVanDetails = async () => {
+            if (vanId) {
+                try {
+                    const response = await fetch(`/api/vanowner/vans/${vanId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setVanDetails(data.van);
+                    }
+                } catch (error) {
+                    console.error('Error fetching van details:', error);
+                }
+            }
+        };
+
+        fetchVanDetails();
+    }, [vanId]);
+
     const handleDownload = (documentType: string, filePath: string) => {
         // Handle document download logic here
         console.log(`Downloading ${documentType} from ${filePath}`);
@@ -94,10 +118,48 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
         router.back();
     };
 
-    const handleAssignDriver = () => {
-        if (driver) {
+    const handleAssignDriver = async () => {
+        if (driver && vanId) {
+            try {
+                setRequestLoading(true);
+                
+                // Create the request payload
+                const requestPayload = {
+                    driverId: driver.id,
+                    vanId: vanId,
+                    driverName: driver.name,
+                    vanModel: vanDetails?.makeAndModel,
+                    requestDate: new Date().toISOString(),
+                };
+
+                console.log('Sending driver request:', requestPayload);
+
+                // Here you would make the actual API call to request the driver
+                // const response = await fetch('/api/driver-requests', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     body: JSON.stringify(requestPayload)
+                // });
+
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                alert(`Driver request sent successfully!\n\nDriver: ${driver.name}\nVan: ${vanDetails?.makeAndModel || vanId}\n\nYou will receive a notification once the driver responds.`);
+                
+                // Navigate back to van details or driver list
+                router.push(`/vanowner/vehicles/${vanId}`);
+                
+            } catch (error) {
+                console.error('Error sending driver request:', error);
+                alert('Failed to send driver request. Please try again.');
+            } finally {
+                setRequestLoading(false);
+            }
+        } else if (driver) {
             console.log(`Assigning driver ${driver.name} (ID: ${driver.id})`);
-            // You can implement actual assignment functionality here
+            alert('Driver assignment functionality will be implemented here.');
         }
     };
 
@@ -146,6 +208,24 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
 
     return (
         <div className="space-y-6">
+            {/* Van Information Banner (if vanId is provided) */}
+            {vanId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                        Requesting Driver for Van
+                    </h3>
+                    {vanDetails ? (
+                        <div className="text-sm text-blue-700">
+                            <p><span className="font-medium">Van ID:</span> {vanDetails.id}</p>
+                            <p><span className="font-medium">Model:</span> {vanDetails.makeAndModel}</p>
+                            <p><span className="font-medium">License Plate:</span> {vanDetails.licensePlateNumber}</p>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-blue-700">Van ID: {vanId}</p>
+                    )}
+                </div>
+            )}
+
             {/* Back Button */}
             <button
                 onClick={handleBackClick}
@@ -183,13 +263,21 @@ const DriverDetails = ({ driverId }: DriverDetailsProps) => {
                         </div>
                     </div>
 
-                    {/* Assign Driver Button */}
+                    {/* Request Driver Button */}
                     <div className="mt-6 lg:mt-0 lg:ml-8">
                         <button
                             onClick={handleAssignDriver}
-                            className="w-full lg:w-auto bg-primary text-white px-40 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                            disabled={requestLoading}
+                            className="w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Request Driver
+                            {requestLoading ? (
+                                <div className="flex items-center justify-center">
+                                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Sending Request...
+                                </div>
+                            ) : (
+                                vanId ? 'Send a job offer' : 'Request Driver'
+                            )}
                         </button>
                     </div>
                 </div>

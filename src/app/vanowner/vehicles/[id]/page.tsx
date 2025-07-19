@@ -9,7 +9,8 @@ interface Props {
 }
 
 export default async function VanDetailsPage({ params }: Props) {
-  const id = parseInt(params.id);
+  const paras = await params;
+  const id = parseInt(paras.id);
 
   if (isNaN(id)) return notFound();
 
