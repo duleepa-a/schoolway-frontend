@@ -158,7 +158,6 @@ const VehiclesPage = ({ serverSession }: Props) => {
       });
 
       if (response.ok) {
-        alert('Vehicle added successfully');
         handleCloseForm();
       } else {
         const errorData = await response.json();

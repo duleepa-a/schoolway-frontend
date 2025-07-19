@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { GoogleMap, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import { useEffect, useState } from 'react';
 
 interface Van {
   id: number;
@@ -41,10 +43,38 @@ const VanDetails = ({ van }: { van: Van }) => {
     { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
   ];
 
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['places'],
+  });
+
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
+  useEffect(() => {
+    if (isLoaded && van.routeStart && van.routeEnd) {
+      const directionsService = new google.maps.DirectionsService();
+
+      directionsService.route(
+        {
+          origin: van.routeStart,
+          destination: van.routeEnd,
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK && result) {
+            setDirections(result);
+          } else {
+            console.error('Failed to fetch directions', result);
+          }
+        }
+      );
+    }
+  }, [isLoaded, van.routeStart, van.routeEnd]);
+
   return (
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Van Details */}
-      <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-2">
+      <div className="bg-white rounded-2xl px-8 py-8 shadow-lg col-span-2">
         <h2 className="text-lg font-semibold mb-4">{van.makeAndModel}</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
@@ -73,20 +103,30 @@ const VanDetails = ({ van }: { van: Van }) => {
           </div>
         </div>
         <div>
-          <h3 className="text-sm font-semibold mb-2 text-active-text">Schools</h3>
-          <ul className="">
-            {schools.map((school, idx) => (
-              <li key={idx} className="flex items-center">
-                <div
-                  className={`w-3 h-3 rounded-full mr-3 ${
-                    idx < 4 ? 'bg-primary' : 'bg-gray-400'
-                  }`}
-                ></div>
-                <span className="text-sm text-gray-800">{school}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <h3 className="text-lg font-semibold mb-2 text-gray-900">Schools</h3>
+          <div className="relative">
+            <div className="absolute left-1.5 top-2 bottom-2 w-0.5 bg-gray-300"></div>
+              <ul className="space-y-3">
+                {schools.map((school, idx) => (
+                  <li key={idx} className="flex items-start relative">
+                    <div className="relative z-10 flex-shrink-0 mt-1">
+                      {idx === 3 ? (
+                        <div className="w-3 h-3 rounded-full border-2 border-yellow-500 bg-white"></div>
+                      ) : (
+                        <div className={`w-3 h-3 rounded-full ${
+                          idx < 4 ? 'bg-yellow-500' : 'bg-gray-400'
+                        }`}></div>
+                      )}
+                    </div>
+                    
+                    <span className="ml-4 text-sm text-gray-600 leading-relaxed">
+                      {school}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
@@ -139,40 +179,19 @@ const VanDetails = ({ van }: { van: Van }) => {
               ) 
             }
             </div>
-          <div className='w-full grid grid-cols-4 gap-4'>
-            {/* Route & Safety */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
-                <h2 className="text-base font-semibold mb-4">Current Route</h2>
-                <Image
-                  src="/Images/routePlaceholder.png"
-                  alt="Route"
-                  width={200}
-                  height={125}
-                  className="rounded-lg"
-                />
-              </div>
-                {/* Student List */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
-                <h2 className="text-base font-semibold mb-4">Student List</h2>
-                <ul className="space-y-4">
-                  {students.map((s, i) => (
-                    <li key={i} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Image
-                          src={s.image}
-                          alt={s.name}
-                          width={36}
-                          height={36}
-                          className="rounded-full"
-                        />
-                        <span className="text-xs font-medium text-gray-700">{s.name}</span>
-                      </div>
-                      <span className="text-xs text-gray-500 ml-1">pickup - {s.time}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-          </div>
+            <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
+              <h2 className="text-base font-semibold mb-4">Current Route</h2>
+              {isLoaded && (
+                    <GoogleMap
+                      mapContainerStyle={{ width: '100%', height: '300px' }}
+                      center={{ lat: 7.8731, lng: 80.7718 }}
+                      zoom={10}
+                    >
+                      {directions && <DirectionsRenderer directions={directions} />}
+                    </GoogleMap>
+                )}
+              {!isLoaded && <p>Loading map...</p>}
+            </div>
       </div>
     </div>
   );
