@@ -9,27 +9,27 @@ datasource db {
 }
 
 model UserProfile {
-  id                  String                @id @default(cuid())
-  email               String                @unique
-  firstname           String?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  lastname            String?
-  role                UserRole?
-  password            String
-  activeStatus        Boolean               @default(true)
-  address             String?
-  birthDate           DateTime?
-  mobile              String?
-  nic                 String?
-  nic_pic             String?
-  district            String?
-  dp                  String?               @default("/Images/male_pro_pic_placeholder.png")
-  driverProfile       DriverProfile?
-  driverJobRequests   DriverVanJobRequest[] @relation("DriverJobRequests")
-  vanOwnerJobRequests DriverVanJobRequest[] @relation("VanOwnerJobRequests")
-  vans                Van[]
-  vanService          VanService?
+  id                                                              String                @id @default(cuid())
+  email                                                           String                @unique
+  firstname                                                       String?
+  createdAt                                                       DateTime              @default(now())
+  updatedAt                                                       DateTime              @updatedAt
+  lastname                                                        String?
+  role                                                            UserRole?
+  password                                                        String
+  activeStatus                                                    Boolean               @default(true)
+  address                                                         String?
+  birthDate                                                       DateTime?
+  mobile                                                          String?
+  nic                                                             String?
+  nic_pic                                                         String?
+  district                                                        String?
+  dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  driverProfile                                                   DriverProfile?
+  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
+  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  Van                                                             Van[]
+  vanService                                                      VanService?
 }
 
 model VanService {
@@ -87,8 +87,8 @@ model Van {
   privateRating           Float                 @default(0)
   startTime               String?
   studentRating           Float                 @default(0)
-  jobRequests             DriverVanJobRequest[]
-  user                    UserProfile           @relation(fields: [ownerId], references: [id])
+  DriverVanJobRequest     DriverVanJobRequest[]
+  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
 }
 
 model ContactUs {
@@ -103,24 +103,24 @@ model ContactUs {
 }
 
 model DriverVanJobRequest {
-  id              String           @id @default(cuid())
-  driverId        String
-  vanId           Int
-  vanOwnerId      String
-  status          JobRequestStatus @default(PENDING)
-  message         String?
-  proposedSalary  Float?
-  turn            String?
-  responseMessage String?
-  respondedAt     DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  expiresAt       DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
-  driver          UserProfile      @relation("DriverJobRequests", fields: [driverId], references: [id])
-  van             Van              @relation(fields: [vanId], references: [id])
-  vanOwner        UserProfile      @relation("VanOwnerJobRequests", fields: [vanOwnerId], references: [id])
+  id                                                      String           @id
+  driverId                                                String
+  vanId                                                   Int
+  vanOwnerId                                              String
+  status                                                  JobRequestStatus @default(PENDING)
+  message                                                 String?
+  proposedSalary                                          Float?
+  turn                                                    String?
+  responseMessage                                         String?
+  respondedAt                                             DateTime?
+  createdAt                                               DateTime         @default(now())
+  updatedAt                                               DateTime
+  expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
+  UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
+  Van                                                     Van              @relation(fields: [vanId], references: [id])
+  UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation("DriverVanJobRequest_vanOwnerIdToUserProfile", fields: [vanOwnerId], references: [id])
 
-  @@unique([driverId, vanOwnerId, vanId], name: "unique_driver_van_request")
+  @@unique([driverId, vanOwnerId, vanId])
 }
 
 enum UserRole {

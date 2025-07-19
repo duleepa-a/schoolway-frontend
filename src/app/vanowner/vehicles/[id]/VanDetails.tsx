@@ -14,7 +14,13 @@ interface Van {
   routeStart?: string;
   routeEnd?: string;
   photoUrl: string;
+  studentRating: number;
+  privateRating: number;
+  startTime?: string;
+  endTime?: string;
+  salaryPercentage: number;
   hasDriver: boolean;
+  isApproved: boolean;
 }
 
 
@@ -61,7 +67,9 @@ const VanDetails = ({ van }: { van: Van }) => {
                 </div>
               </div>
             </div>
-            <p className='text-sm'><span className="font-medium">District:</span> Colombo</p>
+            <p className='text-sm'><span className="font-medium">Student Rating per km:</span><span className="text-active-text"> Rs. {van.studentRating}</span></p>
+            <p className='text-sm'><span className="font-medium">Private-Hire Rating per km:</span><span className="text-active-text"> Rs. {van.privateRating}</span></p>
+            <p className='text-sm'><span className="font-medium">Salary Percentage</span><span className="text-active-text"> {van.salaryPercentage} %</span></p>
           </div>
         </div>
         <div>
@@ -83,7 +91,7 @@ const VanDetails = ({ van }: { van: Van }) => {
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-              {van.hasDriver ?? <>
+              {(van.hasDriver &&  van.isApproved) ?? <>
                 <h2 className="text-base font-semibold mb-4">Driver</h2>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
@@ -113,7 +121,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                   <button className="btn-small-primary ml-4">More Options</button>
                 </div>
               </> } 
-              {!van.hasDriver && (
+              {(!van.hasDriver &&  van.isApproved) && (
                 <div className=" my-6">
                   <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
                   <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
@@ -122,6 +130,14 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </Link>
                 </div>
             ) } 
+
+            {!(van.hasDriver) && !van.isApproved && (
+                <div className=" my-12">
+                  <h2 className="text-base font-semibold mb-4">Van Not Approved</h2>
+                  <p className="text-sm text-gray-500 mb-4">Please wait for the approval of your van.</p>
+                </div>
+              ) 
+            }
             </div>
           <div className='w-full grid grid-cols-4 gap-4'>
             {/* Route & Safety */}

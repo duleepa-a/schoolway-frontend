@@ -60,7 +60,7 @@ export default function DriverTable() {
           <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
         </div>
 
-        <TablePagination totalPages={5} />
+        {/* <TablePagination totalPages={5} /> */}
 
       </div>
 

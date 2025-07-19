@@ -28,6 +28,8 @@ interface FormData {
   routeEnd: string;
   startTime:string;
   endTime:string;
+  studentRating: string;
+  privateRating: string;
   ownerId: string;
 }
 
@@ -60,6 +62,8 @@ const VehiclesPage = ({ serverSession }: Props) => {
     routeEnd: '',
     startTime:'',
     endTime:'',
+    studentRating: '',
+    privateRating: '',
     ownerId:'',
   });
 
@@ -137,6 +141,8 @@ const VehiclesPage = ({ serverSession }: Props) => {
       const payload = {
         ...formData,
         seatingCapacity: parseInt(formData.seatingCapacity),
+        privateRating: parseFloat(formData.privateRating),
+        studentRating: parseFloat(formData.studentRating),
         acCondition: formData.acCondition === 'A/C',
         rBookBase64: uploads[0],
         revenueLicenseBase64: uploads[1],
@@ -178,22 +184,32 @@ const VehiclesPage = ({ serverSession }: Props) => {
       const query = new URLSearchParams({
         search: searchTerm,
         page: page.toString(),
-        limit: '3' 
+        limit: '3'
       });
 
       const res = await fetch(`/api/vans/user?${query}`);
-      const data = await res.json();
 
-      if (res.ok) {
-        setVehicles(data.vans);
-        setTotalPages(data.totalPages);
-      } else {
-        console.error(data.error);
+      const text = await res.text();
+
+      if (!res.ok) {
+        console.error('Fetch error:', res.status);
+        return;
       }
+
+      if (!text) {
+        console.error('Empty response body');
+        return;
+      }
+
+      const data = JSON.parse(text);
+
+      setVehicles(data.vans);
+      setTotalPages(data.totalPages);
     } catch (err) {
       console.error('Error fetching vans:', err);
     }
   };
+
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -295,14 +311,14 @@ const VehiclesPage = ({ serverSession }: Props) => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 mt-2">
-                    <FormInput label="Route Start" name="routeStart" value={formData.routeStart} onChange={handleInputChange} placeholder="Start location" error={errors.routeStart} />
-                    <FormInput label="Route End" name="routeEnd" value={formData.routeEnd} onChange={handleInputChange} placeholder="End location" error={errors.routeEnd} />
+                    <FormInput label="School Van Rating - Per Km (Rs)" name="studentRating" type="number" value={formData.studentRating} onChange={handleInputChange} placeholder="15" error={errors.studentRating} />
+                    <FormInput label="Private Hire Rating - Per Km (Rs)" name="privateRating" type="number" value={formData.privateRating} onChange={handleInputChange} placeholder="15" error={errors.privateRating} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 mt-2">
                      <div>
                       <label className="form-label">Start Time</label>
-                      <select name="acCondition" value={formData.startTime} onChange={handleInputChange} className="form-input-field ">
+                      <select name="startTime" value={formData.startTime} onChange={handleInputChange} className="form-input-field ">
                         <option value="">Select</option>
                         <option value="7:30 am">7:30 am</option>
                         <option value="8:00 am">8:00 am</option>
@@ -310,7 +326,7 @@ const VehiclesPage = ({ serverSession }: Props) => {
                     </div>
                     <div>
                       <label className="form-label">End Time</label>
-                      <select name="acCondition" value={formData.endTime} onChange={handleInputChange} className="form-input-field ">
+                      <select name="endTime" value={formData.endTime} onChange={handleInputChange} className="form-input-field ">
                         <option value="">Select</option>
                         <option value="12:30 pm">12:30 pm</option>
                         <option value="1:00 pm">1:00 pm</option>
