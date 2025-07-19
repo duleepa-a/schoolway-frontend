@@ -26,7 +26,8 @@ const ManageSchoolsPage = () => {
     schoolId: '',
     email: '',
     guardianName: '',
-    contact: ''
+    contact: '',
+    schoolAddress: ''
   });
 
   // Filter the data based on search criteria
@@ -50,7 +51,8 @@ const ManageSchoolsPage = () => {
       schoolId: row.User_ID as string || '',
       email: row.Email as string || '',
       guardianName: row.Status as string || '',
-      contact: row.Role as string || ''
+      contact: row.Role as string || '',
+      schoolAddress: row.Address as string || ''
     });
   };
 
@@ -77,7 +79,8 @@ const ManageSchoolsPage = () => {
       schoolId: '',
       email: '',
       guardianName: '',
-      contact: ''
+      contact: '',
+      schoolAddress: ''
     });
   };
 
@@ -87,7 +90,8 @@ const ManageSchoolsPage = () => {
       schoolId: '',
       email: '',
       guardianName: '',
-      contact: ''
+      contact: '',
+      schoolAddress: ''
     });
   };
 
@@ -122,6 +126,22 @@ const ManageSchoolsPage = () => {
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter school name"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="schoolAddress" className="block text-sm font-medium text-gray-700 mb-1">
+                      School Address *
+                    </label>
+                    <input
+                      type="text"
+                      id="schoolAddress"
+                      name="schoolAddress"
+                      value={formData.schoolAddress}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter school address"
                     />
                   </div>
 
