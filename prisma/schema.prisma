@@ -30,6 +30,27 @@ model UserProfile {
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
   Van                                                             Van[]
   vanService                                                      VanService?
+  id                                                              String                @id @default(cuid())
+  email                                                           String                @unique
+  firstname                                                       String?
+  createdAt                                                       DateTime              @default(now())
+  updatedAt                                                       DateTime              @updatedAt
+  lastname                                                        String?
+  role                                                            UserRole?
+  password                                                        String
+  activeStatus                                                    Boolean               @default(true)
+  address                                                         String?
+  birthDate                                                       DateTime?
+  mobile                                                          String?
+  nic                                                             String?
+  nic_pic                                                         String?
+  district                                                        String?
+  dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  driverProfile                                                   DriverProfile?
+  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
+  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  Van                                                             Van[]
+  vanService                                                      VanService?
 }
 
 model VanService {
@@ -48,17 +69,17 @@ model DriverProfile {
   licenseExpiry  DateTime
   licenseFront   String?
   licenseBack    String?
-  licenseType    String[]
   policeReport   String?
-  medicalReport  String?
   userId         String      @unique
   rating         Float       @default(0)
   ratingCount    Int         @default(0)
+  startedDriving DateTime?   @default(now())
+  status         Int         @default(2) // 0: rejected, 1: approved, 2: Pending Approval
   bio            String?
   languages      String[]
-  relocate       Boolean    @default(false)
-  startedDriving DateTime?   @default(now())
-  status         Int         @default(2)
+  licenseType    String[]
+  medicalReport  String?
+  relocate       Boolean     @default(false)
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -84,6 +105,10 @@ model Van {
   assignedDriverId        String?
   salaryPercentage        Float?                @default(25.0)
   shiftDetails            String?
+  endTime                 String?
+  privateRating           Float                 @default(0)
+  startTime               String?
+  studentRating           Float                 @default(0)
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
 }

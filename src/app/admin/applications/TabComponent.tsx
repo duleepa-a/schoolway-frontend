@@ -1,130 +1,141 @@
 'use client';
 
 import { useState } from 'react';
-import ApplicationTable from '@/app/dashboardComponents/ApplicationTable'
-import { applicationsData } from '../../../../public/dummy_data/applications'
-import StatisticsTab from './StatisticsTab';
+import Swal from 'sweetalert2';
+import CustomTable from '@/app/dashboardComponents/CustomTable';
+import StatisticsTab from '@/app/admin/applications/StatisticsTab';
+import ViewApplication from './ViewApplication';
+import { FileText, FileCheck, FileX } from 'lucide-react';
+import { ApplicationData } from './types';
 
 
 
-export default function TabComponent() {
+interface TabComponentProps {
+  driverApplications: ApplicationData[];
+}
+
+export default function TabComponent({ driverApplications }: TabComponentProps) {
   const [activeTab, setActiveTab] = useState('drivers');
-  const [selectedApplications, setSelectedApplications] = useState<string[]>([]);
-  
+  const [selectedApplication, setSelectedApplication] = useState<ApplicationData | null>(null);
+
+
+
+const handleStatusUpdate = async (action: 'approve' | 'reject', userId: string) => {
+  const { isConfirmed } = await Swal.fire({
+    title: `Are you sure you want to ${action} this application?`,
+    icon: action === 'approve' ? 'success' : 'warning',
+    showCancelButton: true,
+    confirmButtonColor: action === 'approve' ? '#22c55e' : '#ef4444', // Tailwind green-500 or red-500
+    cancelButtonColor: '#6b7280', // Tailwind gray-500
+    confirmButtonText: `Yes, ${action} it`,
+    cancelButtonText: 'Cancel',
+  });
+
+  if (!isConfirmed) return;
+
+  try {
+    await fetch(`/api/admin/applications/drivers/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+
+    await Swal.fire({
+      title: `Application ${action}ed successfully!`,
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false,
+    });
+
+    setSelectedApplication(null);
+  } catch (err) {
+    console.error(`Failed to ${action} application:`, err);
+    Swal.fire({
+      title: 'Error!',
+      text: `Failed to ${action} the application.`,
+      icon: 'error',
+      confirmButtonText: 'OK',
+    });
+  }
+};
+
 
   const columns = [
-    { key: "Name", label: "Name" },
-    { key: "User_ID", label: "User ID" },
-    { key: "Date", label: "Date"},
-    { key: "Status", label: "Status" },
-    ];
-
-    const handleReview = (row: Record<string, string | number | boolean | null | undefined>) => {
-        console.log("Review application:", row);
-        // Implement review functionality
-    };
-
-    const handleReject = (row: Record<string, string | number | boolean | null | undefined>) => {
-        console.log("Reject application:", row);
-        // Implement reject functionality
-    };
-
-    const handleSelectionChange = (selectedIds: string[]) => {
-        setSelectedApplications(selectedIds);
-        console.log("Selected applications:", selectedIds);
-    };
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'nic', label: 'NIC' },
+    { key: 'date', label: 'Date' },
+    { key: 'status', label: 'Status' },
+  ];
 
   return (
-    <div className="">
+    <div>
       {/* Tabs */}
-      <div className="flex gap-6 border-b border-border-bold-shade mb-4">
-        <button
-          onClick={() => setActiveTab('drivers')}
-          className={`pb-2 font-medium cursor-pointer 
-            
-            ${activeTab === 'drivers'
-              ? 'border-b-2 border-primary text-active-text'
-              : 'text-inactive-text'
-          }`}
-
-        >
-          Drivers Applications
-        </button>
-        <button
-          onClick={() => setActiveTab('vehicles')}
-          className={`pb-2 font-medium cursor-pointer 
-            
-            ${activeTab === 'vehicles'
-              ? 'border-b-2 border-primary text-active-text'
-              : 'text-inactive-text'
-          }`}
-        >
-          Vehicles Applications
-        </button>
-        <button
-          onClick={() => setActiveTab('statistics')}
-          className={`pb-2 font-medium cursor-pointer 
-            
-            ${activeTab === 'statistics'
-              ? 'border-b-2 border-primary text-active-text'
-              : 'text-inactive-text'
-          }`}
-
-        >
-            Statistics
-        </button>
+      <div className="flex gap-6 border-b border-gray-300 mb-4">
+        {['drivers', 'vehicles', 'statistics'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-2 font-medium ${activeTab === tab ? 'border-b-2 border-blue-500 text-blue-700' : 'text-gray-500'}`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)} Applications
+          </button>
+        ))}
       </div>
 
       {activeTab === 'drivers' && (
-        <div className="row-span-5 dashboard-section-card bg-gray-50">
-            <h3 className="text-lg font-semibold mb-4">Driver Applications</h3>
-            
-            <div className="h-full overflow-y-auto">
-              <ApplicationTable
-                columns={columns}
-                data={applicationsData}
-                actions={[
-                  { type: "review", onClick: handleReview },
-                  { type: "reject", onClick: handleReject },
-                ]}
-                onSelectionChange={handleSelectionChange}
-                defaultItemsPerPage={10}
-              />
-            </div>
+        <div className="dashboard-section-card bg-gray-50 p-4 rounded">
+          <h3 className="text-lg font-semibold mb-4">Driver Applications</h3>
+          <CustomTable
+            columns={columns}
+            data={driverApplications}
+            actions={[
+              {
+                type: 'custom',
+                label: 'view',
+                icon: <FileText size={16} color="blue" />,
+                onClick: setSelectedApplication,
+              },
+              {
+                type: 'custom',
+                label: 'approve',
+                icon: <FileCheck size={16} color="green" />,
+                onClick: (row) => handleStatusUpdate('approve', row.id),
+              },
+              {
+                type: 'custom',
+                label: 'reject',
+                icon: <FileX size={16} color="red" />,
+                onClick: (row) => handleStatusUpdate('reject', row.id),
+              },
+            ]}
+            defaultItemsPerPage={10}
+          />
         </div>
       )}
 
       {activeTab === 'vehicles' && (
-        <div className="row-span-5 dashboard-section-card bg-gray-50">
-            <h3 className="text-lg font-semibold mb-4">Vehicle Applications</h3>
-            
-            <div className="h-full overflow-y-auto">
-              <ApplicationTable
-                columns={columns}
-                data={applicationsData}
-                actions={[
-                  { type: "review", onClick: handleReview },
-                  { type: "reject", onClick: handleReject },
-                ]}
-                onSelectionChange={handleSelectionChange}
-                defaultItemsPerPage={10}
-              />
-            </div>
+        <div className="dashboard-section-card bg-gray-50 p-4 rounded">
+          <h3 className="text-lg font-semibold mb-4">Vehicle Applications</h3>
+          <p>No vehicle applications yet.</p>
         </div>
       )}
 
       {activeTab === 'statistics' && (
-        <div className="row-span-5 dashboard-section-card bg-gray-50">
-            <h3 className="text-lg font-semibold mb-4">Statistics</h3>
-            
-            <div className="h-full overflow-y-auto">
-              <StatisticsTab/>
-            </div>
+        <div className="dashboard-section-card bg-gray-50 p-4 rounded">
+          <h3 className="text-lg font-semibold mb-4">Statistics</h3>
+          <StatisticsTab />
         </div>
       )}
 
-      
-
+      {selectedApplication && (
+        <ViewApplication
+          application={selectedApplication}
+          onApprove={() => handleStatusUpdate('approve', selectedApplication.id)}
+          onReject={() => handleStatusUpdate('reject', selectedApplication.id)}
+          onClose={() => setSelectedApplication(null)}
+        />
+      )}
     </div>
   );
 }

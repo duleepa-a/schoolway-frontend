@@ -4,7 +4,9 @@ import { useState, useMemo } from 'react';
 import TopBar from '@/app/dashboardComponents/TopBar';
 import SearchFilter from '@/app/dashboardComponents/SearchFilter';
 import DataTable from '@/app/dashboardComponents/CustomTable';
-import { inquiriesData } from '../../../../public/dummy_data/inquiriesData.tsx';
+// import { inquiriesData } from '../../../../public/dummy_data/inquiriesData.tsx';
+import { useEffect } from 'react';
+
 import { FileText,FileCheck } from 'lucide-react';
 
 const columns = [
@@ -15,10 +17,40 @@ const columns = [
   { key: 'Date', label: 'Date' },
 ];
 
+interface Inquiry {
+  id: number;
+  FullName: string;
+  Subject: string;
+  Status: string;
+  Role: string;
+  Date: string;
+}
+
+
+
 const InquiriesPage = () => {
+  const [inquiriesData, setInquiriesData] = useState<Inquiry[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await fetch('/api/admin/inquiries'); 
+      const data = await response.json();
+      setInquiriesData(data);
+    } catch (error) {
+      console.error('Failed to fetch inquiries:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+  }, []);
 
   const filteredData = useMemo(() => {
     return inquiriesData.filter((inquiry) => {
@@ -32,19 +64,31 @@ const InquiriesPage = () => {
 
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [searchTerm, selectedRole, selectedStatus]);
+  }, [searchTerm, selectedRole, selectedStatus, inquiriesData]);
 
-  const handleView = (row) => {
-    alert(`Viewing inquiry from ${row['Full Name']} - Role: ${row.Role}`);
-  };
+const handleView = (row: Record<string, string | number | boolean | null | undefined>) => {
+  alert(`Viewing inquiry from ${row.FullName} - Role: ${row.Role}`);
+};
+const handleResolve = async (row: Record<string, string | number | boolean | null | undefined>) => {
+  if (row.Status === 'Reviewed') {
+    alert(`${row.FullName}'s inquiry is already reviewed.`);
+    return;
+  }
 
-  const handleResolve = (row) => {
-    if (row.Status === 'Reviewed') {
-      alert(`${row['Full Name']}'s inquiry is already reviewed.`);
+  try {
+    const res = await fetch(`/api/inquiries/${row.id}/resolve`, {
+      method: 'POST',
+    });
+    if (res.ok) {
+      alert(`Marked ${row.FullName}'s inquiry as reviewed.`);
     } else {
-      alert(`Marking ${row['Full Name']}'s inquiry as reviewed.`);
+      alert('Failed to update inquiry status.');
     }
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   const handleClearFilters = () => {
     setSearchTerm('');
@@ -81,7 +125,9 @@ const InquiriesPage = () => {
             ],
           }}
         />
-
+      {loading ? (
+            <div className="text-center py-10">Loading inquiries...</div>
+      ) : (
         <div className="mt-4">
           <DataTable
             columns={columns}
@@ -91,7 +137,7 @@ const InquiriesPage = () => {
                       type: "custom", 
                       icon: <FileText size={16} color='blue'/>,
                       label: "View Inquiry",
-                      onClick: handleView
+                      onClick: handleView,
                  },
               { 
                       type: "custom", 
@@ -103,6 +149,7 @@ const InquiriesPage = () => {
             ]}
           />
         </div>
+        )}
       </section>
     </div>
   );

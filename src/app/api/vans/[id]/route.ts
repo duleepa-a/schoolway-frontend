@@ -14,9 +14,6 @@ export async function GET(
 
   const van = await prisma.van.findUnique({
     where: { id },
-    include: {
-      user: true, // include owner details if needed
-    },
   });
 
   if (!van) {

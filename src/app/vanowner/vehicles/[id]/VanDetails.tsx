@@ -14,7 +14,13 @@ interface Van {
   routeStart?: string;
   routeEnd?: string;
   photoUrl: string;
+  studentRating: number;
+  privateRating: number;
+  startTime?: string;
+  endTime?: string;
+  salaryPercentage: number;
   hasDriver: boolean;
+  isApproved: boolean;
 }
 
 
@@ -39,7 +45,7 @@ const VanDetails = ({ van }: { van: Van }) => {
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Van Details */}
       <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-2">
-        <h2 className="text-lg font-semibold mb-4">Toyota HIACE Spec 10</h2>
+        <h2 className="text-lg font-semibold mb-4">{van.makeAndModel}</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
             <img
@@ -54,14 +60,16 @@ const VanDetails = ({ van }: { van: Van }) => {
             <p className='text-sm'><span className="font-medium">Van ID:</span> <span className="text-active-text">{van.id}</span></p>
             <p className='text-sm'><span className="font-medium">Model:</span> {van.makeAndModel}</p>
             <div className="my-2">
-              <div className="text-xs mb-1">Seats: 12 / 15</div>
+              <div className="text-xs mb-1">Seats: 5 / {van.seatingCapacity}</div>
               <div className='w-full flex justify-end'>
                 <div className=" bg-gray-200 rounded-full h-1.5 w-9/10">
                   <div className="bg-primary h-1.5 rounded-full " style={{ width: '80%' }}></div>
                 </div>
               </div>
             </div>
-            <p className='text-sm'><span className="font-medium">District:</span> Colombo</p>
+            <p className='text-sm'><span className="font-medium">Student Rating per km:</span><span className="text-active-text"> Rs. {van.studentRating}</span></p>
+            <p className='text-sm'><span className="font-medium">Private-Hire Rating per km:</span><span className="text-active-text"> Rs. {van.privateRating}</span></p>
+            <p className='text-sm'><span className="font-medium">Salary Percentage</span><span className="text-active-text"> {van.salaryPercentage} %</span></p>
           </div>
         </div>
         <div>
@@ -83,7 +91,7 @@ const VanDetails = ({ van }: { van: Van }) => {
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-              {van.hasDriver ?? <>
+              {(van.hasDriver &&  van.isApproved) ?? <>
                 <h2 className="text-base font-semibold mb-4">Driver</h2>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
@@ -113,15 +121,23 @@ const VanDetails = ({ van }: { van: Van }) => {
                   <button className="btn-small-primary ml-4">More Options</button>
                 </div>
               </> } 
-              {!van.hasDriver && (
+              {(!van.hasDriver &&  van.isApproved) && (
                 <div className=" my-6">
                   <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
                   <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
-                  <Link href="/vanowner/vehicles/driver">
-                    <button className="btn-small-primary">Assign Driver</button>
+                  <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${van.makeAndModel}`}>
+                    <button className="btn-small-primary">Find a Driver</button>
                   </Link>
                 </div>
             ) } 
+
+            {!(van.hasDriver) && !van.isApproved && (
+                <div className=" my-12">
+                  <h2 className="text-base font-semibold mb-4">Van Not Approved</h2>
+                  <p className="text-sm text-gray-500 mb-4">Please wait for the approval of your van.</p>
+                </div>
+              ) 
+            }
             </div>
           <div className='w-full grid grid-cols-4 gap-4'>
             {/* Route & Safety */}
