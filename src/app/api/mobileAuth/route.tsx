@@ -38,7 +38,29 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+    var approvalstatus = null;
+    if (existingUser.activeStatus != true) {
+      return NextResponse.json(
+        { success: false, error: 'User account is deactivated' },
+        { status: 403 }
+      );
+    }else if (existingUser.role == 'DRIVER') {
+      
+      const driverData = await prisma.driverProfile.findUnique({
+        where: { userId: existingUser.id },
+        include: { 
+          status: true,
+        }
+      });
 
+      if (!driverData) {
+        return NextResponse.json(
+          { success: false, error: 'Driver profile not found' },
+          { status: 404 }
+        );
+      }
+      approvalstatus = driverData.status;
+    }
     // Create session data (matching your NextAuth structure)
     const sessionData = {
       user: {
@@ -46,6 +68,7 @@ export async function POST(request: NextRequest) {
         email: existingUser.email,
         name: existingUser.firstname,
         role: `${existingUser.role}`,
+        approvalstatus: approvalstatus,
         // Add any other fields you need from your userProfile
       },
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days

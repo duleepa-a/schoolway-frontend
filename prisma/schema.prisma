@@ -53,7 +53,7 @@ model DriverProfile {
   rating         Float       @default(0)
   ratingCount    Int         @default(0)
   startedDriving DateTime?   @default(now())
-  status         Int         @default(2)
+  status         Int         @default(2) // 0: rejected, 1: approved, 2: Pending Approval
   bio            String?
   languages      String[]
   licenseType    String[]
