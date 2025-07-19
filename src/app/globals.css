@@ -48,7 +48,9 @@
   --color-statusbackgroundgrey : #f5f5f5;
   --color-statusred: "#f44336";               
   --color-statusbackgroundred: #ffebee;
-
+  --color-statusyellow: #ffeb3b;
+  --color-statusbackgroundyellow: #fffde7;
+  
 }
 
   /* layer based custom styling => global style */

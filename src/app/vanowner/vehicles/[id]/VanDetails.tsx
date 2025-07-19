@@ -39,7 +39,7 @@ const VanDetails = ({ van }: { van: Van }) => {
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Van Details */}
       <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-2">
-        <h2 className="text-lg font-semibold mb-4">Toyota HIACE Spec 10</h2>
+        <h2 className="text-lg font-semibold mb-4">{van.makeAndModel}</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
             <img
@@ -54,7 +54,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             <p className='text-sm'><span className="font-medium">Van ID:</span> <span className="text-active-text">{van.id}</span></p>
             <p className='text-sm'><span className="font-medium">Model:</span> {van.makeAndModel}</p>
             <div className="my-2">
-              <div className="text-xs mb-1">Seats: 12 / 15</div>
+              <div className="text-xs mb-1">Seats: 5 / {van.seatingCapacity}</div>
               <div className='w-full flex justify-end'>
                 <div className=" bg-gray-200 rounded-full h-1.5 w-9/10">
                   <div className="bg-primary h-1.5 rounded-full " style={{ width: '80%' }}></div>

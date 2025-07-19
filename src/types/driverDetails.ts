@@ -2,7 +2,8 @@ export interface DriverDetails {
   id: string;
   name: string;
   profilePic: string;
-  address: string;
+  district: string;
+  city : string;
   contactNumber: string;
   nic: string;
   licenseNumber: string;
