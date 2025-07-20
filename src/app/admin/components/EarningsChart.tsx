@@ -1,3 +1,4 @@
+'use client';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart } from 'recharts';
 import { useState } from 'react';
 
