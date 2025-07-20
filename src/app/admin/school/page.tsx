@@ -3,7 +3,8 @@ import { useState, useMemo } from 'react';
 import TopBar from '@/app/dashboardComponents/TopBar';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { schoolsData } from '../../../../public/dummy_data/schools';
-import { School, Trash2} from 'lucide-react';
+import { School, Trash2, MapPin } from 'lucide-react';
+import MapLocationPicker from '@/app/components/MapLocationPicker';
 
 
 
@@ -25,7 +26,8 @@ const ManageSchoolsPage = () => {
     schoolName: '',
     email: '',
     contact: '',
-    schoolAddress: ''
+    schoolAddress: '',
+    location: { lat: 0, lng: 0 }
   });
 
   // Filter the data based on search criteria
@@ -43,14 +45,27 @@ const ManageSchoolsPage = () => {
 
   const handleEdit = (row: Record<string, string | number | boolean | null | undefined>) => {
     console.log("Edit clicked:", row);
+    
+    // Handle location data - if it exists in the row data
+    let locationData = { lat: 0, lng: 0 };
+    if (row.location && typeof row.location === 'object') {
+      // If location is already an object with lat/lng
+      const location = row.location as any;
+      if (location.lat && location.lng) {
+        locationData = {
+          lat: typeof location.lat === 'number' ? location.lat : parseFloat(location.lat as string),
+          lng: typeof location.lng === 'number' ? location.lng : parseFloat(location.lng as string)
+        };
+      }
+    }
+    
     // Populate form with selected school data
     setFormData({
       schoolName: row.Name as string || '',
-      schoolId: row.User_ID as string || '',
       email: row.Email as string || '',
-      guardianName: row.Status as string || '',
-      contact: row.Role as string || '',
-      schoolAddress: row.Address as string || ''
+      contact: row.Contact as string || '',
+      schoolAddress: row.Address as string || '',
+      location: locationData
     });
   };
 
@@ -84,6 +99,12 @@ const ManageSchoolsPage = () => {
       return;
     }
 
+    // Validate location
+    if (formData.location.lat === 0 && formData.location.lng === 0) {
+      alert("Please select a location on the map.");
+      return;
+    }
+
     console.log("Form submitted:", formData);
 
     try {
@@ -92,11 +113,12 @@ const ManageSchoolsPage = () => {
         schoolName: formData.schoolName,
         email: formData.email,
         contact: formData.contact,
-        address: formData.schoolAddress
+        address: formData.schoolAddress,
+        location: formData.location
       };
 
       // Send POST request to the API
-      const response = await fetch('/api/admin/schools/addAccount', {
+      const response = await fetch('/api/admin/schools', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +139,8 @@ const ManageSchoolsPage = () => {
         schoolName: '',
         email: '',
         contact: '',
-        schoolAddress: ''
+        schoolAddress: '',
+        location: { lat: 0, lng: 0 }
       });
     } catch (error) {
       console.error("Failed to add school:", error);
@@ -130,7 +153,8 @@ const ManageSchoolsPage = () => {
       schoolName: '',
       email: '',
       contact: '',
-      schoolAddress: ''
+      schoolAddress: '',
+      location: { lat: 0, lng: 0 }
     });
   };
 
@@ -182,6 +206,24 @@ const ManageSchoolsPage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter school address"
                     />
+                  </div>
+
+
+                  <div>
+                    <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                      School Location *
+                    </label>
+                    <div className="mt-2">
+                      <MapLocationPicker 
+                        onLocationSelect={(location) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            location
+                          }));
+                        }}
+                        initialLocation={formData.location.lat !== 0 ? formData.location : null}
+                      />
+                    </div>
                   </div>
 
                   
