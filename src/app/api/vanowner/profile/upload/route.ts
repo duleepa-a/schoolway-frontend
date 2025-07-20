@@ -14,21 +14,16 @@ export async function POST(req: Request) {
   try {
     const form = new IncomingForm();
 
-    // get content-type header from original request
     const contentType = req.headers.get('content-type') || '';
 
-    // get content-length if available
     const contentLength = req.headers.get('content-length') || '';
 
-    // convert Web Request body to buffer
     const buffer = Buffer.from(await req.arrayBuffer());
 
-    // create a readable stream from the buffer
     const stream = new Readable();
     stream.push(buffer);
     stream.push(null);
 
-    // fake a request object with headers for formidable
     const fakeReq = Object.assign(stream, {
       headers: {
         'content-type': contentType,
