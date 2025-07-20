@@ -5,6 +5,9 @@ import DataTable from '@/app/dashboardComponents/CustomTable';
 import { School as SchoolIcon, Trash2, MapPin, Users, Eye, Edit, MoreVertical } from 'lucide-react';
 import MapLocationPicker from '@/app/components/MapLocationPicker';
 import EditSchool from './EditSchool';
+import StatCard from '@/app/dashboardComponents/StatCard';
+import { FaUser, FaUserCheck, FaUserTimes } from 'react-icons/fa';
+import { FaUserClock } from 'react-icons/fa6';
 
 // Define interfaces
 interface Location {
@@ -302,8 +305,27 @@ const ManageSchoolsPageContent = () => {
             />
           )}
 
+          {/* Statistics Cards */}
+          {/** Dummy guardian stats for demonstration. Replace with real data as needed. */}
+          {(() => {
+            // Dummy data for demonstration
+            const guardians: any[] = ["hello", "this", "is", "just", "to", "test"];
+            const activeGuardians = 29;
+            const pendingGuardians = 450;
+            const inactiveGuardians = 0;
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <StatCard icon={<FaUser className="text-xl" />} text="Total School" number={guardians.length} />
+                <StatCard icon={<FaUserCheck className="text-xl" />} text="Total Guardians" number={activeGuardians} />
+                <StatCard icon={<FaUserClock className="text-xl" />} text="Total Students" number={pendingGuardians} />
+                <StatCard icon={<FaUserTimes className="text-xl" />} text="Inactive" number={inactiveGuardians} />
+              </div>
+            );
+          })()}
+
           {/* Split Layout Container */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            
             
             {/* Left Side - Add School Form */}
             <div className="lg:col-span-1">

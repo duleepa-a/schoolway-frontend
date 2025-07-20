@@ -207,20 +207,14 @@ const GuradianPageContent = () => {
         }
     };
 
-    const activeGuardians = guardians.filter(g => g.status === 'Active').length;
-    const pendingGuardians = guardians.filter(g => g.status === 'Pending').length;
-    const inactiveGuardians = guardians.filter(g => g.status === 'Inactive').length;
+    // const activeGuardians = guardians.filter(g => g.status === 'Active').length;
+    // const pendingGuardians = guardians.filter(g => g.status === 'Pending').length;
+    // const inactiveGuardians = guardians.filter(g => g.status === 'Inactive').length;
 
     return (
         <>
 
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <StatCard icon={<FaUser className="text-xl" />} text="Total Guardians" number={guardians.length} />
-                <StatCard icon={<FaUserCheck className="text-xl" />} text="Active" number={activeGuardians} />
-                <StatCard icon={<FaUserClock className="text-xl" />} text="Pending" number={pendingGuardians} />
-                <StatCard icon={<FaUserTimes className="text-xl" />} text="Inactive" number={inactiveGuardians} />
-            </div>
+            
 
             {/* Search and Add Button */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start mb-6 gap-4">
