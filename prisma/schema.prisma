@@ -53,7 +53,7 @@ model DriverProfile {
   rating         Float       @default(0)
   ratingCount    Int         @default(0)
   startedDriving DateTime?   @default(now())
-  status         Int         @default(2) // 0: rejected, 1: approved, 2: Pending Approval
+  status         Int         @default(2)
   bio            String?
   languages      String[]
   licenseType    String[]
@@ -89,6 +89,14 @@ model Van {
   studentRating           Float                 @default(0)
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
+}
+
+model School {
+  id         Int    @id @default(autoincrement())
+  schoolName String
+  email      String @unique
+  contact    String
+  address    String
 }
 
 model ContactUs {
