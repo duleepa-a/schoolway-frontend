@@ -1,8 +1,10 @@
+ 'use client'
 import TopBar from '@/app/dashboardComponents/TopBar';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { schoolsData } from '../../../../public/dummy_data/schools';
 import { School, Trash2, MapPin } from 'lucide-react';
 import MapLocationPicker from '@/app/components/MapLocationPicker';
+import { useState, useMemo } from 'react';
 
 
 
