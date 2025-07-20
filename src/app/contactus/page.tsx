@@ -13,19 +13,46 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     subject: '',
     message: '',
     userType: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission
-  };
 
-  const handleChange = (e) => {
+    try {
+        // console.log(formData);
+
+        const res = await fetch('/api/contactus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+        alert('Message sent successfully!');
+        setFormData({
+            name: '',
+            email: '',
+            subject: '',
+            message: '',
+            userType: '',
+        });
+        } else {
+        alert(result.error || 'Failed to send message.');
+        }
+    } catch (error) {
+        console.error('Form submit error:', error);
+        alert('Something went wrong.');
+    }
+};
+
+
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -49,7 +76,7 @@ export default function Contact() {
                     placeholder="Your full name"
                     value={formData.name}
                     onChange={handleChange}
-                    required
+                    
                 />
                 <FormInput
                     label="Email Address *"
@@ -58,16 +85,9 @@ export default function Contact() {
                     placeholder="your.email@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    required
+                    
                 />
-                <FormInput
-                    label="Phone Number"
-                    name="phone"
-                    type="tel"
-                    placeholder="(555) 123-4567"
-                    value={formData.phone}
-                    onChange={handleChange}
-                />
+                
                 <div>
                     <label className="text-sm block font-semibold text-gray-700 mb-1">I am a...</label>
                     <select
@@ -84,20 +104,22 @@ export default function Contact() {
                     </select>
                 </div>
 
+                <div className="md:col-span-2">
                 <FormInput
                     label="Subject"
                     name="subject"
                     placeholder="What's this about?"
                     value={formData.subject}
                     onChange={handleChange}
-                    className="md:col-span-2"
+                    
                 />
+                </div>
 
                 <div className="md:col-span-2">
                     <label className="text-sm block font-semibold text-gray-700 mb-1">Message *</label>
                     <textarea
                     name="message"
-                    rows="5"
+                    rows={5}
                     value={formData.message}
                     onChange={handleChange}
                     placeholder="Tell us how we can help you..."
