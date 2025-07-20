@@ -1,4 +1,3 @@
-'use client';
 
 import { FaChartBar, FaBus, FaUser, FaMoneyBill, FaCalendar, FaCreditCard } from 'react-icons/fa';
 import EarningsChart from './components/EarningsChart';
