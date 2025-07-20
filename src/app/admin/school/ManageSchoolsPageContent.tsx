@@ -1,9 +1,9 @@
 'use client';
 import { useState, useMemo } from 'react';
-import TopBar from '@/app/dashboardComponents/TopBar';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import { schoolsData } from '../../../../public/dummy_data/schools';
-import { School, Trash2} from 'lucide-react';
+import { School, Trash2, MapPin } from 'lucide-react';
+import MapLocationPicker from '@/app/components/MapLocationPicker';
 
 
 
@@ -25,7 +25,8 @@ const ManageSchoolsPageContent = () => {
     schoolName: '',
     email: '',
     contact: '',
-    schoolAddress: ''
+    schoolAddress: '',
+    schoolLocation: { lat: 7.8731, lng: 80.7718 } // Default to Sri Lanka center
   });
 
   // Filter the data based on search criteria
@@ -46,11 +47,11 @@ const ManageSchoolsPageContent = () => {
     // Populate form with selected school data
     setFormData({
       schoolName: row.Name as string || '',
-      schoolId: row.User_ID as string || '',
       email: row.Email as string || '',
-      guardianName: row.Status as string || '',
-      contact: row.Role as string || '',
-      schoolAddress: row.Address as string || ''
+      contact: row.Contact as string || '',
+      schoolAddress: row.Address as string || '',
+      // Default to Sri Lanka center if no location
+      schoolLocation: { lat: 7.8731, lng: 80.7718 }
     });
   };
 
@@ -92,7 +93,8 @@ const ManageSchoolsPageContent = () => {
         schoolName: formData.schoolName,
         email: formData.email,
         contact: formData.contact,
-        address: formData.schoolAddress
+        address: formData.schoolAddress,
+        location: formData.schoolLocation
       };
 
       // Send POST request to the API
@@ -117,7 +119,8 @@ const ManageSchoolsPageContent = () => {
         schoolName: '',
         email: '',
         contact: '',
-        schoolAddress: ''
+        schoolAddress: '',
+        schoolLocation: { lat: 7.8731, lng: 80.7718 } // Reset to Sri Lanka center
       });
     } catch (error) {
       console.error("Failed to add school:", error);
@@ -130,7 +133,8 @@ const ManageSchoolsPageContent = () => {
       schoolName: '',
       email: '',
       contact: '',
-      schoolAddress: ''
+      schoolAddress: '',
+      schoolLocation: { lat: 7.8731, lng: 80.7718 } // Reset to Sri Lanka center
     });
   };
 
@@ -181,7 +185,26 @@ const ManageSchoolsPageContent = () => {
                     />
                   </div>
 
-                  
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="flex items-center">
+                        <MapPin size={16} className="mr-1 text-yellow-400" />
+                        School Location *
+                      </span>
+                    </label>
+                    <div className="border border-gray-300 rounded-md">
+                      <MapLocationPicker 
+                        onLocationSelect={(location) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            schoolLocation: location
+                          }));
+                        }}
+                        initialLocation={formData.schoolLocation}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">Search for a location or click on the map to select the exact school location</p>
+                  </div>
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">

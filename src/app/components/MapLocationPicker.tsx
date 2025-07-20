@@ -26,20 +26,92 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
   // Use initial location or default to Sri Lanka center
   const [markerPosition, setMarkerPosition] = useState(initialLocation || defaultCenter);
   const [mapCenter, setMapCenter] = useState(initialLocation || defaultCenter);
-  const [searchAddress, setSearchAddress] = useState('');
-  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  
   const mapRef = useRef<google.maps.Map | null>(null);
-  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
-
-  // Initialize map and set up services
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  
+  // Initialize map and set up Autocomplete
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
-    geocoderRef.current = new google.maps.Geocoder();
     
-    // Create a dummy div for PlacesService (required by API)
-    const dummyElement = document.createElement('div');
-    placesServiceRef.current = new google.maps.places.PlacesService(map);
-  }, []);
+    // If the input reference exists, set up Autocomplete
+    if (inputRef.current) {
+      // Create autocomplete instead of SearchBox for better UX
+      const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+        fields: ['geometry', 'name', 'formatted_address'],
+        // Optional: Restrict to country
+        // componentRestrictions: { country: 'lk' } // Sri Lanka
+      });
+      autocompleteRef.current = autocomplete;
+      
+      // Bias the Autocomplete results towards current map's viewport
+      map.addListener("bounds_changed", () => {
+        if (autocompleteRef.current && mapRef.current) {
+          autocompleteRef.current.setBounds(mapRef.current.getBounds() as google.maps.LatLngBounds);
+        }
+      });
+      
+      // Listen for the event fired when the user selects a prediction
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        
+        if (!place || !place.geometry || !place.geometry.location) {
+          console.log("No place selected or returned place contains no geometry");
+          return;
+        }
+        
+        // Clear out the old markers
+        markersRef.current.forEach(marker => {
+          marker.setMap(null);
+        });
+        markersRef.current = [];
+        
+        // Use default marker or custom icon
+        const icon = {
+          url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+          size: new google.maps.Size(71, 71),
+          origin: new google.maps.Point(0, 0),
+          anchor: new google.maps.Point(17, 34),
+          scaledSize: new google.maps.Size(25, 25),
+        };
+        
+        // Create a marker for the place
+        const marker = new google.maps.Marker({
+          map,
+          icon,
+          title: place.name,
+          position: place.geometry.location,
+        });
+        
+        markersRef.current.push(marker);
+        const newPosition = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng()
+        };
+        
+        // Set this as the selected position
+        setMarkerPosition(newPosition);
+        setMapCenter(newPosition);
+        onLocationSelect(newPosition);
+        
+        // Adjust map view
+        if (place.geometry.viewport) {
+          // Only geocodes have viewport
+          map.fitBounds(place.geometry.viewport);
+        } else {
+          map.setCenter(place.geometry.location);
+          map.setZoom(17);
+        }
+        
+        // Update the input value if we have an address
+        if (place.formatted_address) {
+          inputRef.current!.value = place.formatted_address;
+        }
+      });
+    }
+  }, [onLocationSelect]);
 
   // Handle map click to place marker
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
@@ -49,126 +121,47 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
         lng: event.latLng.lng()
       };
       setMarkerPosition(newPosition);
+      setMapCenter(newPosition);
       onLocationSelect(newPosition);
-
-      // Reverse geocode to get address (optional)
-      if (geocoderRef.current) {
-        geocoderRef.current.geocode({ location: newPosition }, (results, status) => {
-          if (status === 'OK' && results?.[0]) {
-            setSearchAddress(results[0].formatted_address);
-          }
-        });
-      }
     }
   }, [onLocationSelect]);
 
-  // Handle search by term or address
-  const handleAddressSearch = useCallback(() => {
-    if (!searchAddress) return;
-    
-    // Try Places API first for search terms like "Hilton Hotel Colombo"
-    if (placesServiceRef.current) {
-      // Search for places matching the term
-      placesServiceRef.current.textSearch({
-        query: searchAddress,
-        // You can add bounds to limit to Sri Lanka if needed
-        // bounds: new google.maps.LatLngBounds(
-        //   { lat: 5.9, lng: 79.5 },  // SW corner of Sri Lanka
-        //   { lat: 9.9, lng: 82.0 }   // NE corner of Sri Lanka
-        // )
-      }, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-          // Get location of first result
-          const location = results[0].geometry?.location;
-          if (location) {
-            const newPosition = {
-              lat: location.lat(),
-              lng: location.lng()
-            };
-            setMarkerPosition(newPosition);
-            setMapCenter(newPosition);
-            onLocationSelect(newPosition);
-            
-            // Update search field with the place name for clarity
-            setSearchAddress(results[0].name || searchAddress);
-          }
-        } else {
-          // Fall back to geocoder for address search
-          if (geocoderRef.current) {
-            geocoderRef.current.geocode({ address: searchAddress }, (results, status) => {
-              if (status === 'OK' && results?.[0]?.geometry?.location) {
-                const newPosition = {
-                  lat: results[0].geometry.location.lat(),
-                  lng: results[0].geometry.location.lng()
-                };
-                setMarkerPosition(newPosition);
-                setMapCenter(newPosition);
-                onLocationSelect(newPosition);
-              } else {
-                alert('Could not find location for the search term provided.');
-              }
-            });
-          }
-        }
-      });
-    } else if (geocoderRef.current) {
-      // Fall back to geocoder if Places service not available
-      geocoderRef.current.geocode({ address: searchAddress }, (results, status) => {
-        if (status === 'OK' && results?.[0]?.geometry?.location) {
-          const newPosition = {
-            lat: results[0].geometry.location.lat(),
-            lng: results[0].geometry.location.lng()
-          };
-          setMarkerPosition(newPosition);
-          setMapCenter(newPosition);
-          onLocationSelect(newPosition);
-        } else {
-          alert('Could not find location for the search term provided.');
-        }
-      });
-    }
-  }, [searchAddress, onLocationSelect]);
-
   return (
     <div className="space-y-4">
-      {/* Search address input and button */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={searchAddress}
-          onChange={(e) => setSearchAddress(e.target.value)}
-          placeholder="Search for places (e.g., Hilton Hotel Colombo)"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handleAddressSearch();
-            }
-          }}
-        />
-        <button
-          onClick={handleAddressSearch}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
-        >
-          Search
-        </button>
-      </div>
-
       {/* Google Map */}
       <LoadScript 
         googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
         libraries={['places']}
       >
-        <GoogleMap
-          mapContainerStyle={containerStyle}
-          center={mapCenter}
-          zoom={10}
-          onClick={handleMapClick}
-          onLoad={onMapLoad}
-        >
-          {/* Marker at selected position */}
-          <Marker position={markerPosition} />
-        </GoogleMap>
+        <div className="relative">
+          {/* Search box positioned above the map */}
+          <input
+            ref={inputRef}
+            id="pac-input"
+            type="text"
+            placeholder="Search for locations or addresses"
+            className="absolute z-10 px-3 py-2 border border-gray-300 rounded-md shadow-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            style={{
+              top: "10px",
+              left: "10px",
+              width: "calc(100% - 100px)",
+              maxWidth: "400px",
+              backgroundColor: "white"
+            }}
+          />
+          
+          <GoogleMap
+            mapContainerStyle={containerStyle}
+            center={mapCenter}
+            zoom={10}
+            onClick={handleMapClick}
+            onLoad={onMapLoad}
+            mapTypeId="roadmap"
+          >
+            {/* Main selected marker */}
+            <Marker position={markerPosition} />
+          </GoogleMap>
+        </div>
       </LoadScript>
 
       {/* Display selected coordinates */}
