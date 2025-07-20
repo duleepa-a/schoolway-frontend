@@ -48,7 +48,9 @@
   --color-statusbackgroundgrey : #f5f5f5;
   --color-statusred: "#f44336";               
   --color-statusbackgroundred: #ffebee;
-
+  --color-statusyellow: #ffeb3b;
+  --color-statusbackgroundyellow: #fffde7;
+  
 }
 
   /* layer based custom styling => global style */
@@ -91,6 +93,10 @@
   }
   .signup-form-field {
     @apply max-w-md mx-auto p-2 bg-orange-50 rounded-b-sm shadow-lg;
+  }
+
+  .popup-modal {
+    @apply  fixed inset-0 bg-blue-300/10 backdrop-blur-xs flex items-center justify-center z-50;
   }
   
 }

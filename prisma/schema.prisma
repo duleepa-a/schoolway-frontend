@@ -55,8 +55,8 @@ model DriverProfile {
 }
 
 model Van {
-  id                      Int         @id @default(autoincrement())
-  registrationNumber      String      @unique
+  id                      Int                   @id @default(autoincrement())
+  registrationNumber      String                @unique
   licensePlateNumber      String
   makeAndModel            String
   seatingCapacity         Int
@@ -68,7 +68,7 @@ model Van {
   fitnessCertificateUrl   String
   insuranceCertificateUrl String
   photoUrl                String
-  createdAt               DateTime    @default(now())
+  createdAt               DateTime              @default(now())
   ownerId                 String
   hasDriver               Boolean     @default(false)
   isApproved              Boolean     @default(false)

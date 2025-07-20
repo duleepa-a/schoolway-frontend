@@ -57,6 +57,7 @@ export const authOptions:NextAuthOptions = {
                 id:`${existingUser.id}`,
                 email: existingUser.email,
                 name:existingUser.firstname,
+                dp: existingUser.dp || null, // Ensure dp is included
                 // last:existingUser.lastname
                 role:`${existingUser.role}`,
                 // servicename:existingUser.servicename, fetch service name from vanservice db
@@ -72,12 +73,17 @@ export const authOptions:NextAuthOptions = {
 
     ],callbacks:{
         async jwt({token,user}){
+            
             if(user){
+                const customUser = user as typeof user & {
+                    role?: string;
+                    dp?: string;
+                };
                 return {
                     ...token,
-                    role:user.role,
-                    id: user.id,
-                    // servicename:user.servicename,
+                    role: customUser.role,
+                    id: customUser.id,
+                    dp: customUser.dp,
                 }
             }
             return token
@@ -89,6 +95,7 @@ export const authOptions:NextAuthOptions = {
                     ...session.user,
                     role:token.role,
                     id: token.id, 
+                    dp: token.dp,
                     // servicename:token.servicename,
                 }
             }

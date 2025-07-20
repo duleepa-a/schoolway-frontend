@@ -119,7 +119,7 @@ export default function DataTable({
                         key={index}
                         onClick={() => action.onClick(row)}
                         title={action.label || action.type}
-                        className={buttonClass}
+                        className={`${buttonClass} cursor-pointer`}
                       >
                         {icon}
                       </button>
