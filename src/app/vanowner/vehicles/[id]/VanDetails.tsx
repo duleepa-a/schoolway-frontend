@@ -115,8 +115,11 @@ const VanDetails = ({ van }: { van: Van }) => {
       return;
     }
 
-  const updatedVan = await res.json();
-    setLocalVan(updatedVan); 
+    const updatedVan = await res.json();
+    setLocalVan(prev => ({
+      ...prev,
+      ...updatedVan,
+    }));
     alert('Van updated successfully');
     setIsModalOpen(false);
   };
@@ -154,9 +157,9 @@ const VanDetails = ({ van }: { van: Van }) => {
   const [isAssistantModalOpen, setIsAssistantModalOpen] = useState(false);
 
   const [assistantFormData, setAssistantFormData] = useState({
-    name: '',
-    nic: '',
-    contactNo: '',
+    name:  van.assistant?.name || '',
+    nic: van.assistant?.nic || '',
+    contactNo: van.assistant?.contact || '',
     profilePicture: null as File | null,
   });
 
@@ -186,19 +189,33 @@ const VanDetails = ({ van }: { van: Van }) => {
       form.append('profilePicture', assistantFormData.profilePicture);
     }
 
+    const method = van.hasAssistant ? 'PUT' : 'POST';
+
     const res = await fetch(`/api/vans/${van.id}/assistant`, {
-      method: 'POST',
+      method,
       body: form,
     });
 
     if (!res.ok) {
-      alert('Failed to assign assistant');
+      alert(`${van.hasAssistant ? 'Update' : 'Assignment'} failed`);
       return;
     }
 
-    alert('Assistant assigned successfully');
+    const data = await res.json();
+
+    console.log('Assistant data:', data);
+
+    setLocalVan(prev => ({
+      ...prev,
+      assistant: data.updatedAssistant,
+      hasAssistant: true,
+    }));
+
+    alert(`Assistant ${van.hasAssistant ? 'updated' : 'assigned'} successfully`);
     setIsAssistantModalOpen(false);
+
   };
+
 
   return (
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -288,7 +305,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                     <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
                   </div>
                   <div className='flex items-center justify-center'> 
-                    <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${van.makeAndModel}`}>
+                    <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
                       <button className="btn-small-primary px-10">Find a Driver</button>
                     </Link>
                   </div>
@@ -298,11 +315,11 @@ const VanDetails = ({ van }: { van: Van }) => {
                 { van.hasAssistant ? 
                   <>
                     <h2 className="text-base font-semibold mb-4">Assistant</h2>
-                      <div className="flex items-center justify-between">
+                      <div className="grid grid-cols-2">
                         <div className="flex items-center space-x-4">
                           <div>
                             <Image
-                              src={van.assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
+                              src={localVan.assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
                               alt="Assistant"
                               width={50}
                               height={50}
@@ -310,10 +327,17 @@ const VanDetails = ({ van }: { van: Van }) => {
                             />
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{van.assistant?.name}</p>
-                            <p className="text-xs text-gray-500">NIC: {van.assistant?.nic}</p>
-                            <p className="text-xs text-gray-500">Contact: {van.assistant?.contact}</p>
+                            <p className="font-medium text-sm">{localVan.assistant?.name}</p>
+                            <p className="text-xs text-gray-500">NIC: {localVan.assistant?.nic}</p>
+                            <p className="text-xs text-gray-500">Contact: {localVan.assistant?.contact}</p>
                           </div>
+                        </div>
+                        <div className='flex items-center justify-center'> 
+                            <button className="btn-small-primary font-bold"
+                              onClick={() => setIsAssistantModalOpen(true)}
+                            >
+                              Update Assistant
+                            </button>
                         </div>
                       </div>
                   </>
