@@ -386,8 +386,6 @@ const ManageSchoolsPageContent = () => {
                     />
                   </div>
 
-                  
-
                   <div>
                     <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
                       Contact Number *

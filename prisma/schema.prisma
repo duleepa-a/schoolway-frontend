@@ -72,12 +72,21 @@ model DriverVanJobRequest {
 }
 
 model School {
-  id         Int                                 @id @default(autoincrement())
-  schoolName String
-  email      String                              @unique
-  contact    String
-  address    String
-  location   Unsupported("geometry(Point,4326)")? // PostGIS Point
+  id             Int                      @id @default(autoincrement())
+  schoolName     String
+  email          String                   @unique
+  contact        String
+  address        String
+  location       Unsupported("geometry")?
+  SchoolGuardian SchoolGuardian[]
+}
+
+model SchoolGuardian {
+  id         Int         @id @default(autoincrement())
+  schoolId   Int
+  guardianId String
+  School     School      @relation(fields: [schoolId], references: [id])
+  Guardian   UserProfile @relation(fields: [guardianId], references: [id])
 }
 
 model UserProfile {
@@ -102,6 +111,7 @@ model UserProfile {
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
   Van                                                             Van[]
   VanService                                                      VanService?
+  SchoolGuardian                                                  SchoolGuardian[]
 }
 
 model Van {
@@ -143,6 +153,15 @@ model VanService {
   businessDocument String?
   userId           String      @unique
   UserProfile      UserProfile @relation(fields: [userId], references: [id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
 }
 
 enum JobRequestStatus {
