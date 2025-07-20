@@ -123,6 +123,14 @@ model DriverVanJobRequest {
   @@unique([driverId, vanOwnerId, vanId])
 }
 
+model School {
+  id         Int    @id @default(autoincrement())
+  schoolName String
+  email      String @unique
+  contact    String
+  address    String
+}
+
 enum UserRole {
   ADMIN
   PARENT

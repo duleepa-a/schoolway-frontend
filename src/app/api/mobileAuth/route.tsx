@@ -45,11 +45,12 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }else if (existingUser.role == 'DRIVER') {
+      console.log("User is a driver, fetching driver profile...");
       
       const driverData = await prisma.driverProfile.findUnique({
         where: { userId: existingUser.id },
         include: { 
-          status: true,
+          // status: true,
         }
       });
 
