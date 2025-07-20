@@ -1,43 +1,38 @@
 'use client';
-import React, { useState } from 'react';
-import { FaSearch, FaUser, FaUserCheck, FaUserTimes, FaUserClock, FaEdit, FaTrash } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaSearch, FaEdit, FaTrash } from 'react-icons/fa';
 import { IoMdAddCircle } from 'react-icons/io';
-import { MdOutlineClose, MdEmail, MdPhone, MdLocationOn } from "react-icons/md";
-import StatCard from '@/app/dashboardComponents/StatCard';
+import { MdOutlineClose, MdEmail, MdLocationOn } from "react-icons/md";
 import FormInput from '@/app/components/FormInput';
-import TablePagination from '@/app/components/TablePagination';
+import DataTable from '@/app/dashboardComponents/CustomTable';
 
 interface Guardian {
     id: string;
-    name: string;
+    firstname: string;
+    lastname: string;
     email: string;
-    phone: string;
     schoolName: string;
-    address: string;
-    district: string;
-    studentsCount: number;
-    status: 'Active' | 'Inactive' | 'Pending';
-    joinDate: string;
+    phone?: string;
+    activeStatus : boolean;
+    createdAt: string;
+    updatedAt: string;
 }
 
 const GuradianPageContent = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showForm, setShowForm] = useState(false);
-
+    const [schools, setSchools] = useState<{ id: number; name: string; address: string }[]>([]);
+    const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
     const [formData, setFormData] = useState({
-        name: '',
+        firstname: '',
+        lastname: '',
         email: '',
-        phone: '',
         schoolName: '',
-        address: '',
-        district: '',
-        emergencyContact: '',
-        emergencyPhone: '',
-        studentsCount: '',
-        licenseNumber: '',
-        licenseExpiry: '',
-        documents: null as File | null
+        schoolId: '',
+        phone: '',
+        password: '',
+        activeStatus: true
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -46,39 +41,36 @@ const GuradianPageContent = () => {
     const guardians: Guardian[] = [
         {
             id: '1',
-            name: 'John Smith',
+            firstname: 'John',
+            lastname: 'Smith',
             email: 'john.smith@royalcollege.edu',
             phone: '+94 77 123 4567',
             schoolName: 'Royal College',
-            address: '123 Main Street, Colombo 07',
-            district: 'Colombo',
-            studentsCount: 45,
-            status: 'Active',
-            joinDate: '2024-01-15'
+            activeStatus: true,
+            createdAt: '2025-06-15T10:30:00Z',
+            updatedAt: '2025-07-10T14:22:00Z'
         },
         {
             id: '2',
-            name: 'Sarah Johnson',
+            firstname: 'Sarah',
+            lastname: 'Johnson',
             email: 'sarah.j@trinityschool.edu',
             phone: '+94 71 987 6543',
             schoolName: 'Trinity College',
-            address: '456 School Road, Kandy',
-            district: 'Kandy',
-            studentsCount: 32,
-            status: 'Active',
-            joinDate: '2024-02-20'
+            activeStatus: true,
+            createdAt: '2025-05-22T09:15:00Z',
+            updatedAt: '2025-06-30T11:45:00Z'
         },
         {
             id: '3',
-            name: 'Michael Brown',
+            firstname: 'Michael',
+            lastname: 'Brown',
             email: 'mbrown@stthomas.edu',
             phone: '+94 76 555 0123',
             schoolName: 'St. Thomas College',
-            address: '789 Education Lane, Galle',
-            district: 'Galle',
-            studentsCount: 28,
-            status: 'Pending',
-            joinDate: '2024-03-10'
+            activeStatus: false,
+            createdAt: '2025-07-01T16:20:00Z',
+            updatedAt: '2025-07-01T16:20:00Z'
         }
     ];
 
@@ -95,33 +87,14 @@ const GuradianPageContent = () => {
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        setFormData(prev => ({
-            ...prev,
-            documents: file
-        }));
-
-        if (errors.documents) {
-            setErrors(prev => ({ ...prev, documents: '' }));
-        }
-    };
-
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.name.trim()) newErrors.name = 'Guardian name is required';
+        if (!formData.firstname.trim()) newErrors.firstname = 'First name is required';
+        if (!formData.lastname.trim()) newErrors.lastname = 'Last name is required';
         if (!formData.email.trim()) newErrors.email = 'Email is required';
-        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-        if (!formData.schoolName.trim()) newErrors.schoolName = 'School name is required';
-        if (!formData.address.trim()) newErrors.address = 'Address is required';
-        if (!formData.district.trim()) newErrors.district = 'District is required';
-        if (!formData.emergencyContact.trim()) newErrors.emergencyContact = 'Emergency contact is required';
-        if (!formData.emergencyPhone.trim()) newErrors.emergencyPhone = 'Emergency phone is required';
-        if (!formData.studentsCount) newErrors.studentsCount = 'Number of students is required';
-        if (!formData.licenseNumber.trim()) newErrors.licenseNumber = 'License number is required';
-        if (!formData.licenseExpiry.trim()) newErrors.licenseExpiry = 'License expiry date is required';
-        if (!formData.documents) newErrors.documents = 'School registration documents are required';
+        if (!formData.password.trim()) newErrors.password = 'Password is required';
+        if (!formData.schoolId) newErrors.schoolName = 'Please select a school';
 
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -129,42 +102,87 @@ const GuradianPageContent = () => {
             newErrors.email = 'Please enter a valid email address';
         }
 
-        // Phone validation
-        const phoneRegex = /^(\+94|0)[0-9]{9}$/;
-        if (formData.phone && !phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
-            newErrors.phone = 'Please enter a valid Sri Lankan phone number';
-        }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm()) {
-            console.log('Submitting guardian data:', formData);
-            // Handle actual submit logic here (e.g., API call)
-            setShowForm(false);
-            resetForm();
+            try {
+                console.log('Submitting guardian data:', {
+                    ...formData,
+                    schoolId: parseInt(formData.schoolId)
+                });
+                
+                // Example API call:
+                // const response = await fetch('/api/guardian/create', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify({
+                //         ...formData,
+                //         schoolId: parseInt(formData.schoolId)
+                //     })
+                // });
+                
+                // if (!response.ok) throw new Error('Failed to create guardian');
+                
+                setShowForm(false);
+                resetForm();
+            } catch (error) {
+                console.error('Error creating guardian:', error);
+                // Handle error (e.g., show error message)
+            }
         }
     };
 
     const resetForm = () => {
         setFormData({
-            name: '',
+            firstname: '',
+            lastname: '',
             email: '',
-            phone: '',
             schoolName: '',
-            address: '',
-            district: '',
-            emergencyContact: '',
-            emergencyPhone: '',
-            studentsCount: '',
-            licenseNumber: '',
-            licenseExpiry: '',
-            documents: null
+            schoolId: '',
+            phone: '',
+            password: '',
+            activeStatus: true
         });
         setErrors({});
+    };
+
+    // Fetch schools from API
+    useEffect(() => {
+        const fetchSchools = async () => {
+            try {
+                setIsLoadingSchools(true);
+                const response = await fetch('/api/guardian/getSchoolNames');
+                if (!response.ok) throw new Error('Failed to fetch schools');
+                
+                const data = await response.json();
+                setSchools(data.schools || []);
+            } catch (error) {
+                console.error('Error fetching schools:', error);
+            } finally {
+                setIsLoadingSchools(false);
+            }
+        };
+
+        fetchSchools();
+    }, []);
+
+    const handleSchoolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const { value } = e.target;
+        const selectedSchool = schools.find(school => school.id.toString() === value);
+        
+        setFormData(prev => ({
+            ...prev,
+            schoolId: value,
+            schoolName: selectedSchool ? selectedSchool.name : ''
+        }));
+
+        if (errors.schoolName) {
+            setErrors(prev => ({ ...prev, schoolName: '' }));
+        }
     };
 
     const handleAddGuardianClick = () => setShowForm(true);
@@ -193,34 +211,26 @@ const GuradianPageContent = () => {
     // };
 
     const filteredGuardians = guardians.filter(guardian =>
-        guardian.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${guardian.firstname} ${guardian.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         guardian.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         guardian.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Active': return 'text-green-600 bg-green-100';
-            case 'Inactive': return 'text-red-600 bg-red-100';
-            case 'Pending': return 'text-yellow-600 bg-yellow-100';
-            default: return 'text-gray-600 bg-gray-100';
-        }
-    };
+    // We've removed status column from the table so we don't need this function anymore
+    // const getStatusColor = (status: string) => {
+    //     switch (status) {
+    //         case 'Active': return 'text-green-600 bg-green-100';
+    //         case 'Inactive': return 'text-red-600 bg-red-100';
+    //         case 'Pending': return 'text-yellow-600 bg-yellow-100';
+    //         default: return 'text-gray-600 bg-gray-100';
+    //     }
+    // };
 
-    const activeGuardians = guardians.filter(g => g.status === 'Active').length;
-    const pendingGuardians = guardians.filter(g => g.status === 'Pending').length;
-    const inactiveGuardians = guardians.filter(g => g.status === 'Inactive').length;
 
     return (
         <>
 
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <StatCard icon={<FaUser className="text-xl" />} text="Total Guardians" number={guardians.length} />
-                <StatCard icon={<FaUserCheck className="text-xl" />} text="Active" number={activeGuardians} />
-                <StatCard icon={<FaUserClock className="text-xl" />} text="Pending" number={pendingGuardians} />
-                <StatCard icon={<FaUserTimes className="text-xl" />} text="Inactive" number={inactiveGuardians} />
-            </div>
+            
 
             {/* Search and Add Button */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start mb-6 gap-4">
@@ -239,94 +249,67 @@ const GuradianPageContent = () => {
                     <span>Add Guardian</span>
                     <IoMdAddCircle className="size-5" />
                 </button>
-                <TablePagination totalPages={Math.ceil(filteredGuardians.length / 10)} />
             </div>
 
             {/* Guardians Table */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Guardian Info
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                School Details
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Contact
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Students
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredGuardians.map((guardian) => (
-                            <tr key={guardian.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
+                <DataTable 
+                    columns={[
+                        { key: 'guardianName', label: 'Guardian Name' },
+                        { key: 'school', label: 'School' },
+                        { key: 'contact', label: 'Contact' },
+                        { key: 'Email', label: 'Email' }
+                    ]}
+                    data={filteredGuardians}
+                    itemsPerPageOptions={[5, 10, 25, 50]}
+                    defaultItemsPerPage={10}
+                    actions={[
+                        {
+                            type: 'edit',
+                            onClick: handleEdit,
+                            icon: <FaEdit size={16} />,
+                            className: 'text-blue-600 hover:text-blue-900'
+                        },
+                        {
+                            type: 'delete',
+                            onClick: handleDelete,
+                            icon: <FaTrash size={16} />,
+                            className: 'text-red-600 hover:text-red-900'
+                        }
+                    ]}
+                    renderCell={(column, value, row) => {
+                        switch (column) {
+                            case 'guardianName':
+                                return (
                                     <div>
-                                        <div className="text-sm font-medium text-gray-900">{guardian.name}</div>
-                                        <div className="text-sm text-gray-500">ID: {guardian.id}</div>
+                                        <div className="text-sm font-medium text-gray-900">{row.firstname} {row.lastname}</div>
+                                        <div className="text-sm text-gray-500">ID: {row.id}</div>
                                     </div>
-                                </td>
-                                <td className="px-6 py-4">
+                                );
+                            case 'school':
+                                return (
                                     <div>
-                                        <div className="text-sm font-medium text-gray-900">{guardian.schoolName}</div>
-                                        <div className="text-sm text-gray-500 flex items-center">
-                                            <MdLocationOn className="mr-1" />
-                                            {guardian.district}
-                                        </div>
+                                        <div className="text-sm font-medium text-gray-900">{row.schoolName}</div>
+                                        
                                     </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div>
-                                        <div className="text-sm text-gray-900 flex items-center">
-                                            <MdEmail className="mr-1" />
-                                            {guardian.email}
-                                        </div>
-                                        <div className="text-sm text-gray-500 flex items-center">
-                                            <MdPhone className="mr-1" />
-                                            {guardian.phone}
-                                        </div>
+                                );
+                            case 'contact':
+                                return (
+                                    <div className="text-sm text-gray-900 flex items-center">
+                                        {row.phone}
                                     </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">{guardian.studentsCount}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(guardian.status)}`}>
-                      {guardian.status}
-                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => handleEdit(guardian)}
-                                            className="text-blue-600 hover:text-blue-900"
-                                        >
-                                            <FaEdit />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(guardian)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            <FaTrash />
-                                        </button>
+                                );
+                            case 'Email':
+                                return (
+                                    <div className="text-sm text-gray-900 flex items-center">
+                                        {row.email}
                                     </div>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
+                                );
+                            default:
+                                return value;
+                        }
+                    }}
+                />
             </div>
 
             {/* Form Modal */}
@@ -346,17 +329,23 @@ const GuradianPageContent = () => {
 
                         {/* Form */}
                         <form onSubmit={handleSubmit}>
-                            {/* Guardian Information Section */}
                             <div className="mb-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Guardian Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4">
                                     <FormInput
-                                        label="Guardian Name"
-                                        name="name"
-                                        placeholder="Enter guardian's full name"
-                                        value={formData.name}
+                                        label="First Name"
+                                        name="firstname"
+                                        placeholder="Enter guardian's first name"
+                                        value={formData.firstname}
                                         onChange={handleInputChange}
-                                        error={errors.name}
+                                        error={errors.firstname}
+                                    />
+                                    <FormInput
+                                        label="Last Name"
+                                        name="lastname"
+                                        placeholder="Enter guardian's last name"
+                                        value={formData.lastname}
+                                        onChange={handleInputChange}
+                                        error={errors.lastname}
                                     />
                                     <FormInput
                                         label="Email Address"
@@ -368,126 +357,41 @@ const GuradianPageContent = () => {
                                         error={errors.email}
                                     />
                                     <FormInput
+                                        label="Password"
+                                        name="password"
+                                        type="password"
+                                        placeholder="Enter password"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        error={errors.password}
+                                    />
+                                    <FormInput
                                         label="Phone Number"
                                         name="phone"
-                                        placeholder="+94 77 123 4567"
+                                        placeholder="Enter phone number (optional)"
                                         value={formData.phone}
                                         onChange={handleInputChange}
-                                        error={errors.phone}
-                                    />
-                                    <FormInput
-                                        label="Emergency Contact Name"
-                                        name="emergencyContact"
-                                        placeholder="Emergency contact person"
-                                        value={formData.emergencyContact}
-                                        onChange={handleInputChange}
-                                        error={errors.emergencyContact}
-                                    />
-                                    <FormInput
-                                        label="Emergency Phone"
-                                        name="emergencyPhone"
-                                        placeholder="+94 71 987 6543"
-                                        value={formData.emergencyPhone}
-                                        onChange={handleInputChange}
-                                        error={errors.emergencyPhone}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* School Information Section */}
-                            <div className="mb-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">School Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormInput
-                                        label="School Name"
-                                        name="schoolName"
-                                        placeholder="Enter school name"
-                                        value={formData.schoolName}
-                                        onChange={handleInputChange}
-                                        error={errors.schoolName}
                                     />
                                     <div>
-                                        <label className="block mb-1 font-medium">District</label>
+                                        <label className="block mb-1 font-medium">School</label>
                                         <select
-                                            name="district"
-                                            value={formData.district}
-                                            onChange={handleInputChange}
+                                            name="schoolId"
+                                            value={formData.schoolId}
+                                            onChange={handleSchoolChange}
                                             className="w-full border border-gray-300 rounded px-3 py-2"
+                                            disabled={isLoadingSchools}
                                         >
-                                            <option value="">Select District</option>
-                                            <option value="Colombo">Colombo</option>
-                                            <option value="Kandy">Kandy</option>
-                                            <option value="Galle">Galle</option>
-                                            <option value="Matara">Matara</option>
-                                            <option value="Kurunegala">Kurunegala</option>
-                                            <option value="Anuradhapura">Anuradhapura</option>
-                                            <option value="Ratnapura">Ratnapura</option>
-                                            <option value="Badulla">Badulla</option>
-                                            <option value="Batticaloa">Batticaloa</option>
-                                            <option value="Jaffna">Jaffna</option>
+                                            <option value="">Select a school</option>
+                                            {schools.map(school => (
+                                                <option key={school.id} value={school.id}>
+                                                    {school.name} - {school.address}
+                                                </option>
+                                            ))}
                                         </select>
-                                        {errors.district && (
-                                            <p className="text-red-500 text-sm mt-1">{errors.district}</p>
+                                        {errors.schoolName && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.schoolName}</p>
                                         )}
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <FormInput
-                                            label="School Address"
-                                            name="address"
-                                            placeholder="Enter complete school address"
-                                            value={formData.address}
-                                            onChange={handleInputChange}
-                                            error={errors.address}
-                                        />
-                                    </div>
-                                    <FormInput
-                                        label="Number of Students"
-                                        name="studentsCount"
-                                        type="number"
-                                        placeholder="e.g. 45"
-                                        value={formData.studentsCount}
-                                        onChange={handleInputChange}
-                                        error={errors.studentsCount}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* License Information Section */}
-                            <div className="mb-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">License & Documentation</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormInput
-                                        label="School License Number"
-                                        name="licenseNumber"
-                                        placeholder="Enter license number"
-                                        value={formData.licenseNumber}
-                                        onChange={handleInputChange}
-                                        error={errors.licenseNumber}
-                                    />
-                                    <FormInput
-                                        label="License Expiry Date"
-                                        name="licenseExpiry"
-                                        type="date"
-                                        placeholder=""
-                                        value={formData.licenseExpiry}
-                                        onChange={handleInputChange}
-                                        error={errors.licenseExpiry}
-                                    />
-                                    <div className="md:col-span-2">
-                                        <label className="block mb-1 font-medium">School Registration Documents</label>
-                                        <input
-                                            type="file"
-                                            name="documents"
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            onChange={handleFileChange}
-                                            className="w-full border border-gray-300 rounded px-3 py-2"
-                                        />
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Upload school registration certificate, license, or other relevant documents
-                                        </p>
-                                        {errors.documents && (
-                                            <p className="text-red-500 text-sm mt-1">{errors.documents}</p>
-                                        )}
+                                        {isLoadingSchools && <p className="text-gray-500 text-sm mt-1">Loading schools...</p>}
                                     </div>
                                 </div>
                             </div>

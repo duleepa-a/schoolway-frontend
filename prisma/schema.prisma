@@ -8,40 +8,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model UserProfile {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  firstname     String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  lastname      String?
-  role          UserRole?
-  password      String
-  activeStatus  Boolean        @default(true)
-  address       String?
-  birthDate     DateTime?
-  mobile        String?
-  nic           String?
-  nic_pic       String?
-  district      String?
-  dp            String?        @default("/Images/male_pro_pic_placeholder.png")
-  driverProfile DriverProfile?
-  Van           Van[]
-  vanService    VanService?
+model Assistant {
+  id         String  @id
+  name       String
+  contact    String
+  nic        String
+  vanId      Int?    @unique
+  profilePic String?
+  Van        Van?    @relation(fields: [vanId], references: [id])
 }
 
-model VanService {
-  id               String      @id @default(cuid())
-  serviceName      String
-  contactNo        String
-  serviceRegNumber String
-  businessDocument String?
-  userId           String      @unique
-  user             UserProfile @relation(fields: [userId], references: [id])
+model ContactUs {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  userType  String
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
 }
 
 model DriverProfile {
-  id             String      @id @default(cuid())
+  id             String      @id
   licenseId      String
   licenseExpiry  DateTime
   licenseFront   String?
@@ -51,7 +40,78 @@ model DriverProfile {
   rating         Float       @default(0)
   ratingCount    Int         @default(0)
   startedDriving DateTime?   @default(now())
-  user           UserProfile @relation(fields: [userId], references: [id])
+  status         Int         @default(2)
+  bio            String?
+  languages      String[]
+  licenseType    String[]
+  medicalReport  String?
+  relocate       Boolean     @default(false)
+  hasVan         Int         @default(0)
+  UserProfile    UserProfile @relation(fields: [userId], references: [id])
+}
+
+model DriverVanJobRequest {
+  id                                                      String           @id
+  driverId                                                String
+  vanId                                                   Int
+  vanOwnerId                                              String
+  status                                                  JobRequestStatus @default(PENDING)
+  message                                                 String?
+  proposedSalary                                          Float?
+  turn                                                    String?
+  responseMessage                                         String?
+  respondedAt                                             DateTime?
+  createdAt                                               DateTime         @default(now())
+  updatedAt                                               DateTime
+  expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
+  UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
+  Van                                                     Van              @relation(fields: [vanId], references: [id])
+  UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation("DriverVanJobRequest_vanOwnerIdToUserProfile", fields: [vanOwnerId], references: [id])
+
+  @@unique([driverId, vanOwnerId, vanId])
+}
+
+model School {
+  id             Int                      @id @default(autoincrement())
+  schoolName     String
+  email          String                   @unique
+  contact        String
+  address        String
+  location       Unsupported("geometry")?
+  SchoolGuardian SchoolGuardian[]
+}
+
+model SchoolGuardian {
+  id         Int         @id @default(autoincrement())
+  schoolId   Int
+  guardianId String
+  School     School      @relation(fields: [schoolId], references: [id])
+  Guardian   UserProfile @relation(fields: [guardianId], references: [id])
+}
+
+model UserProfile {
+  id                                                              String                @id
+  email                                                           String                @unique
+  firstname                                                       String?
+  createdAt                                                       DateTime              @default(now())
+  updatedAt                                                       DateTime
+  lastname                                                        String?
+  role                                                            UserRole?
+  password                                                        String
+  activeStatus                                                    Boolean               @default(true)
+  address                                                         String?
+  birthDate                                                       DateTime?
+  mobile                                                          String?
+  nic                                                             String?
+  nic_pic                                                         String?
+  district                                                        String?
+  dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  DriverProfile                                                   DriverProfile?
+  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
+  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  Van                                                             Van[]
+  VanService                                                      VanService?
+  SchoolGuardian                                                  SchoolGuardian[]
 }
 
 model Van {
@@ -70,20 +130,50 @@ model Van {
   photoUrl                String
   createdAt               DateTime              @default(now())
   ownerId                 String
-  hasDriver               Boolean     @default(false)
-  isApproved              Boolean     @default(false)
-  UserProfile             UserProfile @relation(fields: [ownerId], references: [id])
+  hasDriver               Boolean               @default(false)
+  isApproved              Boolean               @default(false)
+  assignedDriverId        String?
+  salaryPercentage        Float?                @default(25.0)
+  shiftDetails            String?
+  endTime                 String?
+  privateRating           Float                 @default(0)
+  startTime               String?
+  studentRating           Float                 @default(0)
+  hasAssistant            Boolean               @default(false)
+  Assistant               Assistant?
+  DriverVanJobRequest     DriverVanJobRequest[]
+  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
 }
 
-model ContactUs {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String
-  subject   String
-  message   String
-  userType  String
-  status    String   @default("Pending")
-  createdAt DateTime @default(now())
+model VanService {
+  id               String      @id
+  serviceName      String
+  contactNo        String
+  serviceRegNumber String
+  businessDocument String?
+  userId           String      @unique
+  UserProfile      UserProfile @relation(fields: [userId], references: [id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum JobRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+enum JobRequestType {
+  VAN_OWNER_TO_DRIVER
 }
 
 enum UserRole {
