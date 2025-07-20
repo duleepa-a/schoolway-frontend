@@ -11,6 +11,7 @@ import { useSession,signOut } from 'next-auth/react';
 import { useEffect } from 'react';
 import { Session } from "next-auth";
 import DriverTable from './DriverTable';
+import TopBarContent from '@/app/dashboardComponents/TopBarContent';
 
 
 interface VanFormProps {
@@ -158,7 +159,6 @@ const VehiclesPage = ({ serverSession }: Props) => {
       });
 
       if (response.ok) {
-        alert('Vehicle added successfully');
         handleCloseForm();
       } else {
         const errorData = await response.json();
@@ -224,7 +224,7 @@ const VehiclesPage = ({ serverSession }: Props) => {
 
   return (
     <section className="p-6 md:p-10 min-h-screen w-full">
-      <TopBar heading="My Vehicles" />
+      <TopBarContent serverSession={serverSession} heading="My Vehicles" />
       <div className="flex gap-6 border-b border-border-bold-shade mb-4">
         <button
           onClick={() => setActiveTab('vans')}
