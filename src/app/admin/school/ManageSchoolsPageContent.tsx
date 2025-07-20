@@ -1,24 +1,44 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import DataTable from '@/app/dashboardComponents/CustomTable';
-import { schoolsData } from '../../../../public/dummy_data/schools';
-import { School, Trash2, MapPin } from 'lucide-react';
+// Using backend data instead of dummy data
+import { School as SchoolIcon, Trash2, MapPin, Users, Eye, Edit, MoreVertical } from 'lucide-react';
 import MapLocationPicker from '@/app/components/MapLocationPicker';
+
+// Define interfaces
+interface Location {
+  lat: number;
+  lng: number;
+}
+
+// Define the School interface
+interface School {
+  id: number;
+  schoolName: string;
+  email: string;
+  contact: string;
+  address: string;
+  location?: Location;
+  [key: string]: string | number | boolean | null | undefined | Location | undefined;
+}
 
 
 
 const columns = [
-  { key: "Name", label: "School Name" },
-  { key: "User_ID", label: "School ID" },
-  { key: "Email", label: "Email" },
-  { key: "GuardianName", label: "Guardian Name" },
-  { key: "Contact", label: "Contact" },
-  { key: "NumberOfStudents", label: "No. of Students" },
-  { key: "Status", label: "Status" },
+  { key: "schoolName", label: "School Name" },
+  { key: "email", label: "Email" },
+  { key: "contact", label: "Contact" },
+  { key: "address", label: "Address" },
+  { key: "actions", label: "Actions" }
 ];
 
 const ManageSchoolsPageContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [schools, setSchools] = useState<School[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -29,27 +49,71 @@ const ManageSchoolsPageContent = () => {
     schoolLocation: { lat: 7.8731, lng: 80.7718 } // Default to Sri Lanka center
   });
 
+  // Add click outside handler for dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch('http://localhost:3000/api/admin/schools/getSchools');
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data || !Array.isArray(data)) {
+          throw new Error('Invalid data format received from server');
+        }
+        
+        setSchools(data);
+      } catch (err) {
+        console.error('Failed to fetch schools:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load schools data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSchools();
+  }, []);
+
   // Filter the data based on search criteria
   const filteredData = useMemo(() => {
-    return schoolsData.filter((school) => {
-      // Search filter - searches in name, email, and school ID
+    return schools.filter((school) => {
+      // Search filter - searches in name, email, and id
       const matchesSearch = searchTerm === '' || 
-        school.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        school.Email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        school.User_ID.toLowerCase().includes(searchTerm.toLowerCase());
+        school.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        school.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        school.id.toString().includes(searchTerm.toLowerCase());
 
       return matchesSearch;
     });
-  }, [searchTerm]);
+  }, [schools, searchTerm]);
 
   const handleEdit = (row: Record<string, string | number | boolean | null | undefined>) => {
     console.log("Edit clicked:", row);
     // Populate form with selected school data
     setFormData({
-      schoolName: row.Name as string || '',
-      email: row.Email as string || '',
-      contact: row.Contact as string || '',
-      schoolAddress: row.Address as string || '',
+      schoolName: row.schoolName as string || '',
+      email: row.email as string || '',
+      contact: row.contact as string || '',
+      schoolAddress: row.address as string || '',
       // Default to Sri Lanka center if no location
       schoolLocation: { lat: 7.8731, lng: 80.7718 }
     });
@@ -57,7 +121,45 @@ const ManageSchoolsPageContent = () => {
 
   const handleDelete = (row: Record<string, string | number | boolean | null | undefined>) => {
     console.log("Delete clicked:", row);
-    alert(`Delete school: ${row.Name}?`);
+    
+    if (window.confirm(`Are you sure you want to delete ${row.schoolName}?`)) {
+      const deleteSchool = async () => {
+        try {
+          setIsLoading(true);
+          const response = await fetch(`http://localhost:3000/api/admin/schools/deleteSchool?id=${row.id}`, { 
+            method: 'DELETE' 
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
+          }
+          
+          setSchools(prevSchools => prevSchools.filter(school => school.id !== row.id));
+          alert('School deleted successfully');
+        } catch (err) {
+          console.error('Failed to delete school:', err);
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+          alert(`Failed to delete school: ${errorMessage}`);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      deleteSchool();
+    }
+  };
+  
+  const handleViewGuardians = (row: Record<string, string | number | boolean | null | undefined>) => {
+    console.log("View guardians for:", row);
+    alert(`View guardians for ${row.schoolName}`);
+    // In real implementation, navigate to guardians page or show modal
+  };
+
+  const handleAddGuardian = (row: Record<string, string | number | boolean | null | undefined>) => {
+    console.log("Add guardian for:", row);
+    alert(`Add guardian for ${row.schoolName}`);
+    // In real implementation, navigate to add guardian page or show modal
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,10 +180,10 @@ const ManageSchoolsPageContent = () => {
       return;
     }
 
-    // Phone validation: starts with 07 or 011, and is 10 or 11 digits
-    const phoneRegex = /^(07\d{8}|011\d{8})$/;
+    // Phone validation with more flexibility for international formats
+    const phoneRegex = /^(\+?[0-9]{1,3}[-\s.]?)?([0-9]{3,}[-\s.]?){1,2}[0-9]{3,}$/;
     if (!phoneRegex.test(formData.contact)) {
-      alert("Contact number must start with 07 or 011 and be 10 or 11 digits.");
+      alert("Please enter a valid contact number.");
       return;
     }
 
@@ -98,7 +200,7 @@ const ManageSchoolsPageContent = () => {
       };
 
       // Send POST request to the API
-      const response = await fetch('/api/admin/schools/addAccount', {
+      const response = await fetch('http://localhost:3000/api/admin/schools/addAccount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,11 +209,25 @@ const ManageSchoolsPageContent = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
       }
 
       const data = await response.json();
       console.log("School added successfully:", data);
+      
+      // Add the new school to the state
+      const newSchool: School = {
+        id: data.id || Math.floor(Math.random() * 10000), // Use returned ID or generate one for demo
+        schoolName: schoolData.schoolName,
+        email: schoolData.email,
+        contact: schoolData.contact,
+        address: schoolData.address,
+        location: schoolData.location
+      };
+      
+      setSchools(prevSchools => [...prevSchools, newSchool]);
+      
       alert("School added successfully!");
 
       // Clear form after submission
@@ -122,9 +238,10 @@ const ManageSchoolsPageContent = () => {
         schoolAddress: '',
         schoolLocation: { lat: 7.8731, lng: 80.7718 } // Reset to Sri Lanka center
       });
-    } catch (error) {
-      console.error("Failed to add school:", error);
-      alert("Failed to add school. Please try again.");
+    } catch (err) {
+      console.error("Failed to add school:", err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add school';
+      alert(`Failed to add school: ${errorMessage}`);
     }
   };
 
@@ -148,7 +265,7 @@ const ManageSchoolsPageContent = () => {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center mb-4">
-                  <School className="mr-2 text-yellow-400" size={24} />
+                  <SchoolIcon className="mr-2 text-yellow-400" size={24} />
                   <h2 className="text-xl font-semibold text-gray-800">Add New School</h2>
                 </div>
                 
@@ -185,26 +302,7 @@ const ManageSchoolsPageContent = () => {
                     />
                   </div>
 
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <span className="flex items-center">
-                        <MapPin size={16} className="mr-1 text-yellow-400" />
-                        School Location *
-                      </span>
-                    </label>
-                    <div className="border border-gray-300 rounded-md">
-                      <MapLocationPicker 
-                        onLocationSelect={(location) => {
-                          setFormData(prev => ({
-                            ...prev,
-                            schoolLocation: location
-                          }));
-                        }}
-                        initialLocation={formData.schoolLocation}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">Search for a location or click on the map to select the exact school location</p>
-                  </div>
+                  
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -238,6 +336,27 @@ const ManageSchoolsPageContent = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter contact number"
                     />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="flex items-center">
+                        <MapPin size={16} className="mr-1 text-yellow-400" />
+                        School Location *
+                      </span>
+                    </label>
+                    <div className="border border-gray-300 rounded-md">
+                      <MapLocationPicker 
+                        onLocationSelect={(location) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            schoolLocation: location
+                          }));
+                        }}
+                        initialLocation={formData.schoolLocation}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">Search for a location or click on the map to select the exact school location</p>
                   </div>
 
                   <div className="flex space-x-3 pt-4">
@@ -280,28 +399,105 @@ const ManageSchoolsPageContent = () => {
                   </div>
                 </div>
 
-                <DataTable
-                  columns={columns}
-                  data={filteredData}
-                  actions={[
-                    { 
-                      type: "custom", 
-                      icon: <School size={16} />,
-                      label: "Edit School",
-                      className: "text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-100 transition-colors",
-                      onClick: handleEdit 
-                    },
-                    { 
-                      type: "custom", 
-                      icon: <Trash2 size={16} />,
-                      label: "Delete School",
-                      className: "text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-100 transition-colors",
-                      onClick: handleDelete 
-                    },
-                  ]}
+                {isLoading ? (
+                  <div className="p-8 text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-yellow-400 border-t-transparent mb-4"></div>
+                    <p className="text-gray-600">Loading schools data...</p>
+                  </div>
+                ) : error ? (
+                  <div className="p-8 text-center">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                      <strong className="font-bold">Error!</strong>
+                      <span className="block sm:inline"> {error}</span>
+                    </div>
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-500"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : filteredData.length === 0 && searchTerm === '' ? (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-600">No schools found. Add a school using the form.</p>
+                  </div>
+                ) : (
+                  <DataTable
+                    columns={columns}
+                    data={filteredData}
+                    renderCell={(column, value, row) => {
+                    // Custom renderer for actions column
+                    if (column === 'actions') {
+                      const rowId = row.id as number;
+                      const isActive = activeDropdown === rowId;
+                      
+                      return (
+                        <div className="relative">
+                          <button
+                            onClick={() => setActiveDropdown(isActive ? null : rowId)}
+                            className="p-1 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
+                            title="More Actions"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                          
+                          {isActive && (
+                            <div ref={dropdownRef} className="absolute right-0 z-10 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleEdit(row);
+                                  }}
+                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                                >
+                                  <Edit size={16} className="mr-2 text-blue-600" />
+                                  Edit School Info
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleViewGuardians(row);
+                                  }}
+                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                                >
+                                  <Eye size={16} className="mr-2 text-blue-600" />
+                                  View Guardians
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleAddGuardian(row);
+                                  }}
+                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                                >
+                                  <Users size={16} className="mr-2 text-green-600" />
+                                  Add Guardian
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleDelete(row);
+                                  }}
+                                  className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 hover:text-red-900 w-full text-left"
+                                >
+                                  <Trash2 size={16} className="mr-2 text-red-600" />
+                                  Delete School
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    // Default rendering
+                    return value;
+                  }}
                   itemsPerPageOptions={[5, 10, 15]}
                   defaultItemsPerPage={5}
                 />
+                )}
               </div>
             </div>
           </div>
