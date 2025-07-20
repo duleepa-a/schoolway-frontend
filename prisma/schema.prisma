@@ -87,6 +87,8 @@ model Van {
   privateRating           Float                 @default(0)
   startTime               String?
   studentRating           Float                 @default(0)
+  hasAssistant            Boolean               @default(false)
+  Assistant               Assistant?
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
 }
@@ -129,6 +131,16 @@ model DriverVanJobRequest {
   UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation("DriverVanJobRequest_vanOwnerIdToUserProfile", fields: [vanOwnerId], references: [id])
 
   @@unique([driverId, vanOwnerId, vanId])
+}
+
+model Assistant {
+  id         String  @id
+  name       String
+  contact    String
+  nic        String
+  vanId      Int?    @unique
+  profilePic String?
+  Van        Van?    @relation(fields: [vanId], references: [id])
 }
 
 enum UserRole {
