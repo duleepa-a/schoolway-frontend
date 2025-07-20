@@ -80,6 +80,7 @@ model Van {
   ownerId                 String
   hasDriver               Boolean               @default(false)
   isApproved              Boolean               @default(false)
+  hasAssistant            Boolean               @default(false)
   assignedDriverId        String?
   salaryPercentage        Float?                @default(25.0)
   shiftDetails            String?
@@ -87,10 +88,20 @@ model Van {
   privateRating           Float                 @default(0)
   startTime               String?
   studentRating           Float                 @default(0)
-  hasAssistant            Boolean               @default(false)
-  Assistant               Assistant?
+  assistant               Assistant?
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
+}
+
+
+model Assistant {
+  id        String   @id @default(uuid())
+  name      String
+  contact   String
+  nic       String
+  profilePic String?
+  van       Van?     @relation(fields: [vanId], references: [id])
+  vanId     Int?     @unique
 }
 
 model School {

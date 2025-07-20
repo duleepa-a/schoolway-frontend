@@ -1,31 +1,88 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Edit2, Save, X, Camera, User} from 'lucide-react';
 import Image from 'next/image';
 import FormInput from '../../components/FormInput';
+
+interface data{
+  firstname: string;
+  lastname: string;
+  mobile: string;
+  dp: string;
+  vanService?: {
+    serviceName: string;
+    serviceRegNumber: string;
+  };
+}
 
 const ProfileDetailForm = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('personalInfo');
 
   const [profileData, setProfileData] = useState({
-    name: 'Duleepa Edirisinghe',
-    contactNo: '+94 71 234 5678',
-    businessRegNo: 'BR/2024/001234',
-    profilePic: null
+    firstname: '',
+    lastname: '',
+    contactNo: '',
+    dp: '',
+    serviceName: '',
+    serviceRegNumber: '',
   });
 
   const [tempData, setTempData] = useState(profileData);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const res = await fetch('/api/vanowner/profile');
+      const data = await res.json();
+      setProfileData({
+        firstname: data.firstname || 'Enter your first name',
+        lastname: data.lastname || 'Enter your last name',
+        contactNo: data.mobile || 'Enter your contact number',
+        dp: data.dp || '',
+        serviceName: data.vanService?.serviceName || 'Enter your service name',
+        serviceRegNumber: data.vanService?.serviceRegNumber || 'Enter your business registration number',
+      });
+      setTempData(data);
+    };
+
+    fetchProfile();
+  }, []);
+
 
   const handleEdit = () => {
     setTempData(profileData);
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    setProfileData(tempData);
-    setIsEditing(false);
+  const transformApiData = (data : data) => ({
+    firstname: data.firstname || 'Enter your first name',
+    lastname: data.lastname || 'Enter your last name',
+    contactNo: data.mobile || 'Enter your contact number',
+    dp: data.dp || '',
+    serviceName: data.vanService?.serviceName || 'Enter your service name',
+    serviceRegNumber: data.vanService?.serviceRegNumber || 'Enter your business registration number',
+  });
+
+  const handleSave = async () => {
+    const res = await fetch('/api/vanowner/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tempData),
+    });
+
+    if (res.ok) {
+      const updated = await res.json();
+      const transformedData = transformApiData(updated);
+      
+      setProfileData(transformedData);
+      setTempData(transformedData); // Also update tempData to keep them in sync
+      setIsEditing(false);
+    } else {
+      console.error('Failed to save');
+    }
   };
 
   const handleCancel = () => {
@@ -33,12 +90,79 @@ const ProfileDetailForm = () => {
     setIsEditing(false);
   };
 
-  const handleInputChange = () => {
-    
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTempData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (event: React.FormEvent) => {
-   
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('/api/vanowner/profile/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.url) {
+      setTempData((prev) => ({
+        ...prev,
+        dp: data.url,
+      }));
+    } else {
+      console.error('Image upload failed:', data?.error || 'Unknown error');
+    }
+  };
+
+  // Password update logic 
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPasswordData({
+      ...passwordData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handlePasswordUpdate = async () => {
+    const { currentPassword, newPassword, confirmNewPassword } = passwordData;
+
+    if (newPassword !== confirmNewPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/vanowner/profile/update-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || 'Failed to update password.');
+        return;
+      }
+
+      alert('Password updated successfully!');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+    } catch (error) {
+      alert('Something went wrong.');
+    }
   };
 
   return (
@@ -102,99 +226,146 @@ const ProfileDetailForm = () => {
           </div>
           
           <div className='grid grid-cols-4 gap-4'>
-          {/* Profile Picture Section */}
-              <div className="flex flex-col items-center mb-8">
-              <div className="relative mb-4">
-                  <div className="w-25 h-25 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-4 border-gray-300">
-                  {(isEditing ? tempData.profilePic : profileData.profilePic) ? (
+              {/* Profile Picture Section */}
+              <div className="flex flex-col items-center mb-8 col-span-1">
+                <div className="relative mb-4">
+                    <div className="w-25 h-25 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-4 border-gray-300">
+                    {(isEditing ? tempData.dp : profileData.dp) ? (
                       <Image
-                      src = {""}
-                      alt = "Profile"
-                      className = "w-full h-full object-cover"
-                      />
-                  ) : (
+                        src={isEditing ? tempData.dp : profileData.dp}
+                        alt="Profile"
+                        width={100}
+                        height={100}
+                        className="w-full h-full object-cover"
+                    />
+                    ) : (
                       <User size={40} className="text-gray-400" />
-                  )}
-                  </div>
-                  {isEditing && (
-                  <label className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-orange-600 transition-colors">
-                      <Camera size={16} />
+                    )}
+                    </div>
+                    {isEditing && (
+                    <label className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-orange-600 transition-colors">
+                        <Camera size={16} />
+                        <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUpload}
+                        className="hidden"
+                        />
+                    </label>
+                    )}
+                </div>
+                {isEditing && (
+                    <p className="text-sm text-gray-600 text-center">
+                    Click the camera icon to upload a new profile picture
+                    </p>
+                )}
+              </div>
+              <div className='col-span-3 '>
+                <div className='grid grid-cols-3 gap-4'>
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Service Name
+                    </label>
+                    {isEditing ? (
                       <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
+                        type="text"
+                        name="serviceName"
+                        value={tempData.serviceName}
+                        onChange={handleInputChange}
+                        className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200"
+                        placeholder="Enter your service name"
                       />
-                  </label>
-                  )}
+                    ) : (
+                      <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {profileData.serviceName}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Contact Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      First Name
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="firstname"
+                        value={tempData.firstname}
+                        onChange={handleInputChange}
+                        className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200"
+                        placeholder="Enter your first name"
+                      />
+                                          ) : (
+                      <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {profileData.firstname}
+                      </div>
+                    )}
+                  </div>
+                  {/* Business Registration Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="lastname"
+                        value={tempData.lastname}
+                        onChange={handleInputChange}
+                        className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200"
+                        placeholder="Enter your last name"
+                      />
+                    ) : (
+                      <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {profileData.lastname}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className='grid grid-cols-3 gap-4 mt-4'>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contact Number
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="tel"
+                        name="contactNo"
+                        value={tempData.contactNo}
+                        onChange={handleInputChange}
+                        className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200"
+                        placeholder="Enter your contact number"
+                      />
+                    ) : (
+                      <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {profileData.contactNo}
+                      </div>
+                    )}
+                  </div>
+                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Service Registration Number
+                    </label>
+                    {isEditing ? (
+                     <input
+                        type="text"
+                        name="serviceRegNumber"
+                        value={tempData.serviceRegNumber}
+                        onChange={handleInputChange}
+                        className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200"
+                        placeholder="Enter your business registration number"
+                      />
+
+                    ) : (
+                      <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {profileData.serviceRegNumber}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              {isEditing && (
-                  <p className="text-sm text-gray-600 text-center">
-                  Click the camera icon to upload a new profile picture
-                  </p>
-              )}
-              </div>
-
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Service Name
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={tempData.name}
-                  onChange={(e) => handleInputChange()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Enter your full name"
-                />
-              ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-                  {profileData.name}
-                </div>
-              )}
-            </div>
-
-            {/* Contact Number */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Number
-              </label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  value={tempData.contactNo}
-                  onChange={(e) => handleInputChange()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Enter your contact number"
-                />
-              ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-                  {profileData.contactNo}
-                </div>
-              )}
-            </div>
-
-            {/* Business Registration Number */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Service Registration Number
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={tempData.businessRegNo}
-                  onChange={(e) => handleInputChange()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Enter your business registration number"
-                />
-              ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-                  {profileData.businessRegNo}
-                </div>
-              )}
-            </div>
-          
           </div>
 
           {/* Additional Info */}
@@ -213,11 +384,11 @@ const ProfileDetailForm = () => {
                 <div className='justify-between grid grid-cols-2 gap-3'>
                   <FormInput
                     label="Current Password"
-                    name="currentPassword"
                     placeholder=''
-                    type='password'
-                    value={tempData.name}
-                    onChange={(e) =>{}}
+                    name="currentPassword"
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={handleChange}
                   />
                 </div>
                 <div className='justify-between grid grid-cols-2 gap-3'>
@@ -226,9 +397,9 @@ const ProfileDetailForm = () => {
                       label="New Password"
                       name="newPassword"
                       placeholder=''
-                      type='password'
-                      value={tempData.name}
-                      onChange={(e) =>{}}
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={handleChange}
                     />
                   </div>
                   <div>
@@ -236,15 +407,17 @@ const ProfileDetailForm = () => {
                       label="Confirm New Password"
                       name="confirmNewPassword"
                       placeholder=''
-                      type='password'
-                      value={tempData.name}
-                      onChange={(e) =>{}}
+                      type="password"
+                      value={passwordData.confirmNewPassword}
+                      onChange={handleChange}
                     />
+
                   </div>                  
                 </div>
                 <div className='mt-2'>
                   <button
                     className='btn-primary px-4 py-2'
+                    onClick={handlePasswordUpdate}
                   >
                     Update Password
                   </button>

@@ -3,6 +3,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { GoogleMap, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import { useEffect, useState } from 'react';
+import { Edit2 } from 'lucide-react';
+import FormInput from '@/app/components/FormInput';
+
+interface Assistant {
+  name: string;
+  nic: string;
+  contact: string;
+  profilePic: string;
+  vanId: number;
+}
 
 interface Van {
   id: number;
@@ -20,11 +32,28 @@ interface Van {
   endTime?: string;
   salaryPercentage: number;
   hasDriver: boolean;
+  hasAssistant: boolean;
   isApproved: boolean;
+  assistant?: Assistant | null;
 }
 
+interface FormData {
+
+  makeAndModel: string;
+  seatingCapacity: number;
+  studentRating: number;
+  privateRating: number;
+  salaryPercentage: number;
+  vanId?: number;
+}
 
 const VanDetails = ({ van }: { van: Van }) => {
+
+  const [localVan, setLocalVan] = useState<Van>(van);
+
+  useEffect(() => {
+    setLocalVan(van);
+  }, [van]);
 
   const schools = [
     'Good Shephard Convent - Watthala',
@@ -41,15 +70,145 @@ const VanDetails = ({ van }: { van: Van }) => {
     { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
   ];
 
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    makeAndModel: van.makeAndModel,
+    seatingCapacity: van.seatingCapacity,
+    studentRating: van.studentRating,
+    privateRating: van.privateRating,
+    salaryPercentage: van.salaryPercentage,
+  });
+
+  const handleEditClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+      const res = await fetch(`/api/vans/${van.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          makeAndModel: formData.makeAndModel,
+          seatingCapacity: Number(formData.seatingCapacity),
+          studentRating: Number(formData.studentRating),
+          privateRating: Number(formData.privateRating),
+          salaryPercentage: Number(formData.salaryPercentage),
+        }),
+      });
+
+    if (!res.ok) {
+      alert('Update failed');
+      return;
+    }
+
+  const updatedVan = await res.json();
+    setLocalVan(updatedVan); 
+    alert('Van updated successfully');
+    setIsModalOpen(false);
+  };
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['places'],
+  });
+
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
+  useEffect(() => {
+    if (isLoaded && van.routeStart && van.routeEnd) {
+      const directionsService = new google.maps.DirectionsService();
+
+      directionsService.route(
+        {
+          origin: van.routeStart,
+          destination: van.routeEnd,
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK && result) {
+            setDirections(result);
+          } else {
+            console.error('Failed to fetch directions', result);
+          }
+        }
+      );
+    }
+  }, [isLoaded, van.routeStart, van.routeEnd]);
+
+  // Assistant Add Logic
+
+  const [isAssistantModalOpen, setIsAssistantModalOpen] = useState(false);
+
+  const [assistantFormData, setAssistantFormData] = useState({
+    name: '',
+    nic: '',
+    contactNo: '',
+    profilePicture: null as File | null,
+  });
+
+  const handleAssistantChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, files } = e.target;
+    
+    if (name === 'profilePicture' && files) {
+      setAssistantFormData(prev => ({
+        ...prev,
+        profilePicture: files[0],
+      }));
+    } else {
+      setAssistantFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+  const handleAssistantSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const form = new FormData();
+    form.append('name', assistantFormData.name);
+    form.append('nic', assistantFormData.nic);
+    form.append('contactNo', assistantFormData.contactNo);
+    if (assistantFormData.profilePicture) {
+      form.append('profilePicture', assistantFormData.profilePicture);
+    }
+
+    const res = await fetch(`/api/vans/${van.id}/assistant`, {
+      method: 'POST',
+      body: form,
+    });
+
+    if (!res.ok) {
+      alert('Failed to assign assistant');
+      return;
+    }
+
+    alert('Assistant assigned successfully');
+    setIsAssistantModalOpen(false);
+  };
+
   return (
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Van Details */}
-      <div className="bg-white rounded-2xl px-8 py-16 shadow-lg col-span-2">
-        <h2 className="text-lg font-semibold mb-4">{van.makeAndModel}</h2>
+      <div className="bg-white rounded-2xl px-8 py-8 shadow-lg col-span-2">
+          <h2 className="text-lg font-semibold mb-4">{localVan.makeAndModel}</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
             <img
-              src={van.photoUrl || '/Images/vehicle_placeholder.png'}
+              src={localVan.photoUrl || '/Images/vehicle_placeholder.png'}
               alt="Van"
               width={250}
               height={150}
@@ -57,81 +216,129 @@ const VanDetails = ({ van }: { van: Van }) => {
             />
           </div>
           <div className='p-2.5 w-full gap-5'>
-            <p className='text-sm'><span className="font-medium">Van ID:</span> <span className="text-active-text">{van.id}</span></p>
-            <p className='text-sm'><span className="font-medium">Model:</span> {van.makeAndModel}</p>
+            <div className="flex items-center justify-between">
+              <p className='text-sm'><span className="font-medium">Van ID:</span> <span className="text-active-text">{van.id}</span></p>
+              <button className='cursor-pointer' onClick={handleEditClick}><Edit2 size={15}/></button>
+            </div>
+            <p className='text-sm'><span className="font-medium">Model:</span> {localVan.makeAndModel}</p>
             <div className="my-2">
-              <div className="text-xs mb-1">Seats: 5 / {van.seatingCapacity}</div>
+              <div className="text-xs mb-1">Seats: 5 / {localVan.seatingCapacity}</div>
               <div className='w-full flex justify-end'>
                 <div className=" bg-gray-200 rounded-full h-1.5 w-9/10">
                   <div className="bg-primary h-1.5 rounded-full " style={{ width: '80%' }}></div>
                 </div>
               </div>
             </div>
-            <p className='text-sm'><span className="font-medium">Student Rating per km:</span><span className="text-active-text"> Rs. {van.studentRating}</span></p>
-            <p className='text-sm'><span className="font-medium">Private-Hire Rating per km:</span><span className="text-active-text"> Rs. {van.privateRating}</span></p>
-            <p className='text-sm'><span className="font-medium">Salary Percentage</span><span className="text-active-text"> {van.salaryPercentage} %</span></p>
+            <p className='text-sm'><span className="font-medium">Student Rating per km:</span><span className="text-active-text"> Rs. {localVan.studentRating}</span></p>
+            <p className='text-sm'><span className="font-medium">Private-Hire Rating per km:</span><span className="text-active-text"> Rs. {localVan.privateRating}</span></p>
+            <p className='text-sm'><span className="font-medium">Salary Percentage</span><span className="text-active-text"> {localVan.salaryPercentage} %</span></p>
           </div>
         </div>
         <div>
-          <h3 className="text-sm font-semibold mb-2 text-active-text">Schools</h3>
-          <ul className="">
-            {schools.map((school, idx) => (
-              <li key={idx} className="flex items-center">
-                <div
-                  className={`w-3 h-3 rounded-full mr-3 ${
-                    idx < 4 ? 'bg-primary' : 'bg-gray-400'
-                  }`}
-                ></div>
-                <span className="text-sm text-gray-800">{school}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <h3 className="text-lg font-semibold mb-2 text-gray-900">Schools</h3>
+          <div className="relative">
+            <div className="absolute left-1.5 top-2 bottom-2 w-0.5 bg-gray-300"></div>
+              <ul className="space-y-3">
+                {schools.map((school, idx) => (
+                  <li key={idx} className="flex items-start relative">
+                    <div className="relative z-10 flex-shrink-0 mt-1">
+                      {idx === 3 ? (
+                        <div className="w-3 h-3 rounded-full border-2 border-yellow-500 bg-white"></div>
+                      ) : (
+                        <div className={`w-3 h-3 rounded-full ${
+                          idx < 4 ? 'bg-yellow-500' : 'bg-gray-400'
+                        }`}></div>
+                      )}
+                    </div>
+                    
+                    <span className="ml-4 text-sm text-gray-600 leading-relaxed">
+                      {school}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-              {(van.hasDriver &&  van.isApproved) ?? <>
-                <h2 className="text-base font-semibold mb-4">Driver</h2>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-4">
-                    <div className=''> 
-                      <Image src="/Images/male_pro_pic_placeholder.png" alt="Driver" width={50} height={50} className="rounded-full" />
+              {(van.isApproved) && <>
+                { van.hasDriver ?
+                <>
+                  <h2 className="text-base font-semibold mb-4">Driver</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      <div className=''> 
+                        <Image src="/Images/male_pro_pic_placeholder.png" alt="Driver" width={50} height={50} className="rounded-full" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Duleepa Edirisinghe</p>
+                        <p className="text-xs text-gray-500">Experience: 6 years</p>
+                        <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">Duleepa Edirisinghe</p>
-                      <p className="text-xs text-gray-500">Experience: 6 years</p>
-                      <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
-                    </div>
+                    <button className="btn-small-primary ml-4">More Options</button>
                   </div>
-                  <button className="btn-small-primary ml-4">More Options</button>
-                </div>
-                <h2 className="text-base font-semibold mb-4">Assistant</h2>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className=''> 
-                      <Image src="/Images/male_pro_pic_placeholder.png" alt="Assistant" width={50} height={50} className="rounded-full" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Ayanga Wethmini</p>
-                      <p className="text-xs text-gray-500">Experience: 7 years</p>
-                      <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
-                    </div>
-                  </div>
-                  <button className="btn-small-primary ml-4">More Options</button>
-                </div>
-              </> } 
-              {(!van.hasDriver &&  van.isApproved) && (
-                <div className=" my-6">
-                  <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
-                  <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
-                  <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${van.makeAndModel}`}>
-                    <button className="btn-small-primary">Find a Driver</button>
-                  </Link>
-                </div>
-            ) } 
+                </> :
 
-            {!(van.hasDriver) && !van.isApproved && (
+                <div className="my-3 grid  grid-cols-2">
+                  <div>
+                    <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
+                  </div>
+                  <div className='flex items-center justify-center'> 
+                    <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${van.makeAndModel}`}>
+                      <button className="btn-small-primary px-10">Find a Driver</button>
+                    </Link>
+                  </div>
+                </div>
+
+                } 
+                { van.hasAssistant ? 
+                  <>
+                    <h2 className="text-base font-semibold mb-4">Assistant</h2>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <Image
+                              src={van.assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
+                              alt="Assistant"
+                              width={50}
+                              height={50}
+                              className="rounded-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{van.assistant?.name}</p>
+                            <p className="text-xs text-gray-500">NIC: {van.assistant?.nic}</p>
+                            <p className="text-xs text-gray-500">Contact: {van.assistant?.contact}</p>
+                          </div>
+                        </div>
+                      </div>
+                  </>
+                :
+
+                <div className="my-3 grid  grid-cols-2">
+                  <div>
+                    <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
+                  </div>
+                  <div className='flex items-center justify-center'> 
+                      <button className="btn-small-primary font-bold"
+                        onClick={() => setIsAssistantModalOpen(true)}
+                      >
+                        Assign an Assistant
+                      </button>
+                  </div>
+                </div>
+
+                } 
+                  
+              </> 
+              } 
+
+            {!van.isApproved && (
                 <div className=" my-12">
                   <h2 className="text-base font-semibold mb-4">Van Not Approved</h2>
                   <p className="text-sm text-gray-500 mb-4">Please wait for the approval of your van.</p>
@@ -139,41 +346,163 @@ const VanDetails = ({ van }: { van: Van }) => {
               ) 
             }
             </div>
-          <div className='w-full grid grid-cols-4 gap-4'>
-            {/* Route & Safety */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
-                <h2 className="text-base font-semibold mb-4">Current Route</h2>
-                <Image
-                  src="/Images/routePlaceholder.png"
-                  alt="Route"
-                  width={200}
-                  height={125}
-                  className="rounded-lg"
+            <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
+              <h2 className="text-base font-semibold mb-4">Current Route</h2>
+              {isLoaded && (
+                    <GoogleMap
+                      mapContainerStyle={{ width: '100%', height: '300px' }}
+                      center={{ lat: 7.8731, lng: 80.7718 }}
+                      zoom={10}
+                    >
+                      {directions && <DirectionsRenderer directions={directions} />}
+                    </GoogleMap>
+                )}
+              {!isLoaded && <p>Loading map...</p>}
+            </div>
+      </div>
+
+      {/*Van Details Editing Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0  bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[90%] max-w-md shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Edit Van Details</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <FormInput
+                  type="text"
+                  name="makeAndModel"
+                  label='Van Model'
+                  value={formData.makeAndModel}
+                  onChange={handleChange}
+                  placeholder="Enter van model"
+                  error={errors.makeAndModel}
                 />
               </div>
-                {/* Student List */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
-                <h2 className="text-base font-semibold mb-4">Student List</h2>
-                <ul className="space-y-4">
-                  {students.map((s, i) => (
-                    <li key={i} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Image
-                          src={s.image}
-                          alt={s.name}
-                          width={36}
-                          height={36}
-                          className="rounded-full"
-                        />
-                        <span className="text-xs font-medium text-gray-700">{s.name}</span>
-                      </div>
-                      <span className="text-xs text-gray-500 ml-1">pickup - {s.time}</span>
-                    </li>
-                  ))}
-                </ul>
+
+              <div>
+                <FormInput
+                  type="number"
+                  label='Seating Capacity'
+                  name="seatingCapacity"
+                  value={formData.seatingCapacity.toString()}
+                  onChange={handleChange}
+                  placeholder="Enter seating capacity"
+                  error={errors.seatingCapacity}
+                />
               </div>
+
+              <div>
+                <FormInput
+                  type="number"
+                  name="studentRating"
+                  label='Student Rating per km'
+                  value={formData.studentRating.toString()}
+                  onChange={handleChange}
+                  placeholder="Enter van model"
+                  error={errors.makeAndModel}
+                />
+              </div>
+
+              <div>
+                <FormInput
+                  type="number"
+                  name="privateRating"
+                  label='Private-Hire Rating per km'
+                  value={formData.privateRating.toString()}
+                  onChange={handleChange}
+                  placeholder="Enter Private-Hire Rating"
+                  error={errors.makeAndModel}
+                />
+              </div>
+
+              <div>
+                <FormInput
+                  type="number"
+                  label='Salary Percentage'
+                  name="salaryPercentage"
+                  value={formData.salaryPercentage.toString()}
+                  onChange={handleChange}
+                  placeholder="Enter salary percentage"
+                  error={errors.makeAndModel}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary px-4 py-2">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary px-4 py-2">
+                  Save
+                </button>
+              </div>
+            </form>
           </div>
-      </div>
+        </div>
+      )}
+
+      {/*Add Assistant Modal */}
+      {isAssistantModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[90%] max-w-md shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Assign Assistant</h2>
+            <form onSubmit={handleAssistantSubmit} className="space-y-4">
+              <FormInput
+                type="text"
+                name="name"
+                label="Assistant Name"
+                value={assistantFormData.name}
+                onChange={handleAssistantChange}
+                placeholder="Enter assistant name"
+              />
+
+              <FormInput
+                type="text"
+                name="nic"
+                label="NIC"
+                value={assistantFormData.nic}
+                onChange={handleAssistantChange}
+                placeholder="Enter NIC"
+              />
+
+              <FormInput
+                type="text"
+                name="contactNo"
+                label="Contact Number"
+                value={assistantFormData.contactNo}
+                onChange={handleAssistantChange}
+                placeholder="Enter contact number"
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
+                <input
+                  type="file"
+                  name="profilePicture"
+                  accept="image/*"
+                  onChange={handleAssistantChange}
+                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:text-sm file:font-semibold file:bg-gray-50 hover:file:bg-gray-100"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsAssistantModalOpen(false)}
+                  className="btn-secondary px-4 py-2"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary px-4 py-2">
+                  Assign
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };
