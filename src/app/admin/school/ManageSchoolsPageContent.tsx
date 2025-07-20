@@ -4,6 +4,7 @@ import DataTable from '@/app/dashboardComponents/CustomTable';
 // Using backend data instead of dummy data
 import { School as SchoolIcon, Trash2, MapPin, Users, Eye, Edit, MoreVertical } from 'lucide-react';
 import MapLocationPicker from '@/app/components/MapLocationPicker';
+import EditSchool from './EditSchool';
 
 // Define interfaces
 interface Location {
@@ -39,6 +40,8 @@ const ManageSchoolsPageContent = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [editingSchool, setEditingSchool] = useState<number | null>(null);
+  const [selectedSchoolData, setSelectedSchoolData] = useState<School | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -108,15 +111,19 @@ const ManageSchoolsPageContent = () => {
 
   const handleEdit = (row: Record<string, string | number | boolean | null | undefined>) => {
     console.log("Edit clicked:", row);
-    // Populate form with selected school data
-    setFormData({
-      schoolName: row.schoolName as string || '',
-      email: row.email as string || '',
-      contact: row.contact as string || '',
-      schoolAddress: row.address as string || '',
-      // Default to Sri Lanka center if no location
-      schoolLocation: { lat: 7.8731, lng: 80.7718 }
-    });
+    // Set the selected school for editing
+    setEditingSchool(row.id as number);
+    
+      // Convert row data to School object for the edit form
+    const schoolData: School = {
+      id: row.id as number,
+      schoolName: row.schoolName as string,
+      email: row.email as string,
+      contact: row.contact as string,
+      address: row.address as string,
+      // Default location if none provided
+      location: { lat: 7.8731, lng: 80.7718 }
+    };    setSelectedSchoolData(schoolData);
   };
 
   const handleDelete = (row: Record<string, string | number | boolean | null | undefined>) => {
@@ -255,8 +262,45 @@ const ManageSchoolsPageContent = () => {
     });
   };
 
+  // Function to handle successful edit
+  const handleEditSuccess = async () => {
+    setEditingSchool(null);
+    setSelectedSchoolData(null);
+    
+    // Refetch schools data
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch('http://localhost:3000/api/admin/schools/getSchools');
+      
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setSchools(data);
+    } catch (err) {
+      console.error('Failed to refresh schools:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh schools data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
       <div>
+          {/* Edit School Modal */}
+          {editingSchool !== null && (
+            <EditSchool 
+              schoolId={editingSchool}
+              initialData={selectedSchoolData}
+              onClose={() => {
+                setEditingSchool(null);
+                setSelectedSchoolData(null);
+              }}
+              onSuccess={handleEditSuccess}
+            />
+          )}
 
           {/* Split Layout Container */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
