@@ -23,9 +23,7 @@ const ManageSchoolsPage = () => {
   // Form state
   const [formData, setFormData] = useState({
     schoolName: '',
-    schoolId: '',
     email: '',
-    guardianName: '',
     contact: '',
     schoolAddress: ''
   });
@@ -69,27 +67,68 @@ const ManageSchoolsPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    // Phone validation: starts with 07 or 011, and is 10 or 11 digits
+    const phoneRegex = /^(07\d{8}|011\d{8})$/;
+    if (!phoneRegex.test(formData.contact)) {
+      alert("Contact number must start with 07 or 011 and be 10 or 11 digits.");
+      return;
+    }
+
     console.log("Form submitted:", formData);
-    alert("School added successfully!");
-    // Clear form after submission
-    setFormData({
-      schoolName: '',
-      schoolId: '',
-      email: '',
-      guardianName: '',
-      contact: '',
-      schoolAddress: ''
-    });
+
+    try {
+      // Prepare the data to match the API structure
+      const schoolData = {
+        schoolName: formData.schoolName,
+        email: formData.email,
+        contact: formData.contact,
+        address: formData.schoolAddress
+      };
+
+      // Send POST request to the API
+      const response = await fetch('/api/admin/schools/addAccount', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(schoolData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("School added successfully:", data);
+      alert("School added successfully!");
+
+      // Clear form after submission
+      setFormData({
+        schoolName: '',
+        email: '',
+        contact: '',
+        schoolAddress: ''
+      });
+    } catch (error) {
+      console.error("Failed to add school:", error);
+      alert("Failed to add school. Please try again.");
+    }
   };
 
   const handleClearForm = () => {
     setFormData({
       schoolName: '',
-      schoolId: '',
       email: '',
-      guardianName: '',
       contact: '',
       schoolAddress: ''
     });
@@ -145,21 +184,7 @@ const ManageSchoolsPage = () => {
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="schoolId" className="block text-sm font-medium text-gray-700 mb-1">
-                      School ID *
-                    </label>
-                    <input
-                      type="text"
-                      id="schoolId"
-                      name="schoolId"
-                      value={formData.schoolId}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter school ID"
-                    />
-                  </div>
+                  
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -177,21 +202,7 @@ const ManageSchoolsPage = () => {
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="guardianName" className="block text-sm font-medium text-gray-700 mb-1">
-                      Principal/Guardian Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="guardianName"
-                      name="guardianName"
-                      value={formData.guardianName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter principal/guardian name"
-                    />
-                  </div>
+                  
 
                   <div>
                     <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
