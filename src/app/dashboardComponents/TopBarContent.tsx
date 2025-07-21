@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { FaBell, FaMoon } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 import { BiLogOut } from "react-icons/bi";
 import { Session } from "next-auth";
 import Image from 'next/image';
@@ -20,13 +21,14 @@ interface Notification {
 }
 
 const TopBarContent = ({ heading, serverSession }: Props) => {
+  const Router = useRouter();
   const { data: clientSession, status } = useSession();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
       title: "New Message",
-      message: "You have received a new message from John Doe",
+      message: "You have received a new Private hire from Duleepa Edirisinghe",
       time: "2 minutes ago",
       isRead: false
     },
@@ -39,8 +41,8 @@ const TopBarContent = ({ heading, serverSession }: Props) => {
     },
     {
       id: 3,
-      title: "Task Completed",
-      message: "Your report has been successfully generated",
+      title: "Van Approval",
+      message: "Your van has been approved by the System.",
       time: "3 hours ago",
       isRead: true
     }
@@ -154,7 +156,11 @@ const TopBarContent = ({ heading, serverSession }: Props) => {
                 </div>
                 
                 <div className="p-3 border-t border-gray-200 text-center">
-                  <button className="text-sm text-primary hover:text-blue-800">
+                  <button className="text-sm text-primary hover:text-blue-800 cursor-pointer"
+                    onClick={() => {
+                      Router.push('/notifications');
+                    } }
+                  >
                     View all notifications
                   </button>
                 </div>

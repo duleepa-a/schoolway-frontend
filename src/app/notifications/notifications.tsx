@@ -80,19 +80,15 @@ const getNotificationIcon = (type: string) => {
 };
 
 const getNotificationBg = (type: string, isRead: boolean) => {
-    if (isRead) return 'bg-gray-50';
+    if (isRead) return 'bg-white';
 
     switch (type) {
         case 'message':
             return 'bg-blue-50';
         case 'system':
             return 'bg-orange-50';
-        case 'task':
-            return 'bg-green-50';
-        case 'info':
-            return 'bg-purple-50';
         default:
-            return 'bg-gray-50';
+            return 'bg-white';
     }
 };
 
@@ -119,12 +115,12 @@ export default function Notifications() {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center space-x-4">
                             <button
                                 onClick={handleBack}
-                                className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                                className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer mr-6"
                             >
                                 <ArrowLeft className="w-5 h-5 text-gray-600" />
                             </button>
@@ -138,7 +134,7 @@ export default function Notifications() {
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllAsRead}
-                                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-primary hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                             >
                                 Mark all as read
                             </button>
@@ -148,7 +144,7 @@ export default function Notifications() {
             </div>
 
             {/* Notifications List */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="space-y-3">
                     {mockNotifications.map((notification) => (
                         <div
