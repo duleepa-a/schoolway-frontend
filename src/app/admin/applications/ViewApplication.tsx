@@ -2,13 +2,16 @@
 
 import React, { useEffect, useRef } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { ApplicationData } from './types';
+
 
 interface ViewApplicationProps {
-  application: any;
+  application: ApplicationData;
   onApprove: () => void;
   onReject: () => void;
   onClose: () => void;
 }
+
 
 export default function ViewApplication({
   application,

@@ -17,9 +17,10 @@ import { PiStudentFill } from "react-icons/pi";
 const navItems = [
   { label: 'Dashboard', icon: <HiHome />, href: '/admin' },
   { label: 'Users', icon: <FaUser />, href: '/admin/users' },
+  { label: 'Admins', icon: <FaUser />, href: '/admin/admins' },
   { label: 'Applications', icon: <FaChartSimple />, href: '/admin/applications' },
   { label: 'Schools', icon: <PiStudentFill />, href: '/admin/school' },
-  { label: 'Guardian', icon: <GiLaurelsTrophy />, href: '/admin/guardian' },
+  // { label: 'Guardian', icon: <GiLaurelsTrophy />, href: '/admin/guardian' },
   { label: 'Payroll', icon: <MdCreditCard />, href: '/admin/payroll' },
   { label: 'Payments', icon: <MdOutlinePayments />, href: '/admin/payments' },
   { label: 'Inquiries', icon: <RiQuestionAnswerFill />, href: '/admin/inquiries' },
@@ -32,7 +33,7 @@ export default function AdminSidebar() {
 
   return (
     <aside className="w-72 h-screen bg-white flex flex-col">
-      <div className="flex justify-center border-b-border-light-shade border-b-1 p-10 mt-10">
+      <div className="flex justify-center border-b-border-light-shade border-b-1 p-10 mt-5">
         <Link href="/">
           <Image
             src="/logo/Logo_light.svg"
@@ -44,7 +45,7 @@ export default function AdminSidebar() {
         </Link>
       </div>
 
-      <nav className="flex flex-col gap-4 py-10 pl-10">
+      <nav className="flex flex-col gap-4 py-5 pl-10">
         {navItems.map((item) => {
           const isActive = item.href === '/admin'
             ? pathname === '/admin'
