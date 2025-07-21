@@ -225,16 +225,26 @@ const validateStep1 = () => {
 
   return (
     <>
-    <div className="flex w-3/4  bg-primary h-4/5 justify-between rounded-br-2xl rounded-tr-2xl rounded-2xl">
+    <div className="flex w-3/4 bg-primary h-4/5 justify-between rounded-br-2xl rounded-tr-2xl rounded-2xl">
       {/* Left side - Yellow background with logo */}
-      <div className="hidden lg:block overflow-hidden justify-items-center pl-20 pt-4">
-        <Image
+      <div className="hidden lg:block overflow-hidden justify-items-center pl-20 pt-4 pr-4 ">
+      <Image
         src={'/logo/Logo_light.svg'}
         alt='schoolway logo'
         width={200}
         height={200}
-        />
-        <h1 className='mt-10 m-0'>add some description over here</h1>
+      />
+      <h1 className='mt-10 m-0 text-2xl font-bold text-active-text '>Welcome, Van Owners!</h1>
+      <p className="mt-6 text-md text-gray-800 max-w-xs">
+        Register your school van service to connect with parents and schools easily. 
+        Provide your details to get started, manage your routes, and keep students safe and informed.
+      </p>
+      <ul className="mt-6 text-sm text-gray-700 list-disc list-inside ">
+        <li>Easy registration for your van service</li>
+        <li>Connect with parents and schools</li>
+        <li>Manage your contact and registration details</li>
+        <li>Help ensure safe and reliable transportation</li>
+      </ul>
       </div>
 
       {/* Right side - Form */}
@@ -370,79 +380,78 @@ const validateStep1 = () => {
         transition={{ duration: 0.4 }}
       >
         <div className='flex justify-start'>
-                <h2 className="text-lg font-semibold text-active-text text-center mb-2.5">
-                Service Details
-                </h2>
-              </div>
+      <h2 className="text-lg font-semibold text-active-text text-center mb-2.5">
+        Service Details
+      </h2>
+    </div>
 
-              <form className="ml-1">
-                {/* Service Name */}
-                <div>
-                <FormInput
-                  label="Service Name"
-                  name="serviceName"
-                  placeholder="Type your service name"
-                  value={formData.serviceName}
-                  onChange={handleInputChange}
-                  error={errors.serviceName}
-                />
-                </div>
+    <form className="ml-1">
+      {/* Service Name */}
+      <div>
+      <FormInput
+        label="Service Name"
+        name="serviceName"
+        placeholder="Type your service name"
+        value={formData.serviceName}
+        onChange={handleInputChange}
+        error={errors.serviceName}
+      />
+      </div>
 
-                {/* Contact Number */}
-                <div>
-                <FormInput
-                  label="Contact Number"
-                  name="contactNumber"
-                  placeholder="Type your contact number"
-                  value={formData.contactNumber}
-                  onChange={handleInputChange}
-                  error={errors.contactNumber}
-                />
-                </div>
+      {/* Contact Number */}
+      <div>
+      <FormInput
+        label="Contact Number"
+        name="contactNumber"
+        placeholder="Type your contact number"
+        value={formData.contactNumber}
+        onChange={handleInputChange}
+        error={errors.contactNumber}
+      />
+      </div>
 
-                {/* Service Registration Number */}
-                <div>
-                <FormInput
-                  label="Service Registration Number"
-                  name="serviceRegistrationNumber"
-                  placeholder="Type your registration number"
-                  value={formData.serviceRegistrationNumber}
-                  onChange={handleInputChange}
-                  error={errors.serviceRegistrationNumber}
-                />
-                </div>
+      {/* Service Registration Number */}
+      <div>
+      <FormInput
+        label="Service Registration Number"
+        name="serviceRegistrationNumber"
+        placeholder="Type your registration number"
+        value={formData.serviceRegistrationNumber}
+        onChange={handleInputChange}
+        error={errors.serviceRegistrationNumber}
+      />
+      </div>
 
-                {/* Navigation buttons */}
-                {/* <div className="flex justify-between mt-4"> */}
-                <div className="flex flex-col items-center mt-4 space-y-2">
-                  
-                  <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="w-max bg-black hover:bg-active-text text-white font-semibold px-18 py-2.5 rounded-xs transition-colors duration-200  cursor-pointer text-sm"
-                  >
-                  {isSubmitting ? 'Submitting...' : 'Sign Up'}
-                  </button>
-                  <button
-                  type="button"
-                  onClick={handleBack}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2.5 rounded-xs transition-colors duration-200 text-sm"
-                  >
-                  Back
-                  </button>
-                </div>
-                
-              </form>
-      </motion.div>
-    )}
-  </AnimatePresence>
+      {/* Navigation buttons */}
+      <div className='w-full flex justify-center'>
+        <div className="flex flex-col items-center mt-8 space-y-2">
+          <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="w-max bg-black hover:bg-active-text text-white font-semibold px-18 py-2.5 rounded-xs transition-colors duration-200  cursor-pointer text-sm"
+          >
+          {isSubmitting ? 'Submitting...' : 'Sign Up'}
+          </button>
+          <button
+          type="button"
+          onClick={handleBack}
+          className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2.5 rounded-xs transition-colors duration-200 text-sm"
+          >
+          Back
+          </button>
+        </div>
+      </div>
+    </form>
+  </motion.div>
+)}
+          </AnimatePresence>
           </div>
         </div>
       </div>
     </div>
-</>
-  )
-}
+    </>
+  );
+};
 
-export default SignUpForm
+export default SignUpForm;
