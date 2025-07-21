@@ -39,17 +39,19 @@ export async function POST(request: NextRequest) {
       );
     }
     var approvalstatus = null;
+    var hasVan = 0;
     if (existingUser.activeStatus != true) {
       return NextResponse.json(
         { success: false, error: 'User account is deactivated' },
         { status: 403 }
       );
     }else if (existingUser.role == 'DRIVER') {
+      console.log("User is a driver, fetching driver profile...");
       
       const driverData = await prisma.driverProfile.findUnique({
         where: { userId: existingUser.id },
         include: { 
-          status: true,
+          // status: true,
         }
       });
 
@@ -60,6 +62,7 @@ export async function POST(request: NextRequest) {
         );
       }
       approvalstatus = driverData.status;
+      hasVan = driverData.hasVan;
     }
     // Create session data (matching your NextAuth structure)
     const sessionData = {
@@ -69,6 +72,7 @@ export async function POST(request: NextRequest) {
         name: existingUser.firstname,
         role: `${existingUser.role}`,
         approvalstatus: approvalstatus,
+        hasVan: hasVan,
         // Add any other fields you need from your userProfile
       },
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
