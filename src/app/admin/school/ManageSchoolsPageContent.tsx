@@ -37,6 +37,10 @@ const columns = [
 ];
 
 const ManageSchoolsPageContent = () => {
+  // State for viewing guardians modal
+  const [showGuardiansModal, setShowGuardiansModal] = useState(false);
+  const [guardians, setGuardians] = useState<any[]>([]);
+  const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [schools, setSchools] = useState<School[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -160,16 +164,28 @@ const ManageSchoolsPageContent = () => {
     }
   };
   
-  const handleViewGuardians = (row: Record<string, string | number | boolean | null | undefined>) => {
-    console.log("View guardians for:", row);
-    alert(`View guardians for ${row.schoolName}`);
-    // In real implementation, navigate to guardians page or show modal
+  const handleViewGuardians = async (row: Record<string, string | number | boolean | null | undefined>) => {
+    setSelectedSchoolName(row.schoolName as string);
+    setShowGuardiansModal(true);
+    // Fetch guardians for the selected school
+    try {
+      const response = await fetch(`http://localhost:3000/api/admin/guardian/getGuardians?schoolId=${row.id}`);
+      if (!response.ok) throw new Error('Failed to fetch guardians');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setGuardians(data);
+      } else if (data.guardians && Array.isArray(data.guardians)) {
+        setGuardians(data.guardians);
+      } else {
+        setGuardians([]);
+      }
+    } catch {
+      setGuardians([]);
+    }
   };
 
   const handleAddGuardian = (row: Record<string, string | number | boolean | null | undefined>) => {
-    console.log("Add guardian for:", row);
-    alert(`Add guardian for ${row.schoolName}`);
-    // In real implementation, navigate to add guardian page or show modal
+    window.location.href = '/admin/guardian';
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -292,6 +308,44 @@ const ManageSchoolsPageContent = () => {
 
   return (
       <div>
+        {/* Guardians Modal */}
+        {showGuardiansModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+              <button
+                onClick={() => setShowGuardiansModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
+              >
+                &times;
+              </button>
+              <h2 className="text-2xl font-semibold text-active-text mb-6">Guardians for {selectedSchoolName}</h2>
+              {guardians.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">No guardians found for this school.</div>
+              ) : (
+                <table className="w-full border rounded-lg">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 border-b">First Name</th>
+                      <th className="px-4 py-2 border-b">Last Name</th>
+                      <th className="px-4 py-2 border-b">Email</th>
+                      <th className="px-4 py-2 border-b">Contact</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {guardians.map((g, idx) => (
+                      <tr key={idx}>
+                        <td className="px-4 py-2 border-b">{g.firstname}</td>
+                        <td className="px-4 py-2 border-b">{g.lastname}</td>
+                        <td className="px-4 py-2 border-b">{g.email}</td>
+                        <td className="px-4 py-2 border-b">{g.contact}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
           {/* Edit School Modal */}
           {editingSchool !== null && (
             <EditSchool 
