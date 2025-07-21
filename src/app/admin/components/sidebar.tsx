@@ -20,7 +20,7 @@ const navItems = [
   { label: 'Admins', icon: <FaUser />, href: '/admin/admins' },
   { label: 'Applications', icon: <FaChartSimple />, href: '/admin/applications' },
   { label: 'Schools', icon: <PiStudentFill />, href: '/admin/school' },
-  { label: 'Guardian', icon: <GiLaurelsTrophy />, href: '/admin/guardian' },
+  // { label: 'Guardian', icon: <GiLaurelsTrophy />, href: '/admin/guardian' },
   { label: 'Payroll', icon: <MdCreditCard />, href: '/admin/payroll' },
   { label: 'Payments', icon: <MdOutlinePayments />, href: '/admin/payments' },
   { label: 'Inquiries', icon: <RiQuestionAnswerFill />, href: '/admin/inquiries' },

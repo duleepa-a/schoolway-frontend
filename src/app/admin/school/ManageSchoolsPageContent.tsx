@@ -79,7 +79,7 @@ const ManageSchoolsPageContent = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch('http://localhost:3000/api/admin/schools/getSchools');
+        const response = await fetch('http://localhost:3000/api/admin/schools/SchoolDetails');
         
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
