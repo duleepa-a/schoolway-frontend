@@ -36,20 +36,136 @@ const InquiriesPageContent = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/admin/inquiries'); 
-        const data = await response.json();
-        setInquiriesData(data);
-      } catch (error) {
-        console.error('Failed to fetch inquiries:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const response = await fetch('/api/admin/inquiries');
+      const data = await response.json();
+      setInquiriesData(data);
+    } catch (error) {
+      console.error('Failed to fetch inquiries:', error);
 
-    fetchData();
-  }, []);
+      // 🔽 Dummy fallback data
+setInquiriesData([
+  {
+    id: 1,
+    FullName: 'John Doe',
+    Subject: 'School transport timing issue',
+    Status: 'Pending',
+    Role: 'Parent',
+    Date: '2025-07-20',
+  },
+  {
+    id: 2,
+    FullName: 'Jane Smith',
+    Subject: 'Driver behavior concern',
+    Status: 'Reviewed',
+    Role: 'Driver',
+    Date: '2025-07-18',
+  },
+  {
+    id: 3,
+    FullName: 'Ali Khan',
+    Subject: 'Request for van approval',
+    Status: 'Pending',
+    Role: 'Van Owner',
+    Date: '2025-07-19',
+  },
+  {
+    id: 4,
+    FullName: 'Guest User',
+    Subject: 'General platform feedback',
+    Status: 'Pending',
+    Role: 'Guest',
+    Date: '2025-07-17',
+  },
+  {
+    id: 5,
+    FullName: 'Emily Rose',
+    Subject: 'Lost item in van',
+    Status: 'Resolved',
+    Role: 'Parent',
+    Date: '2025-07-16',
+  },
+  {
+    id: 6,
+    FullName: 'Carlos Martinez',
+    Subject: 'Driver late regularly',
+    Status: 'Pending',
+    Role: 'Parent',
+    Date: '2025-07-15',
+  },
+  {
+    id: 7,
+    FullName: 'Nisha Perera',
+    Subject: 'Issue with van cleanliness',
+    Status: 'Reviewed',
+    Role: 'Student',
+    Date: '2025-07-14',
+  },
+  {
+    id: 8,
+    FullName: 'Ravi Senanayake',
+    Subject: 'Unable to track van in map',
+    Status: 'Pending',
+    Role: 'Parent',
+    Date: '2025-07-13',
+  },
+  {
+    id: 9,
+    FullName: 'Mohammed Faisal',
+    Subject: 'Request to change pickup location',
+    Status: 'In Progress',
+    Role: 'Parent',
+    Date: '2025-07-12',
+  },
+  {
+    id: 10,
+    FullName: 'Chathura De Silva',
+    Subject: 'Inquiry about insurance requirements',
+    Status: 'Resolved',
+    Role: 'Van Owner',
+    Date: '2025-07-11',
+  },
+  {
+    id: 11,
+    FullName: 'Amanda Lee',
+    Subject: 'Need help registering as a driver',
+    Status: 'Pending',
+    Role: 'Driver',
+    Date: '2025-07-10',
+  },
+  {
+    id: 12,
+    FullName: 'Thilina Jayawardena',
+    Subject: 'App crashes during payment',
+    Status: 'Pending',
+    Role: 'Guest',
+    Date: '2025-07-09',
+  },
+  {
+    id: 13,
+    FullName: 'Ishani Wijesekara',
+    Subject: 'Feedback on customer service',
+    Status: 'Reviewed',
+    Role: 'Parent',
+    Date: '2025-07-08',
+  },
+  {
+    id: 14,
+    FullName: 'Guest User',
+    Subject: 'Question about data privacy',
+    Status: 'Pending',
+    Role: 'Guest',
+    Date: '2025-07-07',
+  },
+]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
 
   const filteredData = useMemo(() => {
     return inquiriesData.filter((inquiry) => {
