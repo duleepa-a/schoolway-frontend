@@ -59,74 +59,9 @@ model DriverProfile {
   languages      String[]
   licenseType    String[]
   medicalReport  String?
-  hasVan         Int     @default(0) // 0 = No, 1 = Yes
   relocate       Boolean     @default(false)
   hasVan         Int         @default(0)
-  UserProfile    UserProfile @relation(fields: [userId], references: [id])
-}
-
-model DriverVanJobRequest {
-  id                                                      String           @id
-  driverId                                                String
-  vanId                                                   Int
-  vanOwnerId                                              String
-  status                                                  JobRequestStatus @default(PENDING)
-  message                                                 String?
-  proposedSalary                                          Float?
-  turn                                                    String?
-  responseMessage                                         String?
-  respondedAt                                             DateTime?
-  createdAt                                               DateTime         @default(now())
-  updatedAt                                               DateTime
-  expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
-  UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
-  Van                                                     Van              @relation(fields: [vanId], references: [id])
-  UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation("DriverVanJobRequest_vanOwnerIdToUserProfile", fields: [vanOwnerId], references: [id])
-
-  @@unique([driverId, vanOwnerId, vanId])
-}
-
-model School {
-  id             Int                      @id @default(autoincrement())
-  schoolName     String
-  email          String                   @unique
-  contact        String
-  address        String
-  location       Unsupported("geometry")?
-  SchoolGuardian SchoolGuardian[]
-}
-
-model SchoolGuardian {
-  id         Int         @id @default(autoincrement())
-  schoolId   Int
-  guardianId String
-  Guardian   UserProfile @relation(fields: [guardianId], references: [id])
-  School     School      @relation(fields: [schoolId], references: [id])
-}
-
-model UserProfile {
-  id                                                              String                @id
-  email                                                           String                @unique
-  firstname                                                       String?
-  createdAt                                                       DateTime              @default(now())
-  updatedAt                                                       DateTime
-  lastname                                                        String?
-  role                                                            UserRole?
-  password                                                        String
-  activeStatus                                                    Boolean               @default(true)
-  address                                                         String?
-  birthDate                                                       DateTime?
-  mobile                                                          String?
-  nic                                                             String?
-  nic_pic                                                         String?
-  district                                                        String?
-  dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
-  DriverProfile                                                   DriverProfile?
-  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
-  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
-  SchoolGuardian                                                  SchoolGuardian[]
-  Van                                                             Van[]
-  VanService                                                      VanService?
+  user           UserProfile @relation(fields: [userId], references: [id])
 }
 
 model Van {
