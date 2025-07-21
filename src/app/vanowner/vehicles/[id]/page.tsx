@@ -21,6 +21,8 @@ export default async function VanDetailsPage({ params }: Props) {
   if (!res.ok) return notFound();
 
   const van = await res.json();
+  const driver = van.driver;
+  console.log('Driver:', driver);
 
   return (
     <section className="p-6 md:p-10 min-h-screen w-full">
