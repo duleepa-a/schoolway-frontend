@@ -37,7 +37,7 @@ const offerings = [
 
 export default function WhatWeOffer() {
   return (
-    <section className="py-16 bg-white text-center">
+    <section id="services" className="py-16 bg-white text-center">
       <h2 className="text-3xl font-bold mb-2">What We Offer</h2>
       <p className=" mb-12 max-w-2xl mx-auto">
         We've been joyfully linking school van services with parents nationwide for a safer, smoother ride!

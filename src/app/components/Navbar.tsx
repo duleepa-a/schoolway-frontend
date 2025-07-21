@@ -6,26 +6,52 @@ import Image from 'next/image';
 
 
 export default function Navbar() {
-
   const {status, data: session} = useSession();
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-
         <div className="text-xl font-bold text-blue-900">
-          {/* <Link href="/">School<span className="text-yellow-500">Way</span></Link> */}
           <Link href="/"> <img src="/logo/Logo_light.svg" height={100} width={100} alt="" /></Link>
-
         </div>
-        <ul className="hidden md:flex space-x-6 text-sm font-medium text-active-text ">
+        <ul className="hidden md:flex space-x-10 text-sm font-medium text-active-text ">
           <li><Link href="/" className='no-underline hover:text-primary'>Home</Link></li>
-          <li><Link href="#services" className='no-underline hover:text-primary'>Service</Link></li>
-          <li><Link href="#features" className='no-underline hover:text-primary'>Features</Link></li>
-          <li><Link href="#contact" className='no-underline hover:text-primary'>Contact</Link></li>
-          <li><Link href="#testimonials" className='no-underline hover:text-primary'>Testimonial</Link></li>
-          <li><Link href="#faq" className='no-underline hover:text-primary'>FAQ</Link></li>
+          <li>
+            <button 
+              onClick={() => scrollToSection('services')} 
+              className='no-underline hover:text-primary bg-transparent border-none cursor-pointer text-sm font-semibold text-active-text'
+            >
+              Service
+            </button>
+          </li>
+          <li>
+            <button 
+              onClick={() => scrollToSection('features')} 
+              className='no-underline hover:text-primary bg-transparent border-none cursor-pointer text-sm font-semibold text-active-text'
+            >
+              Features
+            </button>
+          </li>
+          <li><Link href="/contactus" className='no-underline hover:text-primary'>Contact us</Link></li>
+          <li>
+            <button 
+              onClick={() => scrollToSection('testimonials')} 
+              className='no-underline hover:text-primary bg-transparent border-none cursor-pointer text-sm font-semibold text-active-text'
+            >
+              Testimonial
+            </button>
+          </li>
+          {/* <li><Link href="#faq" className='no-underline hover:text-primary'>FAQ</Link></li> */}
         </ul>
         {/* {
           JSON.parse(localStorage.getItem('user') || '{}').email
