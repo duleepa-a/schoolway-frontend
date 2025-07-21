@@ -426,7 +426,7 @@ const ManageSchoolsPageContent = () => {
                   <div className="flex space-x-3 pt-4">
                     <button
                       type="submit"
-                      className="flex-1 bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      className="flex-1 bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-amber-500 transition-colors flex items-center justify-center"
                     >
                       Add School
                     </button>
