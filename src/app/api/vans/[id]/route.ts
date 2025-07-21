@@ -14,6 +14,10 @@ export async function GET(
 
   const van = await prisma.van.findUnique({
     where: { id },
+    include: {
+      assistant: true, 
+    },
+
   });
 
   if (!van) {
@@ -21,4 +25,27 @@ export async function GET(
   }
 
   return NextResponse.json(van);
+}
+
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const id = Number(params.id);
+    const data = await req.json();
+
+    const updatedVan = await prisma.van.update({
+      where: { id },
+      data: {
+        makeAndModel: data.makeAndModel,
+        seatingCapacity: data.seatingCapacity,
+        studentRating: data.studentRating,
+        privateRating: data.privateRating,
+        salaryPercentage: data.salaryPercentage,
+      },
+    });
+
+    return NextResponse.json(updatedVan, { status: 200 });
+  } catch (error) {
+    console.error('Update error:', error);
+    return NextResponse.json({ message: 'Update failed' }, { status: 500 });
+  }
 }

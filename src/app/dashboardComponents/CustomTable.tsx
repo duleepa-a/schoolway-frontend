@@ -10,7 +10,7 @@ interface Column {
 
 interface Action {
   type: 'edit' | 'delete' | 'custom';
-  onClick: (rowData: Record<string, string | number | boolean | null | undefined>) => void;
+  onClick: (rowData: any) => void;
   icon?: ReactNode;
   label?: string;
   className?: string;
@@ -18,10 +18,11 @@ interface Action {
 
 interface DataTableProps {
   columns: Column[];
-  data: Record<string, string | number | boolean | null | undefined>[];
+  data: any[];
   actions?: Action[];
   itemsPerPageOptions?: number[];
   defaultItemsPerPage?: number;
+  renderCell?: (column: string, value: any, row: any) => ReactNode;
 }
 
 export default function DataTable({ 
@@ -29,7 +30,8 @@ export default function DataTable({
   data, 
   actions = [], 
   itemsPerPageOptions = [5, 10, 25, 50],
-  defaultItemsPerPage = 10 
+  defaultItemsPerPage = 10,
+  renderCell
 }: DataTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
@@ -90,7 +92,7 @@ export default function DataTable({
             <tr key={rowIndex} className="table-row-even">
               {columns.map((col) => (
                 <td key={col.key} className="table-cell">
-                  {String(row[col.key] ?? '')}
+                  {renderCell ? renderCell(col.key, row[col.key], row) : String(row[col.key] ?? '')}
                 </td>
               ))}
               {actions.length > 0 && (
