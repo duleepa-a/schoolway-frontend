@@ -28,6 +28,7 @@ model UserProfile {
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  SchoolGuardian                                                  SchoolGuardian[]
   Van                                                             Van[]
   vanService                                                      VanService?
 }
@@ -59,6 +60,7 @@ model DriverProfile {
   licenseType    String[]
   medicalReport  String?
   relocate       Boolean     @default(false)
+  hasVan         Int         @default(0)
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -87,6 +89,8 @@ model Van {
   privateRating           Float                 @default(0)
   startTime               String?
   studentRating           Float                 @default(0)
+  hasAssistant            Boolean               @default(false)
+  Assistant               Assistant?
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
 }
@@ -121,6 +125,43 @@ model DriverVanJobRequest {
   UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation("DriverVanJobRequest_vanOwnerIdToUserProfile", fields: [vanOwnerId], references: [id])
 
   @@unique([driverId, vanOwnerId, vanId])
+}
+
+model Assistant {
+  id         String  @id
+  name       String
+  contact    String
+  nic        String
+  vanId      Int?    @unique
+  profilePic String?
+  Van        Van?    @relation(fields: [vanId], references: [id])
+}
+
+model School {
+  id             Int                      @id @default(autoincrement())
+  schoolName     String
+  email          String                   @unique
+  contact        String
+  address        String
+  location       Unsupported("geometry")?
+  SchoolGuardian SchoolGuardian[]
+}
+
+model SchoolGuardian {
+  id          Int         @id @default(autoincrement())
+  schoolId    Int
+  guardianId  String
+  UserProfile UserProfile @relation(fields: [guardianId], references: [id])
+  School      School      @relation(fields: [schoolId], references: [id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
 }
 
 enum UserRole {

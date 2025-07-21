@@ -1,32 +1,54 @@
 'use client';
-import Swal from 'sweetalert2';
-import React, { useEffect, useState } from 'react';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import TopBar from '@/app/dashboardComponents/TopBar';
-import TabComponent from './TabComponent';
-import { formatDriverApplication } from './utils';
-import { ApplicationData } from './types';
+import DriverTab from './driverTab';
+import VanTab from './vanTab';
+import StatisticsTab from './StatisticsTab';
 
-export default function DriverApplicationsPage() {
-  const [applicationRows, setApplicationRows] = useState<ApplicationData[]>([]);
+const TABS = ['drivers', 'vehicles', 'statistics'];
 
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const res = await fetch('/api/admin/applications/drivers');
-        const data = await res.json();
-        setApplicationRows(data.map(formatDriverApplication));
-      } catch (err) {
-        console.error('Failed to fetch applications:', err);
-      }
-    };
+export default function ApplicationsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-    fetchApplications();
-  }, []);
+  const initialTab = searchParams.get('tab') || 'drivers';
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', tab);
+    router.replace(`?${params.toString()}`);
+  };
 
   return (
     <section className="p-5 md:p-10 min-h-screen w-full">
-      <TopBar heading="Driver Applications" />
-      <TabComponent driverApplications={applicationRows} />
+      <TopBar heading="Applications" />
+
+      {/* Tabs */}
+      <div className="flex gap-6 border-b border-gray-300 mb-6">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => handleTabChange(tab)}
+            className={`pb-2 font-medium capitalize ${
+              activeTab === tab
+                ? 'border-b-2 border-yellow-500 text-yellow-600'
+                : 'text-gray-500'
+            }`}
+          >
+            {tab} Applications
+          </button>
+        ))}
+      </div>
+
+      {/* Render Active Tab */}
+      {activeTab === 'drivers' && <DriverTab />}
+      {activeTab === 'vehicles' && <VanTab />}
+      {activeTab === 'statistics' && <StatisticsTab />}
     </section>
   );
 }
