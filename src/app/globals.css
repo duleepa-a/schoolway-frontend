@@ -98,6 +98,10 @@
   .popup-modal {
     @apply  fixed inset-0 bg-blue-300/10 backdrop-blur-xs flex items-center justify-center z-50;
   }
+
+  .navbarbtn {
+    @apply font-semibold;
+  }
   
 }
 
