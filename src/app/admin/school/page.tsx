@@ -1,5 +1,5 @@
 import TopBar from '@/app/dashboardComponents/TopBar';
-import ManageSchoolsPageContent from './ManageSchoolsPageContent';
+import TabContentLayout from './components/TabContentLayout';
 
 const ManageSchoolsPage = () => {
 
@@ -8,7 +8,7 @@ const ManageSchoolsPage = () => {
         <section className="p-5 md:p-10 min-h-screen w-full">
           {/*Top bar with profile icon and the heading*/}
           <TopBar heading="Manage Schools" />
-          <ManageSchoolsPageContent />
+          <TabContentLayout/>
           
         </section>
       </div>
