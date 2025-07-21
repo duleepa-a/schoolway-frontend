@@ -85,8 +85,8 @@ model SchoolGuardian {
   id         Int         @id @default(autoincrement())
   schoolId   Int
   guardianId String
-  School     School      @relation(fields: [schoolId], references: [id])
   Guardian   UserProfile @relation(fields: [guardianId], references: [id])
+  School     School      @relation(fields: [schoolId], references: [id])
 }
 
 model UserProfile {
@@ -109,9 +109,9 @@ model UserProfile {
   DriverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  SchoolGuardian                                                  SchoolGuardian[]
   Van                                                             Van[]
   VanService                                                      VanService?
-  SchoolGuardian                                                  SchoolGuardian[]
 }
 
 model Van {
