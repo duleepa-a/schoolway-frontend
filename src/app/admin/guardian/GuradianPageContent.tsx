@@ -21,8 +21,11 @@ interface Guardian {
 const GuradianPageContent = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showForm, setShowForm] = useState(false);
-    const [schools, setSchools] = useState<{ id: number; name: string; address: string }[]>([]);
+    const [schools, setSchools] = useState<{ id: string | number; name: string }[]>([]);
     const [isLoadingSchools, setIsLoadingSchools] = useState(false);
+    const [guardiansList, setGuardiansList] = useState<Guardian[]>([]);
+    const [isLoadingGuardians, setIsLoadingGuardians] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const [formData, setFormData] = useState({
         firstname: '',
@@ -37,8 +40,8 @@ const GuradianPageContent = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Mock data for guardians
-    const guardians: Guardian[] = [
+    // Initial mock data for guardians
+    const initialGuardians: Guardian[] = [
         {
             id: '1',
             firstname: 'John',
@@ -112,26 +115,43 @@ const GuradianPageContent = () => {
             try {
                 console.log('Submitting guardian data:', {
                     ...formData,
-                    schoolId: parseInt(formData.schoolId)
+                    schoolId: formData.schoolId // Use the ID directly as it might be a string UUID
                 });
                 
-                // Example API call:
-                // const response = await fetch('/api/guardian/create', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({
-                //         ...formData,
-                //         schoolId: parseInt(formData.schoolId)
-                //     })
-                // });
+                // Make API call to create guardian using the endpoint
+                const response = await fetch(`/api/admin/schools/addGuardian/${formData.schoolId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firstname: formData.firstname,
+                        lastname: formData.lastname,
+                        email: formData.email,
+                        phone: formData.phone,
+                        password: formData.password
+                    })
+                });
                 
-                // if (!response.ok) throw new Error('Failed to create guardian');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to create guardian');
+                }
+                
+                const data = await response.json();
+                console.log('Guardian created successfully:', data);
                 
                 setShowForm(false);
                 resetForm();
+                
+                // Refresh the guardians list
+                setRefreshTrigger(prev => prev + 1);
+                
+                // Show success message
+                alert('Guardian created successfully!');
+                
             } catch (error) {
                 console.error('Error creating guardian:', error);
                 // Handle error (e.g., show error message)
+                alert(`Failed to create guardian: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         }
     };
@@ -155,10 +175,14 @@ const GuradianPageContent = () => {
         const fetchSchools = async () => {
             try {
                 setIsLoadingSchools(true);
-                const response = await fetch('/api/guardian/getSchoolNames');
+                const response = await fetch('/api/admin/schools/getSchools');
                 if (!response.ok) throw new Error('Failed to fetch schools');
                 
                 const data = await response.json();
+                // The response format now matches our expected structure directly
+                // since the API already returns { id, name } format
+                
+                // Set the schools directly from the API response
                 setSchools(data.schools || []);
             } catch (error) {
                 console.error('Error fetching schools:', error);
@@ -169,6 +193,31 @@ const GuradianPageContent = () => {
 
         fetchSchools();
     }, []);
+
+    // Fetch guardians from API
+    useEffect(() => {
+        const fetchGuardians = async () => {
+            try {
+                setIsLoadingGuardians(true);
+                // In a real implementation, you would fetch from your API
+                // For now, we'll use the initial mock data
+                // const response = await fetch('/api/admin/guardians');
+                // if (!response.ok) throw new Error('Failed to fetch guardians');
+                // const data = await response.json();
+                // setGuardiansList(data.guardians);
+
+                // Using mock data for now
+                setGuardiansList(initialGuardians);
+            } catch (error) {
+                console.error('Error fetching guardians:', error);
+            } finally {
+                setIsLoadingGuardians(false);
+            }
+        };
+
+        fetchGuardians();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refreshTrigger]); // Refetch when refreshTrigger changes
 
     const handleSchoolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { value } = e.target;
@@ -210,7 +259,7 @@ const GuradianPageContent = () => {
     //     // Implement status change functionality
     // };
 
-    const filteredGuardians = guardians.filter(guardian =>
+    const filteredGuardians = guardiansList.filter((guardian: Guardian) =>
         `${guardian.firstname} ${guardian.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         guardian.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         guardian.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -356,7 +405,7 @@ const GuradianPageContent = () => {
                                         onChange={handleInputChange}
                                         error={errors.email}
                                     />
-                                    <FormInput
+                                    {/* <FormInput
                                         label="Password"
                                         name="password"
                                         type="password"
@@ -364,7 +413,7 @@ const GuradianPageContent = () => {
                                         value={formData.password}
                                         onChange={handleInputChange}
                                         error={errors.password}
-                                    />
+                                    /> */}
                                     <FormInput
                                         label="Phone Number"
                                         name="phone"
@@ -384,7 +433,7 @@ const GuradianPageContent = () => {
                                             <option value="">Select a school</option>
                                             {schools.map(school => (
                                                 <option key={school.id} value={school.id}>
-                                                    {school.name} - {school.address}
+                                                    {school.name}
                                                 </option>
                                             ))}
                                         </select>

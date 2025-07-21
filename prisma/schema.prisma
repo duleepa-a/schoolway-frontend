@@ -59,8 +59,8 @@ model DriverProfile {
   languages      String[]
   licenseType    String[]
   medicalReport  String?
-  hasVan         Int     @default(0) // 0 = No, 1 = Yes
   relocate       Boolean     @default(false)
+  hasVan         Int         @default(0)
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
