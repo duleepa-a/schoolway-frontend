@@ -1,27 +1,32 @@
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import TablePagination from '@/app/components/TablePagination';
+import { useEffect, useState } from 'react';
+import { MdLogout } from 'react-icons/md';
+import { FaTrash } from 'react-icons/fa';
 
-const driverRequests = [
-  {
-    name: 'Kavindu Perera',
-    van: 'Van 1',
-    status: 'Accepted',
-    avatar: '/Images/male_pro_pic_placeholder.png',
-  },
-  {
-    name: 'Thilina Jayasekara',
-    van: 'Van 2',
-    status: 'Pending',
-    avatar: '/Images/male_pro_pic_placeholder.png',
-  },
-];
 
 const statusColors = {
-  Accepted: 'bg-green-100 text-green-600 border-green-500',
-  Pending: 'bg-yellow-100 text-yellow-600 border-yellow-500',
+  ACCEPTED: 'bg-green-100 text-green-600 border-green-500',
+  PENDING: 'bg-yellow-100 text-yellow-600 border-yellow-500',
+  REJECTED: 'bg-red-100 text-red-600 border-red-500',
 };
 
 export default function DriverTable() {
+  const [driverRequests, setDriverRequests] = useState([]);
+
+  useEffect(() => {
+    const fetchDriverRequests = async () => {
+      try {
+        const res = await fetch('/api/driver-requests');
+        const data = await res.json();
+        setDriverRequests(data);
+      } catch (err) {
+        console.error('Failed to fetch driver requests:', err);
+      }
+    };
+
+    fetchDriverRequests();
+  }, []);
 
   return (
     <div className="">
@@ -30,7 +35,7 @@ export default function DriverTable() {
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
-            placeholder="Search students"
+            placeholder="Search Driver Name.."
             className="
             w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md  bg-search-bar-bg"
           />
@@ -83,13 +88,11 @@ export default function DriverTable() {
                     index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                   } border-b border-border-light-shade`}
                 >
-                  <td className="p-3 flex items-center gap-2">
-                    <img
-                      src={d.avatar}
-                      alt={d.name}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
+                  <td className="p-3 gap-2">
                     <span className="text-gray-800 font-medium">{d.name}</span>
+                  </td>
+                  <td className="p-3 gap-2">
+                    <span className="text-gray-800 font-medium">{d.van}</span>
                   </td>
                   <td className="p-3">
                     <span
@@ -100,16 +103,31 @@ export default function DriverTable() {
                       {d.status}
                     </span>
                   </td>
-                  <td className="p-3 flex items-center gap-2">
-                    <span className="text-gray-800 font-medium">{d.van}</span>
-                  </td>
-                  <td className="p-3">
-                    <button
-                      className="text-white bg-red-500 px-3 py-1 rounded-lg hover:bg-red-700"
-                      disabled={d.status !== 'Accepted'}
-                    >
-                      Resign
-                    </button>
+                  
+                  <td className="p-3 gap-2">
+                    <div className="flex items-center justify-start">
+                      {d.status === 'ACCEPTED' ? (
+                        <button
+                          className="text-red-600 hover:text-red-800 text-lg cursor-pointer"
+                          title="Resign"
+                        >
+                          <MdLogout />
+                        </button>
+                      ) : d.status === 'REJECTED' ? (
+                        <button
+                          className="text-gray-600 hover:text-gry-800 text-lg cursor-pointer"
+                          title="Delete"
+                        >
+                          <FaTrash />
+                        </button>
+                      ) : 
+                        <div className='flex items-center justify-center'>
+                            <span className="text-gray-600 text-sm">
+                              N/A
+                            </span>
+                        </div>
+                      }
+                    </div>
                   </td>
                 </tr>
               ))}
