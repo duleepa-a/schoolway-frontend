@@ -23,7 +23,7 @@ const hometestimonials = [
 
 export default function HomeTestimonials() {
   return (
-    <section className="py-12 px-4 text-center bg-white">
+    <section id='testimonials' className="py-12 px-4 text-center bg-white">
       <h2 className="text-3xl font-semibold">
         <span className="text-primary font-bold">SchoolWay</span> The Future of School Transportation!
       </h2>
