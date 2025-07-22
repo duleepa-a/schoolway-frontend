@@ -38,9 +38,12 @@ export default function ApplicationsPage() {
                 : 'text-gray-500'
             }`}
           >
-            {tab} Applications
-          </button>
-        ))}
+        {tab === 'statistics' ? 'Statistics' : `${tab} Applications`}
+      </button>
+))}
+
+        
+        
       </div>
 
       {/* Render Active Tab */}

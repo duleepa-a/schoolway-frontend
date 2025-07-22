@@ -72,7 +72,7 @@ export default function ViewVanApplication({
                 <img
                   src={van.photoUrl}
                   alt="Van"
-                  className="h-40 w-full object-cover rounded-md border border-gray-300 hover:scale-105 transition-transform"
+                  className="h-auto w-auto object-cover rounded-md border border-gray-300 hover:scale-105 transition-transform"
                 />
               </a>
             </div>

@@ -7,7 +7,7 @@ export default function DriverApplicationsPage() {
 
   return (
     <section className="p-5 md:p-10 min-h-screen w-full">
-      <TopBar heading="Driver Applications" />
+      <TopBar heading="Applications and Stats" />
       <DriverApplicationsPageContent/>
     </section>
   );

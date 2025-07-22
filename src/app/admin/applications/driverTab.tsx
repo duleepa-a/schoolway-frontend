@@ -42,6 +42,7 @@ export default function DriverTab() {
 
     setSelectedApp(null);
     setApplications((prev) => prev.filter((a) => a.id !== userId));
+    window.location.reload();
   };
 
   return (

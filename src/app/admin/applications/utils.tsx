@@ -36,7 +36,7 @@ export function formatDriverApplication(app: any): ApplicationData {
 import { VanApplication } from './types';
 
 export function formatVanApplication(van: any): VanApplication {
-  const user = van.user || {};
+  const user = van.UserProfile || {};
   const vanService = user.vanService || {};
 
   return {
@@ -57,7 +57,14 @@ export function formatVanApplication(van: any): VanApplication {
     fitnessCertificateUrl: van.fitnessCertificateUrl || '',
     insuranceCertificateUrl: van.insuranceCertificateUrl || '',
     photoUrl: van.photoUrl || '',
-    isApproved: van.isApproved || false,
+    isApproved:
+  van.isApproved === true
+    ? 'Approved'
+    : van.isApproved === false
+    ? 'Rejected'
+    : 'Pending',
+
+    // isApproved: van.isApproved || false,
     createdAt: new Date(van.createdAt).toLocaleDateString(),
 
     ownerName: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
