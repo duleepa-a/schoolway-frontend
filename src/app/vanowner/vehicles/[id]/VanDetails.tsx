@@ -16,6 +16,14 @@ interface Assistant {
   vanId: number;
 }
 
+interface Driver {
+  firstname: string;
+  lastname: string;
+  nic: string;
+  mobile: string;
+  dp: string;
+}
+
 interface Van {
   id: number;
   makeAndModel: string;
@@ -35,6 +43,7 @@ interface Van {
   hasAssistant: boolean;
   isApproved: boolean;
   assistant?: Assistant | null;
+  driver?: Driver | null;
 }
 
 interface FormData {
@@ -95,7 +104,20 @@ const VanDetails = ({ van }: { van: Van }) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      e.preventDefault();
+
+      const newErrors: Record<string, string> = {};
+
+      if (!formData.makeAndModel.trim()) newErrors.makeAndModel = 'Model is required';
+      if (formData.seatingCapacity <= 0) newErrors.seatingCapacity = 'Must be greater than 0';
+      if (formData.studentRating <= 0) newErrors.studentRating = 'Student rating must be positive';
+      if (formData.privateRating <= 0) newErrors.privateRating = 'Private hire rating must be positive';
+      if (formData.salaryPercentage < 0 || formData.salaryPercentage > 100) newErrors.salaryPercentage = 'Salary % must be between 0 and 100';
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
       const res = await fetch(`/api/vans/${van.id}`, {
         method: 'PUT',
         headers: {
@@ -180,6 +202,17 @@ const VanDetails = ({ van }: { van: Van }) => {
   };
   const handleAssistantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors: Record<string, string> = {};
+
+    if (!assistantFormData.name.trim()) errors.name = 'Name is required';
+    if (!assistantFormData.nic.trim()) errors.nic = 'NIC is required';
+    if (!/^\d{10}$/.test(assistantFormData.contactNo)) errors.contactNo = 'Contact number must be 10 digits';
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
 
     const form = new FormData();
     form.append('name', assistantFormData.name);
@@ -284,18 +317,33 @@ const VanDetails = ({ van }: { van: Van }) => {
                 { van.hasDriver ?
                 <>
                   <h2 className="text-base font-semibold mb-4">Driver</h2>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className=''> 
-                        <Image src="/Images/male_pro_pic_placeholder.png" alt="Driver" width={50} height={50} className="rounded-full" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">Duleepa Edirisinghe</p>
-                        <p className="text-xs text-gray-500">Experience: 6 years</p>
-                        <p className="text-yellow-500">⭐⭐⭐⭐⭐</p>
-                      </div>
+                  <div className=" grid  grid-cols-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className=''> 
+                        <Image
+                                src={van.driver?.dp || '/Images/male_pro_pic_placeholder.png'}
+                                alt="Assistant"
+                                width={50}
+                                height={50}
+                                className="rounded-full object-cover"
+                          /> 
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{van.driver?.firstname + " " + van.driver?.lastname}</p>
+                          <p className="text-xs text-gray-500">NIC: {van.driver?.nic}</p>
+                          <p className="text-xs text-gray-500">ContactNo: {van.driver?.mobile}</p>
+                        </div>
+                      </div>   
                     </div>
-                    <button className="btn-small-primary ml-4">More Options</button>
+                    <div className='flex items-center justify-center'> 
+                      <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
+                            <button className="btn-small-primary font-bold"
+                            >
+                              Change Driver
+                            </button>
+                      </Link>
+                    </div>
                   </div>
                 </> :
 
@@ -475,6 +523,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                 name="name"
                 label="Assistant Name"
                 value={assistantFormData.name}
+                error={errors.name}
                 onChange={handleAssistantChange}
                 placeholder="Enter assistant name"
               />
@@ -485,6 +534,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                 label="NIC"
                 value={assistantFormData.nic}
                 onChange={handleAssistantChange}
+                error={errors.nic}
                 placeholder="Enter NIC"
               />
 
@@ -493,6 +543,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                 name="contactNo"
                 label="Contact Number"
                 value={assistantFormData.contactNo}
+                error={errors.contactNo}
                 onChange={handleAssistantChange}
                 placeholder="Enter contact number"
               />

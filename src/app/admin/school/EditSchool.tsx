@@ -279,7 +279,7 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-yellow-200 disabled:cursor-not-allowed"
+                  className="flex-1 bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-amber-500 transition-colors flex items-center justify-center disabled:bg-yellow-200 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Updating...' : 'Update School'}
                 </button>

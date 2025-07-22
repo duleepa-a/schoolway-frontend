@@ -5,6 +5,7 @@ import { IoMdAddCircle } from 'react-icons/io';
 import { MdOutlineClose, MdEmail, MdLocationOn } from "react-icons/md";
 import FormInput from '@/app/components/FormInput';
 import DataTable from '@/app/dashboardComponents/CustomTable';
+import ConfirmationBox from '@/app/dashboardComponents/ConfirmationBox';
 
 interface Guardian {
     id: string;
@@ -13,16 +14,54 @@ interface Guardian {
     email: string;
     schoolName: string;
     phone?: string;
-    activeStatus : boolean;
+    activeStatus: boolean;
     createdAt: string;
     updatedAt: string;
 }
 
+interface SchoolData {
+    id: string | number;
+    name?: string;
+    schoolName?: string;
+    // Only include properties we actually use
+}
+
+// API data structure for guardians
+interface GuardianInfoApi {
+    guardianId: string;
+    firstname: string;
+    lastname: string;
+    email: string;
+    contact: string;
+    schoolName: string;
+    schoolId: number;
+}
+
 const GuradianPageContent = () => {
+    // Fix: define handleSearchChange for search input
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+    // Stub for confirmDelete function (no guardian logic)
+    const confirmDelete = () => {
+        setShowDeleteConfirmation(false);
+        setConfirmationMessage('Delete functionality is not implemented.');
+        setShowErrorConfirmation(true);
+    };
     const [searchTerm, setSearchTerm] = useState('');
     const [showForm, setShowForm] = useState(false);
-    const [schools, setSchools] = useState<{ id: number; name: string; address: string }[]>([]);
+    const [schools, setSchools] = useState<SchoolData[]>([]);
     const [isLoadingSchools, setIsLoadingSchools] = useState(false);
+    const [guardiansInfo, setGuardiansInfo] = useState<GuardianInfoApi[]>([]);
+    const [isLoadingGuardians, setIsLoadingGuardians] = useState(false);
+    const [selectedSchoolId, setSelectedSchoolId] = useState('');
+    
+    // Confirmation dialog states
+    const [showSuccessConfirmation, setShowSuccessConfirmation] = useState(false);
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+    const [showErrorConfirmation, setShowErrorConfirmation] = useState(false);
+    const [confirmationMessage, setConfirmationMessage] = useState('');
+    const [guardianToDelete, setGuardianToDelete] = useState<Guardian | null>(null);
 
     const [formData, setFormData] = useState({
         firstname: '',
@@ -31,49 +70,13 @@ const GuradianPageContent = () => {
         schoolName: '',
         schoolId: '',
         phone: '',
-        password: '',
         activeStatus: true
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Mock data for guardians
-    const guardians: Guardian[] = [
-        {
-            id: '1',
-            firstname: 'John',
-            lastname: 'Smith',
-            email: 'john.smith@royalcollege.edu',
-            phone: '+94 77 123 4567',
-            schoolName: 'Royal College',
-            activeStatus: true,
-            createdAt: '2025-06-15T10:30:00Z',
-            updatedAt: '2025-07-10T14:22:00Z'
-        },
-        {
-            id: '2',
-            firstname: 'Sarah',
-            lastname: 'Johnson',
-            email: 'sarah.j@trinityschool.edu',
-            phone: '+94 71 987 6543',
-            schoolName: 'Trinity College',
-            activeStatus: true,
-            createdAt: '2025-05-22T09:15:00Z',
-            updatedAt: '2025-06-30T11:45:00Z'
-        },
-        {
-            id: '3',
-            firstname: 'Michael',
-            lastname: 'Brown',
-            email: 'mbrown@stthomas.edu',
-            phone: '+94 76 555 0123',
-            schoolName: 'St. Thomas College',
-            activeStatus: false,
-            createdAt: '2025-07-01T16:20:00Z',
-            updatedAt: '2025-07-01T16:20:00Z'
-        }
-    ];
-
+    // Initial mock data for guardians
+    
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -93,8 +96,7 @@ const GuradianPageContent = () => {
         if (!formData.firstname.trim()) newErrors.firstname = 'First name is required';
         if (!formData.lastname.trim()) newErrors.lastname = 'Last name is required';
         if (!formData.email.trim()) newErrors.email = 'Email is required';
-        if (!formData.password.trim()) newErrors.password = 'Password is required';
-        if (!formData.schoolId) newErrors.schoolName = 'Please select a school';
+        if (!selectedSchoolId) newErrors.schoolName = 'Please select a school';
 
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -110,28 +112,46 @@ const GuradianPageContent = () => {
         e.preventDefault();
         if (validateForm()) {
             try {
-                console.log('Submitting guardian data:', {
-                    ...formData,
-                    schoolId: parseInt(formData.schoolId)
+                // Create request payload with default password 'guardian' to match backend implementation
+                const requestPayload = {
+                    firstname: formData.firstname,
+                    lastname: formData.lastname,
+                    email: formData.email,
+                    phone: formData.phone || '',
+                    password: 'guardian' // Backend hashes this default password
+                };
+
+                const response = await fetch(`/api/admin/schools/addGuardian/${selectedSchoolId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestPayload)
                 });
-                
-                // Example API call:
-                // const response = await fetch('/api/guardian/create', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({
-                //         ...formData,
-                //         schoolId: parseInt(formData.schoolId)
-                //     })
-                // });
-                
-                // if (!response.ok) throw new Error('Failed to create guardian');
-                
+
+                // Get response text for parsing
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(`Failed to create guardian: ${responseText}`);
+                }
+
+                // Process the response
+                // No need to update guardians list or refresh trigger here
+
                 setShowForm(false);
                 resetForm();
+
+                // Refetch guardians to update table
+                fetchGuardians();
+
+                // Show success message with confirmation box
+                setConfirmationMessage('Guardian created successfully!');
+                setShowSuccessConfirmation(true);
+
             } catch (error) {
                 console.error('Error creating guardian:', error);
-                // Handle error (e.g., show error message)
+                // Show error message with confirmation box
+                setConfirmationMessage(`Failed to create guardian: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                setShowErrorConfirmation(true);
             }
         }
     };
@@ -144,9 +164,9 @@ const GuradianPageContent = () => {
             schoolName: '',
             schoolId: '',
             phone: '',
-            password: '',
             activeStatus: true
         });
+        setSelectedSchoolId('');
         setErrors({});
     };
 
@@ -155,13 +175,28 @@ const GuradianPageContent = () => {
         const fetchSchools = async () => {
             try {
                 setIsLoadingSchools(true);
-                const response = await fetch('/api/guardian/getSchoolNames');
+                const response = await fetch('/api/admin/schools/getSchools');
                 if (!response.ok) throw new Error('Failed to fetch schools');
                 
                 const data = await response.json();
-                setSchools(data.schools || []);
-            } catch (error) {
-                console.error('Error fetching schools:', error);
+                
+                if (Array.isArray(data)) {
+                    // Handle case where API returns array directly
+                    setSchools(data.map((school: SchoolData) => ({
+                        id: school.id,
+                        name: school.schoolName || school.name || ''
+                    })));
+                } else if (data.schools && Array.isArray(data.schools)) {
+                    // Handle case where API returns { schools: [...] }
+                    setSchools(data.schools.map((school: SchoolData) => ({
+                        id: school.id,
+                        name: school.schoolName || school.name || ''
+                    })));
+                } else {
+                    setSchools([]);
+                }
+            } catch {
+                setSchools([]); // Set empty array on error
             } finally {
                 setIsLoadingSchools(false);
             }
@@ -170,14 +205,42 @@ const GuradianPageContent = () => {
         fetchSchools();
     }, []);
 
+    // Fetch guardians from API
+    const fetchGuardians = async () => {
+        setIsLoadingGuardians(true);
+        try {
+            const response = await fetch('http://localhost:3000/api/admin/schools/getGuardians');
+            if (!response.ok) throw new Error('Failed to fetch guardians');
+            const data = await response.json();
+            if (Array.isArray(data)) {
+                setGuardiansInfo(data);
+            } else if (data.guardians && Array.isArray(data.guardians)) {
+                setGuardiansInfo(data.guardians);
+            } else {
+                setGuardiansInfo([]);
+            }
+        } catch {
+            setGuardiansInfo([]);
+        } finally {
+            setIsLoadingGuardians(false);
+        }
+    };
+    // Remove useEffect dependency so fetchGuardians can be called anywhere
+    useEffect(() => {
+        fetchGuardians();
+    }, []); // Still run on page load, but fetchGuardians is now reusable
+
+
     const handleSchoolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { value } = e.target;
         const selectedSchool = schools.find(school => school.id.toString() === value);
         
+        setSelectedSchoolId(value); // Set the selected school ID separately
+        
         setFormData(prev => ({
             ...prev,
             schoolId: value,
-            schoolName: selectedSchool ? selectedSchool.name : ''
+            schoolName: selectedSchool && selectedSchool.name ? selectedSchool.name : ''
         }));
 
         if (errors.schoolName) {
@@ -187,51 +250,30 @@ const GuradianPageContent = () => {
 
     const handleAddGuardianClick = () => setShowForm(true);
     const handleCloseForm = () => {
-        setShowForm(false);
-        resetForm();
+                setShowForm(false);
+                resetForm();
+
+                // Refetch guardians to update table
+                fetchGuardians();
+
+                // Show success message with confirmation box
+                setConfirmationMessage('Guardian created successfully!');
+                setShowSuccessConfirmation(true);
     };
 
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
+    // Table actions (edit/delete) can be stubs for now
+    const handleEdit = (guardian: GuardianInfoApi) => {
+        setConfirmationMessage('Edit functionality is not implemented.');
+        setShowErrorConfirmation(true);
     };
-
-    const handleEdit = (guardian: Guardian) => {
-        console.log('Edit guardian:', guardian);
-        // Implement edit functionality
+    const handleDelete = (guardian: GuardianInfoApi) => {
+        setConfirmationMessage('Delete functionality is not implemented.');
+        setShowErrorConfirmation(true);
     };
-
-    const handleDelete = (guardian: Guardian) => {
-        console.log('Delete guardian:', guardian);
-        // Implement delete functionality
-    };
-
-    // const handleStatusChange = (guardian: Guardian) => {
-    //     console.log('Change status for:', guardian);
-    //     // Implement status change functionality
-    // };
-
-    const filteredGuardians = guardians.filter(guardian =>
-        `${guardian.firstname} ${guardian.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        guardian.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        guardian.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    // We've removed status column from the table so we don't need this function anymore
-    // const getStatusColor = (status: string) => {
-    //     switch (status) {
-    //         case 'Active': return 'text-green-600 bg-green-100';
-    //         case 'Inactive': return 'text-red-600 bg-red-100';
-    //         case 'Pending': return 'text-yellow-600 bg-yellow-100';
-    //         default: return 'text-gray-600 bg-gray-100';
-    //     }
-    // };
 
 
     return (
         <>
-
-            
-
             {/* Search and Add Button */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start mb-6 gap-4">
                 <div className="relative w-full md:w-1/3">
@@ -252,65 +294,56 @@ const GuradianPageContent = () => {
             </div>
 
             {/* Guardians Table */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <DataTable 
+            <div className="mt-4">
+                <DataTable
                     columns={[
-                        { key: 'guardianName', label: 'Guardian Name' },
-                        { key: 'school', label: 'School' },
+                        { key: 'firstname', label: 'First Name' },
+                        { key: 'lastname', label: 'Last Name' },
+                        { key: 'email', label: 'Email' },
                         { key: 'contact', label: 'Contact' },
-                        { key: 'Email', label: 'Email' }
+                        { key: 'schoolName', label: 'School' }
                     ]}
-                    data={filteredGuardians}
-                    itemsPerPageOptions={[5, 10, 25, 50]}
-                    defaultItemsPerPage={10}
+                    data={guardiansInfo}
                     actions={[
                         {
                             type: 'edit',
                             onClick: handleEdit,
-                            icon: <FaEdit size={16} />,
-                            className: 'text-blue-600 hover:text-blue-900'
+                            label: 'Edit',
                         },
                         {
                             type: 'delete',
                             onClick: handleDelete,
-                            icon: <FaTrash size={16} />,
-                            className: 'text-red-600 hover:text-red-900'
+                            label: 'Delete',
                         }
                     ]}
-                    renderCell={(column, value, row) => {
-                        switch (column) {
-                            case 'guardianName':
-                                return (
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-900">{row.firstname} {row.lastname}</div>
-                                        <div className="text-sm text-gray-500">ID: {row.id}</div>
-                                    </div>
-                                );
-                            case 'school':
-                                return (
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-900">{row.schoolName}</div>
-                                        
-                                    </div>
-                                );
-                            case 'contact':
-                                return (
-                                    <div className="text-sm text-gray-900 flex items-center">
-                                        {row.phone}
-                                    </div>
-                                );
-                            case 'Email':
-                                return (
-                                    <div className="text-sm text-gray-900 flex items-center">
-                                        {row.email}
-                                    </div>
-                                );
-                            default:
-                                return value;
+                    renderCell={(column, value) => {
+                        if (column === 'email') {
+                            return (
+                                <span className="flex items-center gap-1">
+                                    <MdEmail className="inline-block text-gray-500" />
+                                    {value}
+                                </span>
+                            );
                         }
+                        if (column === 'schoolName') {
+                            return (
+                                <span className="flex items-center gap-1">
+                                    <MdLocationOn className="inline-block text-gray-500" />
+                                    {value}
+                                </span>
+                            );
+                        }
+                        return value;
                     }}
                 />
+                {isLoadingGuardians && (
+                    <div className="text-center py-4 text-gray-500">Loading guardians...</div>
+                )}
+                {!isLoadingGuardians && guardiansInfo.length === 0 && (
+                    <div className="text-center py-4 text-gray-500">No guardians found.</div>
+                )}
             </div>
+            
 
             {/* Form Modal */}
             {showForm && (
@@ -357,15 +390,6 @@ const GuradianPageContent = () => {
                                         error={errors.email}
                                     />
                                     <FormInput
-                                        label="Password"
-                                        name="password"
-                                        type="password"
-                                        placeholder="Enter password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        error={errors.password}
-                                    />
-                                    <FormInput
                                         label="Phone Number"
                                         name="phone"
                                         placeholder="Enter phone number (optional)"
@@ -376,7 +400,7 @@ const GuradianPageContent = () => {
                                         <label className="block mb-1 font-medium">School</label>
                                         <select
                                             name="schoolId"
-                                            value={formData.schoolId}
+                                            value={selectedSchoolId}
                                             onChange={handleSchoolChange}
                                             className="w-full border border-gray-300 rounded px-3 py-2"
                                             disabled={isLoadingSchools}
@@ -384,7 +408,7 @@ const GuradianPageContent = () => {
                                             <option value="">Select a school</option>
                                             {schools.map(school => (
                                                 <option key={school.id} value={school.id}>
-                                                    {school.name} - {school.address}
+                                                    {school.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -416,6 +440,45 @@ const GuradianPageContent = () => {
                     </div>
                 </div>
             )}
+
+            {/* Success Confirmation Dialog */}
+            <ConfirmationBox
+                isOpen={showSuccessConfirmation}
+                variant='success'
+                title="success"
+                confirmationMessage={confirmationMessage}
+                objectName=""
+                onConfirm={() => setShowSuccessConfirmation(false)}
+                onCancel={() => setShowSuccessConfirmation(false)}
+                confirmText="OK"
+                cancelText="Close"
+            />
+
+            {/* Error Confirmation Dialog */}
+            <ConfirmationBox
+                isOpen={showErrorConfirmation}
+                title="Error"
+                variant='error'
+                confirmationMessage={confirmationMessage}
+                objectName=""
+                onConfirm={() => setShowErrorConfirmation(false)}
+                onCancel={() => setShowErrorConfirmation(false)}
+                confirmText="OK"
+                cancelText="Close"
+            />
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmationBox
+                isOpen={showDeleteConfirmation}
+                title="Confirm Deletion"
+                variant='warning'
+                confirmationMessage="Are you sure you want to delete this guardian? This action cannot be undone."
+                objectName={guardianToDelete ? `${guardianToDelete.firstname} ${guardianToDelete.lastname}` : ''}
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteConfirmation(false)}
+                confirmText="Delete"
+                cancelText="Cancel"
+            />
         </>
     );
 };

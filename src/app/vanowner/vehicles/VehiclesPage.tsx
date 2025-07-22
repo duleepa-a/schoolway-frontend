@@ -112,16 +112,33 @@ const VehiclesPage = ({ serverSession }: Props) => {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.registrationNumber) newErrors.registrationNumber = 'Required';
-    if (!formData.licensePlateNumber) newErrors.licensePlateNumber = 'Required';
-    if (!formData.makeAndModel) newErrors.makeAndModel = 'Required';
-    if (!formData.seatingCapacity) newErrors.seatingCapacity = 'Required';
-    if (!formData.acCondition) newErrors.acCondition = 'Required';
-    if (!files.rBook) newErrors.rBook = 'Required';
-    if (!files.revenueLicense) newErrors.revenueLicense = 'Required';
-    if (!files.fitnessCertificate) newErrors.fitnessCertificate = 'Required';
-    if (!files.insuranceCertificate) newErrors.insuranceCertificate = 'Required';
-    if (!files.vanPhoto) newErrors.vanPhoto = 'Required';
+
+    if (!formData.registrationNumber.trim()) newErrors.registrationNumber = 'Registration Number is required';
+    if (!formData.licensePlateNumber.trim()) newErrors.licensePlateNumber = 'License Plate Number is required';
+    if (!formData.makeAndModel.trim()) newErrors.makeAndModel = 'Make and Model is required';
+    if (!formData.seatingCapacity.trim()) newErrors.seatingCapacity = 'Seating Capacity is required';
+    else if (parseInt(formData.seatingCapacity) <= 0) newErrors.seatingCapacity = 'Seating Capacity must be greater than 0';
+
+    if (!formData.acCondition) newErrors.acCondition = 'A/C Condition is required';
+
+    if (!formData.routeStart.trim()) newErrors.routeStart = 'Route start is required';
+    if (!formData.routeEnd.trim()) newErrors.routeEnd = 'Route end is required';
+
+    if (!formData.startTime) newErrors.startTime = 'Start time is required';
+    if (!formData.endTime) newErrors.endTime = 'End time is required';
+
+    if (!formData.studentRating.trim()) newErrors.studentRating = 'Student rating is required';
+    else if (parseFloat(formData.studentRating) <= 0) newErrors.studentRating = 'Student rating must be greater than 0';
+
+    if (!formData.privateRating.trim()) newErrors.privateRating = 'Private rating is required';
+    else if (parseFloat(formData.privateRating) <= 0) newErrors.privateRating = 'Private rating must be greater than 0';
+
+    if (!files.rBook) newErrors.rBook = 'R Book is required';
+    if (!files.revenueLicense) newErrors.revenueLicense = 'Revenue License is required';
+    if (!files.fitnessCertificate) newErrors.fitnessCertificate = 'Fitness Certificate is required';
+    if (!files.insuranceCertificate) newErrors.insuranceCertificate = 'Insurance Certificate is required';
+    if (!files.vanPhoto) newErrors.vanPhoto = 'Van Photo is required';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

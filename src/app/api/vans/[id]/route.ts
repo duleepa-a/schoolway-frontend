@@ -5,8 +5,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const paras = await params;
-  const id = parseInt(paras.id);
+  const id = parseInt(params.id);
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
@@ -15,17 +14,33 @@ export async function GET(
   const van = await prisma.van.findUnique({
     where: { id },
     include: {
-      assistant: true, 
+      assistant: true,
+      DriverVanJobRequest: {
+        where: {
+          status: 'ACCEPTED',
+        },
+        include: {
+          UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
+        },
+      },
     },
-
   });
 
   if (!van) {
     return NextResponse.json({ error: 'Van not found' }, { status: 404 });
   }
 
-  return NextResponse.json(van);
+  // Extract driver info from the first accepted request
+  const driverRequest = van.DriverVanJobRequest[0]; // assuming only one accepted at a time
+
+  const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
+
+  return NextResponse.json({
+    ...van,
+    driver, 
+  });
 }
+
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
