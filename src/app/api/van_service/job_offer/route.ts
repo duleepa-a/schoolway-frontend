@@ -152,13 +152,13 @@ export async function GET(req: NextRequest) {
           }
         },
         include: {
-        UserProfile_DriverVanJobRequest_driverIdToUserProfile: {
-            select: {
-              id: true,
-              firstname: true,
-              lastname: true,
-              email: true
-            }
+          UserProfile_DriverVanJobRequest_driverIdToUserProfile: {
+              select: {
+                id: true,
+                firstname: true,
+                lastname: true,
+                email: true
+              }
           },
           Van: {
             select: {
