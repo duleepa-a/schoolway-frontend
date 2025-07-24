@@ -1,8 +1,5 @@
-'use client';
-
 import { FaBus, FaUsers, FaRoute, FaBell, FaMoon } from 'react-icons/fa';
 import { TbMoneybag } from "react-icons/tb";
-import Image from 'next/image';
 import EarningsChart from './EarningsChart';
 import TopBar from '../dashboardComponents/TopBar';
 

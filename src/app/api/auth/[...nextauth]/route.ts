@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma"
 // import { NextResponse } from "next/server"
 
 //export this authOptions as an object and use with getServerSession in the app directory to access session data in server components
-const authOptions:NextAuthOptions = {
+export const authOptions:NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     session:{
         strategy:'jwt'
@@ -57,6 +57,7 @@ const authOptions:NextAuthOptions = {
                 id:`${existingUser.id}`,
                 email: existingUser.email,
                 name:existingUser.firstname,
+                dp: existingUser.dp || null, // Ensure dp is included
                 // last:existingUser.lastname
                 role:`${existingUser.role}`,
                 // servicename:existingUser.servicename, fetch service name from vanservice db
@@ -72,11 +73,17 @@ const authOptions:NextAuthOptions = {
 
     ],callbacks:{
         async jwt({token,user}){
+            
             if(user){
+                const customUser = user as typeof user & {
+                    role?: string;
+                    dp?: string;
+                };
                 return {
                     ...token,
-                    role:user.role,
-                    // servicename:user.servicename,
+                    role: customUser.role,
+                    id: customUser.id,
+                    dp: customUser.dp,
                 }
             }
             return token
@@ -87,6 +94,8 @@ const authOptions:NextAuthOptions = {
                 user:{
                     ...session.user,
                     role:token.role,
+                    id: token.id, 
+                    dp: token.dp,
                     // servicename:token.servicename,
                 }
             }

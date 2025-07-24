@@ -1,6 +1,4 @@
-'use client';
 import TopBar from '@/app/dashboardComponents/TopBar';
-// import UserFilterBar from '@/app/dashboardComponents/SearchFilter';
 import PostForm from '@/app/dashboardComponents/PostAwrSessionForm';
 
 const AdminDashboard = () => {

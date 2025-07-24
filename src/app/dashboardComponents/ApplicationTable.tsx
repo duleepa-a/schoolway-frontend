@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import { Eye, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo } from 'react';
