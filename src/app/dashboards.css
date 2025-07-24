@@ -11,7 +11,7 @@
 
 /*Top bar style with profile, nitifications and heading */
   .topBarWrapper {
-    @apply flex justify-between items-center mt-10 mb-2.5;
+    @apply flex justify-between items-center mb-2.5;
   }
 
   .topBarIcons {
@@ -271,7 +271,8 @@
 
   /* Activity Feed Styles */
   .activity-feed-container {
-    @apply h-full flex flex-col;
+    @apply flex flex-col;
+    height: 500px;
   }
 
   .activity-feed-title {

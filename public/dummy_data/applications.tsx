@@ -7,6 +7,8 @@ export const applicationsData = [
     Email: "kasun.perera@example.com",
     Phone: "+94771234567",
     Experience: "5 years",
+    PoliceReportDocument: "/dummy_data/documents/police_report_sample.pdf",
+    MedicalReportDocument: "/dummy_data/documents/medical_report_sample.pdf"
   },
   {
     Name: "Nuwan Silva",
@@ -25,6 +27,8 @@ export const applicationsData = [
     Email: "mahesh.fernando@example.com",
     Phone: "+94773456789",
     Experience: "7 years",
+    PoliceReportDocument: "/dummy_data/documents/police_report_sample.pdf",
+    MedicalReportDocument: "/dummy_data/documents/medical_report_sample.pdf"
   },
   {
     Name: "Chaminda Rajapaksha",
@@ -144,4 +148,6 @@ export type ApplicationData = {
   Email: string;
   Phone: string;
   Experience: string;
+  PoliceReportDocument?: string;
+  MedicalReportDocument?: string;
 };

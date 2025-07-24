@@ -1,7 +1,7 @@
 'use client';
 
 import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, ReactNode } from 'react';
 
 interface Column {
   key: string;
@@ -9,8 +9,11 @@ interface Column {
 }
 
 interface Action {
-  type: 'edit' | 'delete';
+  type: 'edit' | 'delete' | 'custom';
   onClick: (rowData: Record<string, string | number | boolean | null | undefined>) => void;
+  icon?: ReactNode;
+  label?: string;
+  className?: string;
 }
 
 interface DataTableProps {
@@ -92,16 +95,36 @@ export default function DataTable({
               ))}
               {actions.length > 0 && (
                 <td className="action-cell">
-                  {actions.map((action, index) => (
-                    <button
-                      key={index}
-                      onClick={() => action.onClick(row)}
-                      title={action.type}
-                      className={action.type === 'edit' ? 'edit-icon' : 'delete-icon'}
-                    >
-                      {action.type === 'edit' ? <Pencil size={16} /> : <Trash2 size={16} />}
-                    </button>
-                  ))}
+                  {actions.map((action, index) => {
+                    // Determine icon to display
+                    let icon;
+                    if (action.icon) {
+                      icon = action.icon;
+                    } else {
+                      // Default icons based on type
+                      icon = action.type === 'edit' ? <Pencil size={16} /> : <Trash2 size={16} />;
+                    }
+
+                    // Determine CSS class
+                    let buttonClass;
+                    if (action.className) {
+                      buttonClass = action.className;
+                    } else {
+                      // Default classes based on type
+                      buttonClass = action.type === 'edit' ? 'edit-icon' : 'delete-icon';
+                    }
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => action.onClick(row)}
+                        title={action.label || action.type}
+                        className={buttonClass}
+                      >
+                        {icon}
+                      </button>
+                    );
+                  })}
                 </td>
               )}
             </tr>
