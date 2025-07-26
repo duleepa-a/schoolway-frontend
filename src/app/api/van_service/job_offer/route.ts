@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         status: 'PENDING'
       },
       include: {
-        driver: {
+        UserProfile_DriverVanJobRequest_driverIdToUserProfile: {
           select: {
             id: true,
             firstname: true,
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
             email: true
           }
         },
-        van: {
+        Van: {
           select: {
             id: true,
             makeAndModel: true,
@@ -152,15 +152,15 @@ export async function GET(req: NextRequest) {
           }
         },
         include: {
-          driver: {
-            select: {
-              id: true,
-              firstname: true,
-              lastname: true,
-              email: true
-            }
+          UserProfile_DriverVanJobRequest_driverIdToUserProfile: {
+              select: {
+                id: true,
+                firstname: true,
+                lastname: true,
+                email: true
+              }
           },
-          van: {
+          Van: {
             select: {
               id: true,
               makeAndModel: true,
@@ -194,7 +194,7 @@ export async function GET(req: NextRequest) {
     const jobRequests = await prisma.driverVanJobRequest.findMany({
       where: whereClause,
       include: {
-        driver: {
+        UserProfile_DriverVanJobRequest_driverIdToUserProfile: {
           select: {
             id: true,
             firstname: true,
@@ -203,7 +203,7 @@ export async function GET(req: NextRequest) {
             mobile: true
           }
         },
-        van: {
+        Van: {
           select: {
             id: true,
             makeAndModel: true,

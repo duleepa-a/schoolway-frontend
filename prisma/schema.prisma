@@ -127,7 +127,7 @@ model ContactUs {
 }
 
 model DriverVanJobRequest {
-  id                                                      String           @id
+  id                                                      String   @id @default(cuid())
   driverId                                                String
   vanId                                                   Int
   vanOwnerId                                              String
@@ -138,7 +138,7 @@ model DriverVanJobRequest {
   responseMessage                                         String?
   respondedAt                                             DateTime?
   createdAt                                               DateTime         @default(now())
-  updatedAt                                               DateTime
+  updatedAt                                               DateTime      @default(now())
   expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
   UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
   Van                                                     Van              @relation(fields: [vanId], references: [id])
