@@ -191,12 +191,8 @@ export default function LoginPage() {
             <button
               onClick={handleLogin}
               disabled={isLoading}
-              className="w-full py-2 rounded-md font-semibold cursor-pointer"
-              style={{
-                background: 'linear-gradient(90deg, var(--blue-shade-dark) 0%, var(--blue-shade-light) 60%, var(--green-shade-light) 100%)',
-                color: 'var(--color-textwhite)',
-                border: 'none'
-              }}
+              className="w-full py-2 rounded-md font-semibold cursor-pointer btn-primary"
+              
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>

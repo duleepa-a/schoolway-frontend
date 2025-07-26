@@ -1,7 +1,6 @@
 'use client'
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import FormInput from '@/app/components/FormInput';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -165,11 +164,9 @@ const validateStep1 = () => {
     }
 
     setIsSubmitting(true);
-    
     try {
       // Remove confirmPassword from data sent to backend
       const { confirmPassword, ...dataToSubmit } = formData;
-      
       const response = await fetch('/api/signup', {
         method: 'POST',
         headers: {
@@ -177,7 +174,6 @@ const validateStep1 = () => {
         },
         body: JSON.stringify(dataToSubmit),
       });
-
       if (response.ok) {
         setFormData({
           firstName: '',
@@ -189,15 +185,13 @@ const validateStep1 = () => {
           contactNumber: '',
           serviceRegistrationNumber: ''
         });
-
-        router.push('/'); 
-        
+        router.push('/');
       } else {
         const errorData = await response.json();
         alert(`Registration failed: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.log("erro is ",error);
+      console.log("erro is ", error);
       console.error('Registration error:', error);
       alert('Registration failed. Please try again.');
     } finally {
@@ -224,24 +218,9 @@ const validateStep1 = () => {
   // };
 
   return (
-    <>
-    <div className="flex w-3/4  bg-primary h-4/5 justify-between rounded-br-2xl rounded-tr-2xl rounded-2xl">
-      {/* Left side - Yellow background with logo */}
-      <div className="hidden lg:block overflow-hidden justify-items-center pl-20 pt-4">
-        <Image
-        src={'/logo/Logo_light.svg'}
-        alt='schoolway logo'
-        width={200}
-        height={200}
-        />
-        <h1 className='mt-10 m-0'>add some description over here</h1>
-      </div>
-
-      {/* Right side - Form */}
-      <div className="w-full lg:w-2/3 flex items-center justify-center h-min">
-        <div className="w-full ">
-          <div className="bg-white rounded-2xl shadow-xl pt-14 pl-14 pr-7 pb-7 ">
-          <AnimatePresence mode="wait">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-lg bg-[var(--color-textwhite)] rounded-2xl shadow-2xl p-10">
+        <AnimatePresence mode="wait">
     {currentStep === 1 && (
       <motion.div
         key="step1"
@@ -250,11 +229,12 @@ const validateStep1 = () => {
         exit={{ opacity: 0, x: -50 }}
         transition={{ duration: 0.4 }}
       >
-        <div className='flex justify-start'>
-                <h2 className="text-lg font-semibold text-active-text text-center mb-2.5">
-                    Create Account
-                </h2>
-            </div>
+
+        <div className='flex justify-start mb-6'>
+          <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--blue-shade-dark)' }}>
+            Create Account
+          </h2>
+        </div>
 
             <form  className="ml-1"> {/* onSubmit={handleSubmit} */}
               {/* Name fields */}
@@ -321,11 +301,18 @@ const validateStep1 = () => {
               </div>
 
               {/* Sign Up button */}
-              <div className='w-full flex justify-center'>
+              <div className='w-full flex justify-center mt-6'>
                 <button
                   type="button"
                   onClick={handleNext} disabled={userExists}
-                  className={!userExists?"w-max bg-black hover:bg-active-text text-white font-semibold px-18 py-2.5 rounded-xs transition-colors duration-200  cursor-pointer text-sm":"w-max bg-gray-600  text-gray-400 font-semibold px-18 py-2.5 rounded-xs  duration-200  cursor-pointer text-sm"}
+                  className={!userExists
+                    ? "w-max px-10 py-2.5 rounded-lg font-semibold text-white text-base transition-colors duration-200 cursor-pointer"
+                    : "w-max px-10 py-2.5 rounded-lg font-semibold text-gray-400 bg-gray-300 text-base cursor-not-allowed"}
+                  style={!userExists ? {
+                    background: 'linear-gradient(90deg, var(--blue-shade-dark) 0%, var(--blue-shade-light) 60%, var(--green-shade-light) 100%)',
+                    boxShadow: '0 2px 8px 0 rgba(0,153,204,0.08)',
+                    border: 'none'
+                  } : {}}
                 >
                   Proceed
                 </button>
@@ -333,29 +320,42 @@ const validateStep1 = () => {
             </form>
 
             {/* Login link */}
-            <p className="text-center text-sm text-gray-600 mt-5">
+            <p className="text-center text-sm mt-5" style={{ color: 'var(--color-textgreydark)' }}>
               Already have an account?{' '}
-              <Link href="/login" className="text-yellow-600 hover:text-yellow-700 font-medium">
+              <Link href="/login" className="font-medium" style={{ color: 'var(--blue-shade-dark)' }}>
                 Login
               </Link>
             </p>
 
             {/* Divider */}
             <div className="flex items-center my-4">
-              <div className="flex-1 border-t border-gray-300"></div>
-              <span className="px-4 text-sm text-gray-500">or</span>
-              <div className="flex-1 border-t border-gray-300"></div>
+              <div className="flex-1 border-t" style={{ borderColor: 'var(--color-textgreylight)' }}></div>
+              <span className="px-4 text-sm" style={{ color: 'var(--color-textgreylight)' }}>or</span>
+              <div className="flex-1 border-t" style={{ borderColor: 'var(--color-textgreylight)' }}></div>
             </div>
 
             {/* Social login buttons */}
-            <div className="flex space-y-3">
+            <div className="flex justify-center">
               <button
                 type="button"
                 // onClick={handleGoogleSignUp}
-                className="submit-bttn"
+                className="rounded-full border flex items-center gap-2 px-6 py-2 bg-[var(--color-textwhite)] hover:bg-[var(--color-background)] transition-colors"
+                style={{ borderColor: 'var(--blue-shade-light)' }}
               >
-                
-                <span className="text-gray-700 font-medium text-sm">Sign up with Google</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g clipPath="url(#clip0_993_156)">
+                    <path d="M19.8052 10.2306C19.8052 9.55053 19.7491 8.86797 19.629 8.20093H10.2V12.0491H15.6261C15.3982 13.2941 14.6522 14.3827 13.6016 15.0768V17.3142H16.6812C18.4091 15.7327 19.8052 13.2727 19.8052 10.2306Z" fill="#4285F4"/>
+                    <path d="M10.2 20C12.7009 20 14.7991 19.1827 16.6818 17.3142L13.6016 15.0768C12.5476 15.7827 11.2734 16.1868 10.2 16.1868C7.78363 16.1868 5.73636 14.5827 4.98363 12.3827H1.7854V14.6868C3.71454 17.9827 6.78363 20 10.2 20Z" fill="#34A853"/>
+                    <path d="M4.98363 12.3827C4.78363 11.8768 4.67272 11.3327 4.67272 10.7727C4.67272 10.2127 4.78363 9.66862 4.98363 9.1627V6.85861H1.7854C1.14313 8.0827 0.8 9.3927 0.8 10.7727C0.8 12.1527 1.14313 13.4627 1.7854 14.6868L4.98363 12.3827Z" fill="#FBBC05"/>
+                    <path d="M10.2 5.35861C11.3734 5.35861 12.4291 5.7627 13.2527 6.54907L16.7454 3.05861C14.7991 1.2768 12.7009 0.545441 10.2 0.545441C6.78363 0.545441 3.71454 2.5627 1.7854 5.85861L4.98363 8.1627C5.73636 5.9627 7.78363 5.35861 10.2 5.35861Z" fill="#EA4335"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_993_156">
+                      <rect width="19" height="19.4545" fill="white" transform="translate(0.8 0.545441)"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+                <span className="font-medium text-base" style={{ color: 'var(--color-textblack)' }}>Sign up with Google</span>
               </button>
             </div>
       </motion.div>
@@ -369,11 +369,12 @@ const validateStep1 = () => {
         exit={{ opacity: 0, x: -50 }}
         transition={{ duration: 0.4 }}
       >
-        <div className='flex justify-start'>
-                <h2 className="text-lg font-semibold text-active-text text-center mb-2.5">
-                Service Details
-                </h2>
-              </div>
+
+        <div className='flex justify-start mb-6'>
+          <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--blue-shade-dark)' }}>
+            Service Details
+          </h2>
+        </div>
 
               <form className="ml-1">
                 {/* Service Name */}
@@ -414,22 +415,26 @@ const validateStep1 = () => {
 
                 {/* Navigation buttons */}
                 {/* <div className="flex justify-between mt-4"> */}
-                <div className="flex flex-col items-center mt-4 space-y-2">
-                  
+                <div className="flex flex-col items-center mt-6 gap-2">
                   <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="w-max bg-black hover:bg-active-text text-white font-semibold px-18 py-2.5 rounded-xs transition-colors duration-200  cursor-pointer text-sm"
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="w-max px-10 py-2.5 rounded-lg font-semibold text-white text-base transition-colors duration-200 cursor-pointer"
+                    style={{
+                      background: 'linear-gradient(90deg, var(--blue-shade-dark) 0%, var(--blue-shade-light) 60%, var(--green-shade-light) 100%)',
+                      boxShadow: '0 2px 8px 0 rgba(0,153,204,0.08)',
+                      border: 'none'
+                    }}
                   >
-                  {isSubmitting ? 'Submitting...' : 'Sign Up'}
+                    {isSubmitting ? 'Submitting...' : 'Sign Up'}
                   </button>
                   <button
-                  type="button"
-                  onClick={handleBack}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2.5 rounded-xs transition-colors duration-200 text-sm"
+                    type="button"
+                    onClick={handleBack}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2.5 rounded-lg transition-colors duration-200 text-base"
                   >
-                  Back
+                    Back
                   </button>
                 </div>
                 
@@ -437,11 +442,8 @@ const validateStep1 = () => {
       </motion.div>
     )}
   </AnimatePresence>
-          </div>
-        </div>
       </div>
     </div>
-</>
   )
 }
 
