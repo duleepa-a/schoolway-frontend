@@ -52,31 +52,19 @@ export default function HeroSection() {
   return (
     <section className="relative w-full h-screen overflow-hidden bg-white font-sans">
       {/* Wave background */}
-      <div className="wave-background absolute bottom-0 left-0 w-full h-[35%] z-0" style={{
-        background: "linear-gradient(135deg, #00f5a0 0%, #00d4aa 25%, #0099cc 50%, #0066ff 100%)",
-        clipPath: "polygon(0 60%, 25% 40%, 50% 50%, 75% 30%, 100% 45%, 100% 100%, 0% 100%)"
-      }}>
-        {/* SVG overlays for wave effect */}
-        <div style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 600\'%3E%3Cpath d=\'M0,200 C300,100 600,300 1200,200 L1200,600 L0,600 Z\' fill=\'#ffffff\' fill-opacity=\'0.1\'/%3E%3C/svg%3E') no-repeat center center",
-          backgroundSize: "cover",
-          animation: "wave 6s ease-in-out infinite"
-        }} />
-        <div style={{
-          position: "absolute",
-          top: 50,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 600\'%3E%3Cpath d=\'M0,300 C400,200 800,400 1200,300 L1200,600 L0,600 Z\' fill=\'#ffffff\' fill-opacity=\'0.15\'/%3E%3C/svg%3E') no-repeat center center",
-          backgroundSize: "cover",
-          animation: "wave 8s ease-in-out infinite reverse"
-        }} />
+      <div className="wave-background absolute bottom-0 left-0 w-full h-[38%] z-0" style={{ pointerEvents: 'none' }}>
+        {/* Main curve SVG background */}
+        <svg viewBox="0 0 1440 400" width="100%" height="100%" preserveAspectRatio="none" style={{ position: 'absolute', left: 0, bottom: 0, width: '100%', height: '100%', zIndex: 1 }}>
+          <defs>
+            <linearGradient id="heroGradient" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="var(--green-shade-light)" />
+              <stop offset="60%" stopColor="var(--blue-shade-light)" />
+              <stop offset="100%" stopColor="var(--blue-shade-dark)" />
+            </linearGradient>
+          </defs>
+          <path d="M0,120 Q360,200 720,120 T1440,120 L1440,400 L0,400 Z" fill="url(#heroGradient)" />
+          <path d="M0,200 Q360,300 720,200 T1440,200 L1440,400 L0,400 Z" fill="rgba(255,255,255,0.10)" />
+        </svg>
         {/* Floating elements */}
         <div className="floating-element" style={{width:80, height:80, top:"10%", left:"10%", position:"absolute", background:"rgba(255,255,255,0.1)", borderRadius:"50%", animation:"float 6s ease-in-out infinite", pointerEvents:"none", zIndex:2}} />
         <div className="floating-element" style={{width:120, height:120, top:"70%", right:"15%", position:"absolute", background:"rgba(255,255,255,0.1)", borderRadius:"50%", animation:"float 6s ease-in-out infinite", animationDelay:"2s", pointerEvents:"none", zIndex:2}} />
