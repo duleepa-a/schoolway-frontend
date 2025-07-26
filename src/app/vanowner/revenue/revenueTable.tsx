@@ -3,27 +3,83 @@ import { FaSearch } from 'react-icons/fa';
 
 const payrolls = [
   {
-    name: 'Duleepa Edirisinghe',
+    makeAndModel: 'Toyota Hiace',
     vanNumber: 'Van 1',
     amountPaid: 'Rs. 45,000',
     datePaid: 'June 15, 2025',
-    status: 'Paid',
+    status: 'Recieved',
     avatar: '/Images/male_pro_pic_placeholder.png',
   },
   {
-    name: 'Duleepa Edirisinghe',
+    makeAndModel: 'Toyota Hiace',
     vanNumber: 'Van 2',
     amountPaid: 'Rs. 40,000',
     datePaid: 'June 10, 2025',
-    status: 'Paid',
+    status: 'Recieved',
     avatar: '/Images/male_pro_pic_placeholder.png',
   },
   {
-    name: 'Duleepa Edirisinghe',
+    makeAndModel: 'Toyota Hiace',
     vanNumber: 'Van 3',
     amountPaid: 'Rs. 38,000',
     datePaid: 'June 5, 2025',
-    status: 'Paid',
+    status: 'Recieved',
+    avatar: '/Images/male_pro_pic_placeholder.png',
+  },
+   {
+    makeAndModel: 'Toyota Hiace',
+    vanNumber: 'Van 1',
+    amountPaid: 'Rs. 45,000',
+    datePaid: 'June 15, 2025',
+    status: 'Recieved',
+    avatar: '/Images/male_pro_pic_placeholder.png',
+  },
+  {
+    makeAndModel: 'Toyota Hiace',
+    vanNumber: 'Van 2',
+    amountPaid: 'Rs. 40,000',
+    datePaid: 'June 10, 2025',
+    status: 'Recieved',
+    avatar: '/Images/male_pro_pic_placeholder.png',
+  },
+  {
+    makeAndModel: 'Toyota Hiace',
+    vanNumber: 'Van 3',
+    amountPaid: 'Rs. 38,000',
+    datePaid: 'June 5, 2025',
+    status: 'Recieved',
+    avatar: '/Images/male_pro_pic_placeholder.png',
+  },
+   {
+    makeAndModel: 'Toyota Hiace',
+    vanNumber: 'Van 1',
+    amountPaid: 'Rs. 45,000',
+    datePaid: 'June 15, 2025',
+    status: 'Recieved',
+    avatar: '/Images/male_pro_pic_placeholder.png',
+  },
+  {
+    makeAndModel: 'Toyota Hiace',
+    vanNumber: 'Van 2',
+    amountPaid: 'Rs. 40,000',
+    datePaid: 'June 10, 2025',
+    status: 'Recieved',
+    avatar: '/Images/male_pro_pic_placeholder.png',
+  },
+  {
+    makeAndModel: 'Toyota Hiace',
+    vanNumber: 'Van 3',
+    amountPaid: 'Rs. 38,000',
+    datePaid: 'June 5, 2025',
+    status: 'Recieved',
+    avatar: '/Images/male_pro_pic_placeholder.png',
+  },
+   {
+    makeAndModel: 'Toyota Hiace',
+    vanNumber: 'Van 1',
+    amountPaid: 'Rs. 45,000',
+    datePaid: 'June 15, 2025',
+    status: 'Recieved',
     avatar: '/Images/male_pro_pic_placeholder.png',
   },
 ];
@@ -48,8 +104,8 @@ export default function RevenueTable() {
         <table className="w-full border-collapse rounded-md overflow-hidden">
           <thead>
             <tr className="bg-primary text-white text-left text-sm">
-              <th className="p-3">Owner Name</th>
-              <th className="p-3">Van Number</th>
+              <th className="p-3">Van ID Number</th>
+              <th className="p-3">Make and Model</th>
               <th className="p-3">Amount Recieved</th>
               <th className="p-3">Date Recieved</th>
               <th className="p-3">Status</th>
@@ -63,15 +119,10 @@ export default function RevenueTable() {
                   index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                 } border-b border-border-light-shade`}
               >
-                <td className="p-3 flex items-center gap-2">
-                  <img
-                    src={p.avatar}
-                    alt={p.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <span className="text-gray-800 font-medium">{p.name}</span>
-                </td>
                 <td className="p-3 text-gray-700">{p.vanNumber}</td>
+                <td className="p-3 text-gray-700">
+                  <span className="text-gray-800 font-medium">{p.makeAndModel}</span>
+                </td>
                 <td className="p-3 text-gray-700">{p.amountPaid}</td>
                 <td className="p-3 text-gray-500">{p.datePaid}</td>
                 <td className="p-3">

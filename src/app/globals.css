@@ -50,6 +50,25 @@
   --color-statusbackgroundred: #ffebee;
   --color-statusyellow: #ffeb3b;
   --color-statusbackgroundyellow: #fffde7;
+
+
+
+  /*----------------------------------NEW THEME-------------------------------------*/
+  --dark-blue: #005672;
+  --blue-shade-dark: #0099cc;
+  --blue-shade-light: #00bcd4;
+  --green-shade-light: #00d4aa;
+  --green-shade-dark: #029779;
+  --color-background: #FAF8F8;
+  --color-textblack: #090A0A;
+  --color-textwhite: #ffffff;
+  --color-textgreydark: #71727A;
+  --color-textgreylight: #8F9098;
+
+  /* Gradients */
+  --gradient-blue-green: linear-gradient(90deg, var(--dark-blue) 0%, var(--blue-shade-dark) 50%, var(--green-shade-light) 100%);
+  --gradient-blue-light: linear-gradient(90deg, var(--dark-blue) 0%, var(--blue-shade-light) 100%);
+  --gradient-green: linear-gradient(90deg, var(--green-shade-light) 0%, var(--green-shade-dark) 100%);
   
 }
 
@@ -68,18 +87,34 @@
 @layer components { 
 
   /*The yellow color button in the home*/
-  .btn-primary{
-    @apply bg-primary hover:bg-gray-900 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer;
+
+  .btn-primary {
+    background: linear-gradient(90deg, var(--blue-shade-dark) 0%, var(--blue-shade-light) 60%, var(--green-shade-light) 100%);
+    color: var(--color-textwhite);
+    @apply px-8 py-4 text-sm font-semibold rounded cursor-pointer border-0 rounded-4xl;
   }
 
-  /*The yellow button in the navBar*/
-  .btn-small-primary{
-    @apply cursor-pointer bg-primary hover:bg-gray-900 text-white px-4 py-2 rounded text-sm;
+  .btn-primary:hover {
+    filter: brightness(0.95);
   }
 
-  /*The black color button in the home*/
-  .btn-secondary{
-    @apply bg-black text-white hover:bg-gray-900 px-8 py-4 text-sm font-semibold rounded flex items-center gap-2 cursor-pointer;
+  .btn-small-primary {
+    background: linear-gradient(90deg, var(--blue-shade-dark) 0%, var(--blue-shade-light) 60%, var(--green-shade-light) 100%);
+    color: var(--color-textwhite);
+    @apply cursor-pointer px-4 py-2 rounded text-sm border-0;
+  }
+
+  .btn-small-primary:hover {
+    filter: brightness(0.95);
+  }
+
+  .btn-secondary {
+    background: #000;
+    color: var(--color-textwhite);
+    @apply px-8 py-4 text-sm font-semibold rounded flex items-center gap-2 cursor-pointer border-0 rounded-4xl;
+  }
+  .btn-secondary:hover {
+    background: #222;
   }
 
   .btn-primary-viewinfo {
@@ -87,12 +122,16 @@
   }
 
   .form-field{
-              
     @apply w-full px-4 py-2 text-sm rounded-xl border transition-all outline-none;
-    
+    background: var(--color-background);
+    color: var(--color-textblack);
+    border: 1px solid var(--blue-shade-light);
   }
   .signup-form-field {
-    @apply max-w-md mx-auto p-2 bg-orange-50 rounded-b-sm shadow-lg;
+    @apply max-w-md mx-auto p-2 rounded-b-sm shadow-lg;
+    background: var(--color-background);
+    color: var(--color-textblack);
+    border: 1px solid var(--blue-shade-light);
   }
 
   .popup-modal {
@@ -147,6 +186,15 @@ body {
 
 h1 , h2 {
   color: #4D4D4D;
+
+}
+
+
+.btn-primary{
+
+}
+
+.btn-secondary{
 
 }
 
@@ -217,19 +265,25 @@ h1 , h2 {
   /*--------------------------------------- STYLES FOR FORM COMPONENTS ------------------------------------------------*/
 
   .form-label {
-    @apply text-sm block font-semibold text-active-text mb-2;
+    @apply text-sm block font-semibold mb-2;
+    color: var(--color-textgreydark);
   }
 
   .form-input-field {
     @apply w-full px-4 py-2 text-sm rounded-lg border transition-all outline-none;
+    background: var(--color-background);
+    color: var(--color-textblack);
+    border: 1px solid var(--blue-shade-light);
   }
 
   .form-input-field-valid {
-    @apply border-gray-300 focus:border-primary;
+    border-color: var(--green-shade-dark);
+    @apply focus:border-blue-400;
   }
 
   .form-input-field-error {
-    @apply border-red-500 focus:border-red-300;
+    border-color: #fb2c36;
+    @apply focus:border-red-300;
   }
 
   .error-msg{

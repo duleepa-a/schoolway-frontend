@@ -34,7 +34,7 @@ export default function TabContentLayout() {
               : 'text-inactive-text'
           }`}
         >
-          Gurdians
+          Guardians
         </button>
       </div>
 
