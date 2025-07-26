@@ -122,12 +122,16 @@
   }
 
   .form-field{
-              
     @apply w-full px-4 py-2 text-sm rounded-xl border transition-all outline-none;
-    
+    background: var(--color-background);
+    color: var(--color-textblack);
+    border: 1px solid var(--blue-shade-light);
   }
   .signup-form-field {
-    @apply max-w-md mx-auto p-2 bg-orange-50 rounded-b-sm shadow-lg;
+    @apply max-w-md mx-auto p-2 rounded-b-sm shadow-lg;
+    background: var(--color-background);
+    color: var(--color-textblack);
+    border: 1px solid var(--blue-shade-light);
   }
 
   .popup-modal {
@@ -261,19 +265,25 @@ h1 , h2 {
   /*--------------------------------------- STYLES FOR FORM COMPONENTS ------------------------------------------------*/
 
   .form-label {
-    @apply text-sm block font-semibold text-active-text mb-2;
+    @apply text-sm block font-semibold mb-2;
+    color: var(--color-textgreydark);
   }
 
   .form-input-field {
     @apply w-full px-4 py-2 text-sm rounded-lg border transition-all outline-none;
+    background: var(--color-background);
+    color: var(--color-textblack);
+    border: 1px solid var(--blue-shade-light);
   }
 
   .form-input-field-valid {
-    @apply border-gray-300 focus:border-primary;
+    border-color: var(--green-shade-dark);
+    @apply focus:border-blue-400;
   }
 
   .form-input-field-error {
-    @apply border-red-500 focus:border-red-300;
+    border-color: #fb2c36;
+    @apply focus:border-red-300;
   }
 
   .error-msg{
