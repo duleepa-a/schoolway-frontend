@@ -87,18 +87,34 @@
 @layer components { 
 
   /*The yellow color button in the home*/
-  .btn-primary{
-    @apply bg-primary hover:bg-gray-900 text-white px-8 py-4 text-sm font-semibold rounded cursor-pointer;
+
+  .btn-primary {
+    background: linear-gradient(90deg, var(--blue-shade-dark) 0%, var(--blue-shade-light) 60%, var(--green-shade-light) 100%);
+    color: var(--color-textwhite);
+    @apply px-8 py-4 text-sm font-semibold rounded cursor-pointer border-0 rounded-4xl;
   }
 
-  /*The yellow button in the navBar*/
-  .btn-small-primary{
-    @apply cursor-pointer bg-primary hover:bg-gray-900 text-white px-4 py-2 rounded text-sm;
+  .btn-primary:hover {
+    filter: brightness(0.95);
   }
 
-  /*The black color button in the home*/
-  .btn-secondary{
-    @apply bg-black text-white hover:bg-gray-900 px-8 py-4 text-sm font-semibold rounded flex items-center gap-2 cursor-pointer;
+  .btn-small-primary {
+    background: linear-gradient(90deg, var(--blue-shade-dark) 0%, var(--blue-shade-light) 60%, var(--green-shade-light) 100%);
+    color: var(--color-textwhite);
+    @apply cursor-pointer px-4 py-2 rounded text-sm border-0;
+  }
+
+  .btn-small-primary:hover {
+    filter: brightness(0.95);
+  }
+
+  .btn-secondary {
+    background: #000;
+    color: var(--color-textwhite);
+    @apply px-8 py-4 text-sm font-semibold rounded flex items-center gap-2 cursor-pointer border-0 rounded-4xl;
+  }
+  .btn-secondary:hover {
+    background: #222;
   }
 
   .btn-primary-viewinfo {
@@ -166,6 +182,15 @@ body {
 
 h1 , h2 {
   color: #4D4D4D;
+
+}
+
+
+.btn-primary{
+
+}
+
+.btn-secondary{
 
 }
 
