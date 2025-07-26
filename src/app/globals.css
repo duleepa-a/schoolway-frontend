@@ -50,6 +50,25 @@
   --color-statusbackgroundred: #ffebee;
   --color-statusyellow: #ffeb3b;
   --color-statusbackgroundyellow: #fffde7;
+
+
+
+  /*----------------------------------NEW THEME-------------------------------------*/
+  --dark-blue: #005672;
+  --blue-shade-dark: #0099cc;
+  --blue-shade-light: #00bcd4;
+  --green-shade-light: #00d4aa;
+  --green-shade-dark: #029779;
+  --color-background: #FAF8F8;
+  --color-textblack: #090A0A;
+  --color-textwhite: #ffffff;
+  --color-textgreydark: #71727A;
+  --color-textgreylight: #8F9098;
+
+  /* Gradients */
+  --gradient-blue-green: linear-gradient(90deg, var(--dark-blue) 0%, var(--blue-shade-dark) 50%, var(--green-shade-light) 100%);
+  --gradient-blue-light: linear-gradient(90deg, var(--dark-blue) 0%, var(--blue-shade-light) 100%);
+  --gradient-green: linear-gradient(90deg, var(--green-shade-light) 0%, var(--green-shade-dark) 100%);
   
 }
 
