@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
         // nic_pic_cld_id: uploadResults.nicImage ? uploadResults.nicImage.public_id : null,
         birthDate: textFields.birthDate ? new Date(textFields.birthDate) : null,
         address: textFields.address,
-        activeStatus: textFields.role==="DRIVER" ? false : true, 
+        activeStatus: true, 
         // phoneNumber: textFields.phoneNumber,
         // profilePhoto: files.profilePhoto ? files.profilePhoto[0].filepath : null,
         createdAt: new Date(),

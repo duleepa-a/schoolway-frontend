@@ -31,7 +31,6 @@ export default function VanTab() {
     fetchVans();
   }, []);
   
-
   const handleStatusUpdate = async (
     action: 'approve' | 'reject',
     id: number

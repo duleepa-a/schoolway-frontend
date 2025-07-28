@@ -3,12 +3,19 @@ import { FaInstagram, FaTwitter, FaYoutube, FaDribbble } from "react-icons/fa";
 
 const Footer = () => {
   return (
-    <footer className=" bg-swblue text-white py-30 px-15">  {/* bg-[#5D5E60] */}
+    <footer
+      className="text-white py-30 px-15"
+      style={{ backgroundColor: "#0a2342" }}
+    >
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Logo and copyright */}
         <div>
-          <Link href="/"> <img src="/logo/Logo_dark.svg" className="mb-3" height={150} width={150} alt="" /></Link>
-          <p className="text-sm mb-2">Copyright © 2025 SchoolWay.<br />All rights reserved</p>
+          <Link href="/">
+            <img src="/logo/Logo_dark.svg" className="mb-3" height={150} width={150} alt="" />
+          </Link>
+          <p className="text-sm mb-2">
+            Copyright © 2025 SchoolWay.<br />All rights reserved
+          </p>
           <div className="flex space-x-3 mt-4">
             <FaInstagram className="text-xl hover:text-primary cursor-pointer" />
             <FaDribbble className="text-xl hover:text-primary cursor-pointer" />
@@ -44,7 +51,6 @@ const Footer = () => {
         {/* Newsletter */}
         <div>
           <h3 className="font-semibold text-lg mb-4">Stay up to date</h3>
-          {/* <div className="flex items-center bg-gray-700 rounded px-3 py-2"> */}
           <div className="flex items-center bg-swblue-600 border-1 rounded px-3 py-2">
             <input
               type="email"
