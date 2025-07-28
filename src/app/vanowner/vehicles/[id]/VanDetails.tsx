@@ -142,7 +142,7 @@ const VanDetails = ({ van }: { van: Van }) => {
       ...prev,
       ...updatedVan,
     }));
-    alert('Van updated successfully');
+    // alert('Van updated successfully');
     setIsModalOpen(false);
   };
 
@@ -154,7 +154,7 @@ const VanDetails = ({ van }: { van: Van }) => {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   useEffect(() => {
-    if (isLoaded && van.routeStart && van.routeEnd) {
+    if (isLoaded && van.routeStart && van.routeEnd) {                    //this needs to be updated later when the child routes are set 
       const directionsService = new google.maps.DirectionsService();
 
       directionsService.route(
@@ -354,7 +354,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </div>
                   <div className='flex items-center justify-center'> 
                     <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
-                      <button className="btn-small-primary px-10">Find a Driver</button>
+                      <button className="btn-secondary px-14 py-3 rounded-2xl">Find a Driver</button>
                     </Link>
                   </div>
                 </div>
@@ -397,7 +397,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                     <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
                   </div>
                   <div className='flex items-center justify-center'> 
-                      <button className="btn-small-primary font-bold"
+                      <button className="btn-secondary px-8 py-3 rounded-2xl"
                         onClick={() => setIsAssistantModalOpen(true)}
                       >
                         Assign an Assistant
