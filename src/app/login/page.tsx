@@ -113,16 +113,23 @@ export default function LoginPage() {
 
   return (
     <div
-      className="bg-left bg-no-repeat bg-cover py-12 justify-items-end"
-      style={{ backgroundImage: 'url("../illustrations/loginBackground.png")' }}
+      className="min-h-screen flex items-center justify-center py-12 mt-0.5"
+      style={{ background: 'white' }}
     >
-      <div className="max-w-md bg-white rounded-xl shadow-xl mr-10 p-10 ">
-          <h2 className="text-2xl font-bold text-center mb-2">Log in to Your Account</h2>
-          <p className="text-gray-500 text-center mb-6">Welcome back! Choose your preferred sign-in method.</p>
+      <div
+        className="max-w-md w-full rounded-xl p-10"
+        style={{
+          background: 'var(--color-textwhite)',
+          color: 'var(--color-textblack)',
+          boxShadow: '0 8px 32px 0 rgba(2, 151, 121, 0.15)'
+        }}
+      >
+          <h2 className="text-2xl font-bold text-center mb-2" style={{ color: 'var(--blue-shade-dark)' }}>Log in to Your Account</h2>
+          <p className="text-center mb-6" style={{ color: 'var(--color-textgreydark)' }}>Welcome back! Choose your preferred sign-in method.</p>
           {errors.credentials && <div style={{color: 'red'}}>{errors.credentials}</div>}
           <form className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-gray-700">Email</label>
+              <label className="text-sm font-medium" style={{ color: 'var(--color-textgreydark)' }}>Email</label>
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -131,27 +138,41 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
+                className="mt-1 w-full px-4 py-2 rounded-md border"
+                style={{
+                  background: 'var(--color-background)',
+                  color: 'var(--color-textblack)',
+                  borderColor: 'var(--blue-shade-light)',
+                  outline: 'none'
+                }}
               />
               {errors.email && <div style={{color: 'red'}}>{errors.email}</div>}
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Password</label>
+              <label className="text-sm font-medium" style={{ color: 'var(--color-textgreydark)' }}>Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your Password"id="password"
+                  placeholder="Enter your Password"
+                  id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 w-full px-4 py-2 rounded-md border-gray-300 border focus:border-primary"
+                  className="mt-1 w-full px-4 py-2 rounded-md border"
+                  style={{
+                    background: 'var(--color-background)',
+                    color: 'var(--color-textblack)',
+                    borderColor: 'var(--blue-shade-light)',
+                    outline: 'none'
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-4 text-gray-500"
+                  className="absolute right-3 top-4"
+                  style={{ color: 'var(--color-textgreylight)' }}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -160,29 +181,24 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2" style={{ color: 'var(--color-textgreydark)' }}>
                 <input type="checkbox" />
                 <span>Remember me for 30 days</span>
               </label>
-              <a href="#" className="text-blue-500 hover:underline">Forgot password?</a>
+              <a href="#" style={{ color: 'var(--blue-shade-dark)' }} className="hover:underline">Forgot password?</a>
             </div>
 
-            <button onClick={handleLogin} disabled={isLoading} className="form-btn-full-width">
+            <button
+              onClick={handleLogin}
+              disabled={isLoading}
+              className="w-full py-2 rounded-md font-semibold cursor-pointer btn-primary"
+              
+            >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
-          <div className="flex items-center my-6">
-            <hr className="flex-grow border-gray-300" />
-            <span className="px-4 text-sm text-gray-500">or</span>
-            <hr className="flex-grow border-gray-300" />
-          </div>
-
-          <div className="flex justify-center gap-4">
-            <button className="bg-white  rounded-full cursor-pointer">
-              <Image src="/Images/google.svg" alt="Google" width={24} height={24} />
-            </button>
-          </div>
+          {/* Footer and social login removed as requested */}
         </div>
     </div>
   );

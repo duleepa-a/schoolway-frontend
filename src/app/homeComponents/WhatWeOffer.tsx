@@ -1,6 +1,8 @@
-import { HiOutlineUsers,HiOutlineMagnifyingGlass } from "react-icons/hi2";
-import { HiOutlineMap} from "react-icons/hi";
-import { MdOutlineAttachMoney,MdOutlineDirectionsCar,MdOutlineCases  } from "react-icons/md"
+
+import { HiOutlineUsers, HiOutlineMagnifyingGlass } from "react-icons/hi2";
+import { HiOutlineMap } from "react-icons/hi";
+import { MdOutlineAttachMoney, MdOutlineDirectionsCar, MdOutlineCases } from "react-icons/md";
+import OfferCard from "./OfferCard";
 
 const offerings = [
   {
@@ -45,18 +47,12 @@ export default function WhatWeOffer() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4 max-w-6xl mx-auto">
         {offerings.map((item, index) => (
-          <div
+          <OfferCard
             key={index}
-            className="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition"
-          >
-            <div className="flex justify-center mb-4">
-                <div className="bg-yellow-100 p-3 w-13 rounded-tr-md rounded-bl-md rounded-tl-2xl rounded-br-2xl">
-                        {item.icon}
-                </div>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-            <p className=" text-sm">{item.description}</p>
-          </div>
+            icon={item.icon}
+            title={item.title}
+            description={item.description}
+          />
         ))}
       </div>
     </section>
