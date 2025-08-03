@@ -64,6 +64,27 @@ model DriverProfile {
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
+model Child {
+  id              Int                       @id @default(autoincrement())
+  name            String
+  age             Int
+  profilePicture  String
+  specialNotes    String?
+  vanID           Int?
+  schoolStartTime String
+  schoolEndTime   String
+  qrCode          String                    @unique
+  pickupLat       Decimal
+  pickupLng       Decimal
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  schoolID        Int
+  grade           Int
+  pickupLocation  Unsupported("geography")?
+  School          School                    @relation(fields: [schoolID], references: [id])
+  Van             Van?                      @relation(fields: [vanID], references: [id])
+}
+
 model Van {
   id                      Int                   @id @default(autoincrement())
   registrationNumber      String                @unique
@@ -91,6 +112,7 @@ model Van {
   studentRating           Float                 @default(0)
   hasAssistant            Boolean               @default(false)
   assistant               Assistant?
+  Child                   Child[]
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
 }
@@ -112,6 +134,7 @@ model School {
   contact        String
   address        String
   location       Unsupported("geometry")?
+  Child          Child[]
   SchoolGuardian SchoolGuardian[]
 }
 
@@ -127,7 +150,7 @@ model ContactUs {
 }
 
 model DriverVanJobRequest {
-  id                                                      String   @id @default(cuid())
+  id                                                      String           @id @default(cuid())
   driverId                                                String
   vanId                                                   Int
   vanOwnerId                                              String
@@ -138,7 +161,7 @@ model DriverVanJobRequest {
   responseMessage                                         String?
   respondedAt                                             DateTime?
   createdAt                                               DateTime         @default(now())
-  updatedAt                                               DateTime      @default(now())
+  updatedAt                                               DateTime         @default(now())
   expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
   UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
   Van                                                     Van              @relation(fields: [vanId], references: [id])
