@@ -17,7 +17,7 @@ const navItems = [
   { label: 'Private hires', icon: <HiRectangleGroup/>, href: '/vanowner/private-hires' },
   { label: 'Profile', icon: <FaUserAlt />, href: '/vanowner/profile' },
   { label: 'Revenue', icon: <TbBriefcase2Filled />, href: '/vanowner/revenue' },
-  { label: 'Private hires', icon: <FaBus />, href: '/vanowner/private-hires' },
+  // { label: 'Private hires', icon: <FaBus />, href: '/vanowner/private-hires' },
 ];
 
 export default function Sidebar() {
