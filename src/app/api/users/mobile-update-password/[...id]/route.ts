@@ -5,16 +5,19 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+export async function POST( req: NextRequest,
+  { params }: { params: { id: string[] } } 
+) 
+{
+  const id = params.id?.[0]; 
+  if (!id) {
+    return NextResponse.json({ error: 'Invalid or missing ID' }, { status: 400 });
   }
 
   const { currentPassword, newPassword } = await req.json();
 
   const user = await prisma.userProfile.findUnique({
-    where: { id: session.user.id },
+    where: { id: id },
   });
 
   if (!user || !user.password || !(await bcrypt.compare(currentPassword, user.password))) {
@@ -24,7 +27,7 @@ export async function POST(req: NextRequest) {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
 
   await prisma.userProfile.update({
-    where: { id: session.user.id },
+    where: { id: id },
     data: { password: hashedPassword },
   });
 
