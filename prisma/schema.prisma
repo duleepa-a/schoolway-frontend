@@ -25,6 +25,7 @@ model UserProfile {
   nic_pic                                                         String?
   district                                                        String?
   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  Child                                                           Child[]
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
@@ -69,7 +70,6 @@ model Child {
   name            String
   age             Int
   profilePicture  String
-  specialNotes    String?
   vanID           Int?
   schoolStartTime String
   schoolEndTime   String
@@ -78,9 +78,13 @@ model Child {
   pickupLng       Decimal
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
+  status          String                    @default("not assigned")
   schoolID        Int
   grade           Int
   pickupLocation  Unsupported("geography")?
+  specialNotes    String?
+  parentId        String?
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
 }
@@ -102,7 +106,6 @@ model Van {
   createdAt               DateTime              @default(now())
   ownerId                 String
   hasDriver               Boolean               @default(false)
-  isApproved              Boolean               @default(false)
   assignedDriverId        String?
   salaryPercentage        Float?                @default(25.0)
   shiftDetails            String?
@@ -111,6 +114,7 @@ model Van {
   startTime               String?
   studentRating           Float                 @default(0)
   hasAssistant            Boolean               @default(false)
+  status                  Int                   @default(2)
   assistant               Assistant?
   Child                   Child[]
   DriverVanJobRequest     DriverVanJobRequest[]

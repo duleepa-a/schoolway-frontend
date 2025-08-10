@@ -18,7 +18,10 @@ export async function POST(req: Request) {
     const pickupLat = parseFloat(formData.get('pickupLat') as string);
     const pickupLng = parseFloat(formData.get('pickupLng') as string);
     const specialNotes = formData.get('specialNotes') as string;
+    const parentId = formData.get('userId') as string;
     const file = formData.get('profilePicture') as File;
+
+    console.log('Parent ID: ',parentId);
 
     if (!file || typeof file === 'string') {
       return NextResponse.json({ error: 'No valid image file' }, { status: 400 });
@@ -48,6 +51,8 @@ export async function POST(req: Request) {
         schoolID,
         schoolStartTime,
         schoolEndTime,
+        parentId : parentId,
+        specialNotes,
         qrCode: generateQRCode(),
         profilePicture: imageUrl,
         pickupLat: new Decimal(pickupLat),
