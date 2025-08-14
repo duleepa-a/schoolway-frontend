@@ -287,26 +287,8 @@ const VanDetails = ({ van }: { van: Van }) => {
         <div>
           <h3 className="text-lg font-semibold mb-2 text-gray-900">Schools</h3>
           <div className="relative">
-            <div className="absolute left-1.5 top-2 bottom-2 w-0.5 bg-gray-300"></div>
-              <ul className="space-y-3">
-                {schools.map((school, idx) => (
-                  <li key={idx} className="flex items-start relative">
-                    <div className="relative z-10 flex-shrink-0 mt-1">
-                      {idx === 3 ? (
-                        <div className="w-3 h-3 rounded-full border-2 border-yellow-500 bg-white"></div>
-                      ) : (
-                        <div className={`w-3 h-3 rounded-full ${
-                          idx < 4 ? 'bg-yellow-500' : 'bg-gray-400'
-                        }`}></div>
-                      )}
-                    </div>
-                    
-                    <span className="ml-4 text-sm text-gray-600 leading-relaxed">
-                      {school}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            
+              
             </div>
           </div>
       </div>

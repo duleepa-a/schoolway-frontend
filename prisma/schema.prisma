@@ -25,6 +25,7 @@ model UserProfile {
   nic_pic                                                         String?
   district                                                        String?
   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  Child                                                           Child[]
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
@@ -65,36 +66,65 @@ model DriverProfile {
 }
 
 model Van {
-  id                      Int                   @id @default(autoincrement())
-  registrationNumber      String                @unique
-  licensePlateNumber      String
-  makeAndModel            String
-  seatingCapacity         Int
-  acCondition             Boolean
-  routeStart              String?
-  routeEnd                String?
-  rBookUrl                String
-  revenueLicenseUrl       String
-  fitnessCertificateUrl   String
+  id                Int       @id @default(autoincrement())
+  registrationNumber String   @unique
+  licensePlateNumber String
+  makeAndModel       String
+  seatingCapacity    Int
+  acCondition        Boolean
+  rBookUrl           String
+  revenueLicenseUrl  String
+  fitnessCertificateUrl String
   insuranceCertificateUrl String
-  photoUrl                String
-  createdAt               DateTime              @default(now())
-  ownerId                 String
-  hasDriver               Boolean               @default(false)
-  isApproved              Boolean               @default(false)
-  assignedDriverId        String?
-  salaryPercentage        Float?                @default(25.0)
-  shiftDetails            String?
-  endTime                 String?
-  privateRating           Float                 @default(0)
-  startTime               String?
-  studentRating           Float                 @default(0)
-  hasAssistant            Boolean               @default(false)
-  assistant               Assistant?
-  Child                   Child[]
-  DriverVanJobRequest     DriverVanJobRequest[]
-  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
+  photoUrl           String
+  createdAt          DateTime @default(now())
+  ownerId            String
+  hasDriver          Boolean  @default(false)
+  assignedDriverId   String?
+  salaryPercentage   Float?   @default(25.0)
+  shiftDetails       String?
+  startTime          DateTime?
+  endTime            DateTime?
+  privateRating      Float    @default(0)
+  studentRating      Float    @default(0)
+  hasAssistant       Boolean  @default(false)
+  status             Int      @default(2)
+  
+  assistant          Assistant?
+  children           Child[]
+  jobRequests        DriverVanJobRequest[]
+  owner              UserProfile @relation(fields: [ownerId], references: [id])
+  pathId            String?  
+  path    Path?   @relation(fields: [pathId], references: [id])
 }
+
+model Path {
+  id                String   @id
+  routeStart        Unsupported("geometry(Point, 4326)")
+  routeEnd          Unsupported("geometry(Point, 4326)")
+  routeGeometry     Unsupported("geometry(LineString, 4326)")
+  boundingBox       Unsupported("geometry(Polygon, 4326)")
+  totalDistance     Float    
+  estimatedDuration Int      
+  van               Van[]
+  waypoints         WayPoint[]
+}
+
+model WayPoint {
+  id        Int    @id @default(autoincrement())
+  pathId    String
+  name      String
+  placeId   String?
+  latitude  Float
+  longitude Float
+  location  Unsupported("geometry(Point, 4326)")
+  order     Int
+  isStop    Boolean
+  createdAt DateTime @default(now())
+  
+  path      Path    @relation(fields: [pathId], references: [id])
+}
+
 
 model Assistant {
   id         String  @id @default(uuid())
@@ -107,13 +137,14 @@ model Assistant {
 }
 
 model School {
-  id             Int                      @id @default(autoincrement())
+  id             Int              @id @default(autoincrement())
   schoolName     String
-  email          String                   @unique
+  email          String           @unique
   contact        String
   address        String
-  location       Unsupported("geometry")?
+  createdAt      DateTime         @default(now())
   Child          Child[]
+  Gate           Gate[]
   SchoolGuardian SchoolGuardian[]
 }
 
@@ -183,8 +214,27 @@ model Child {
   grade           Int
   pickupLocation  Unsupported("geography")?
   specialNotes    String?
+  parentId        String?
+  status          String                    @default("not assigned")
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
+}
+
+model Gate {
+  id          Int                      @id @default(autoincrement())
+  gateName    String
+  description String?
+  location    Unsupported("geometry")?
+  placeName   String?
+  address     String?
+  isActive    Boolean                  @default(true)
+  schoolId    Int
+  createdAt   DateTime                 @default(now())
+  School      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+  @@index([schoolId])
 }
 
 enum UserRole {
