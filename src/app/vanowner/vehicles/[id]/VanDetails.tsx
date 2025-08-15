@@ -7,6 +7,7 @@ import { GoogleMap, DirectionsRenderer, useJsApiLoader } from '@react-google-map
 import { useEffect, useState } from 'react';
 import { Edit2 } from 'lucide-react';
 import FormInput from '@/app/components/FormInput';
+import AddRoute from './AddRoute';
 
 interface Assistant {
   name: string;
@@ -177,6 +178,7 @@ const VanDetails = ({ van }: { van: Van }) => {
   // Assistant Add Logic
 
   const [isAssistantModalOpen, setIsAssistantModalOpen] = useState(false);
+  const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
 
   const [assistantFormData, setAssistantFormData] = useState({
     name:  van.assistant?.name || '',
@@ -287,10 +289,14 @@ const VanDetails = ({ van }: { van: Van }) => {
         <div>
           <h3 className="text-lg font-semibold mb-2 text-gray-900">Schools</h3>
           <div className="relative">
-            
-              
-            </div>
+            <button 
+              onClick={() => setIsRouteModalOpen(true)}
+              className="btn-primary px-4 py-2 rounded-lg"
+            >
+              Add Route
+            </button>
           </div>
+        </div>
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
@@ -555,6 +561,24 @@ const VanDetails = ({ van }: { van: Van }) => {
               </div>
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {/* Add Route Modal */}
+      {isRouteModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[95%] max-w-5xl shadow-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Add New Route</h2>
+              <button
+                onClick={() => setIsRouteModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <AddRoute />
           </div>
         </div>
       )}

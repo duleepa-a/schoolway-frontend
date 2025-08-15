@@ -1,8 +1,11 @@
+'use client';
+
 import Link from 'next/link';
-import React from 'react';
-import { PiStarFill,PiSeatFill } from "react-icons/pi";
-import { MdLocalGasStation } from "react-icons/md";
+import Image from 'next/image';
+import React, { useState } from 'react';
+import { PiSeatFill } from "react-icons/pi";
 import { FaTemperatureLow } from "react-icons/fa";
+import AddRoute from './[id]/AddRoute';
 
 
 interface Vehicle {
@@ -24,13 +27,47 @@ interface Vehicle {
 }
 
 const VehicleCard = ({ vehicle }: { vehicle: Vehicle }) => {
+  const [showAddRoute, setShowAddRoute] = useState(false);
+
+  const handleAddRouteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAddRoute(true);
+  };
+
+  const handleCloseAddRoute = () => {
+    setShowAddRoute(false);
+  };
+
+  if (showAddRoute) {
+    return (
+      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h2 className="text-xl font-semibold">Add Route for {vehicle.makeAndModel}</h2>
+            <button 
+              onClick={handleCloseAddRoute}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-4">
+            <AddRoute vehicleId={vehicle.id} onClose={handleCloseAddRoute} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
       <div className="relative h-52">
-        <img
+        <Image
           src={vehicle.photoUrl || '/Images/vehicle_placeholder.png'}
           alt={vehicle.makeAndModel}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent"></div>
       </div>
@@ -76,6 +113,13 @@ const VehicleCard = ({ vehicle }: { vehicle: Vehicle }) => {
             View Details
           </button>
         </Link>
+        
+        <button 
+          onClick={handleAddRouteClick}
+          className="text-sm w-full bg-gray-900 text-white py-3 px-4 rounded-lg hover:bg-gray-800 transition-colors duration-200 cursor-pointer mt-5"
+        >
+          Add route
+        </button>
       </div>
     </div>
   );

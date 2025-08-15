@@ -1,275 +1,219 @@
-// app/api/vans/[id]/path/route.ts (App Router)
-// or pages/api/vans/[id]/path.ts (Pages Router)
-
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { nanoid } from 'nanoid';
+import prisma from '@/lib/prisma';
+import { Prisma } from '@/generated/prisma';
 
-const prisma = new PrismaClient();
-
-// Create or update van path
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const vanId = parseInt(params.id);
-    const body = await request.json();
-    const { waypoints, totalDistance, estimatedDuration } = body;
-
-    if (!waypoints || waypoints.length < 2) {
-      return NextResponse.json(
-        { error: 'At least 2 waypoints are required' },
-        { status: 400 }
-      );
-    }
-
-    const result = await prisma.$transaction(async (tx) => {
-      // Check if van exists
-      const van = await tx.van.findUnique({ where: { id: vanId } });
-      if (!van) {
-        throw new Error('Van not found');
-      }
-
-      // Create LineString from waypoints
-      const coordinates = waypoints
-        .map((wp: any) => `${wp.longitude} ${wp.latitude}`)
-        .join(',');
-      const lineStringWKT = `LINESTRING(${coordinates})`;
-
-      // Create bounding box
-      const lngs = waypoints.map((wp: any) => wp.longitude);
-      const lats = waypoints.map((wp: any) => wp.latitude);
-      const minLng = Math.min(...lngs);
-      const maxLng = Math.max(...lngs);
-      const minLat = Math.min(...lats);
-      const maxLat = Math.max(...lats);
-      
-      const buffer = 0.01; // ~1km buffer
-      const boundingBoxWKT = `POLYGON((${minLng - buffer} ${minLat - buffer}, ${maxLng + buffer} ${minLat - buffer}, ${maxLng + buffer} ${maxLat + buffer}, ${minLng - buffer} ${maxLat + buffer}, ${minLng - buffer} ${minLat - buffer}))`;
-
-      // Start and end points
-      const startPoint = `POINT(${waypoints[0].longitude} ${waypoints[0].latitude})`;
-      const endPoint = `POINT(${waypoints[waypoints.length - 1].longitude} ${waypoints[waypoints.length - 1].latitude})`;
-
-      let pathId: string;
-
-      if (van.pathId) {
-        // Update existing path
-        pathId = van.pathId;
-        
-        // Delete existing waypoints
-        await tx.wayPoints.deleteMany({
-          where: { pathId: van.pathId }
-        });
-
-        // Update path with new geometry
-        await tx.$executeRaw`
-          UPDATE "Path" 
-          SET 
-            "routeStart" = ST_GeomFromText(${startPoint}, 4326),
-            "routeEnd" = ST_GeomFromText(${endPoint}, 4326),
-            "routeGeometry" = ST_GeomFromText(${lineStringWKT}, 4326),
-            "boundingBox" = ST_GeomFromText(${boundingBoxWKT}, 4326),
-            "totalDistance" = ${totalDistance || 0},
-            "estimatedDuration" = ${estimatedDuration || 0},
-            "updatedAt" = NOW()
-          WHERE id = ${van.pathId}
-        `;
-      } else {
-        // Create new path
-        pathId = nanoid();
-        
-        await tx.$executeRaw`
-          INSERT INTO "Path" (
-            id, "routeStart", "routeEnd", "routeGeometry", 
-            "boundingBox", "totalDistance", "estimatedDuration", 
-            "createdAt", "updatedAt"
-          ) VALUES (
-            ${pathId},
-            ST_GeomFromText(${startPoint}, 4326),
-            ST_GeomFromText(${endPoint}, 4326),
-            ST_GeomFromText(${lineStringWKT}, 4326),
-            ST_GeomFromText(${boundingBoxWKT}, 4326),
-            ${totalDistance || 0},
-            ${estimatedDuration || 0},
-            NOW(),
-            NOW()
-          )
-        `;
-
-        // Update van to reference the new path
-        await tx.van.update({
-          where: { id: vanId },
-          data: { pathId: pathId }
-        });
-      }
-
-      // Create new waypoints
-      for (let i = 0; i < waypoints.length; i++) {
-        const wp = waypoints[i];
-        const pointWKT = `POINT(${wp.longitude} ${wp.latitude})`;
-
-        await tx.$executeRaw`
-          INSERT INTO "WayPoints" (
-            "pathId", name, "placeId", latitude, longitude, 
-            location, "order", "isStop", notes, "createdAt"
-          ) VALUES (
-            ${pathId}, ${wp.name}, ${wp.placeId || null}, 
-            ${wp.latitude}, ${wp.longitude}, 
-            ST_GeomFromText(${pointWKT}, 4326), 
-            ${i}, ${wp.isStop !== false}, ${wp.notes || null}, NOW()
-          )
-        `;
-      }
-
-      return pathId;
-    });
-
-    return NextResponse.json({
-      success: true,
-      pathId: result,
-      message: 'Path saved successfully'
-    });
-
-  } catch (error) {
-    console.error('Error saving van path:', error);
-    return NextResponse.json(
-      { error: 'Failed to save van path' },
-      { status: 500 }
-    );
-  }
+interface RouteRequestBody {
+  routeStart: { lat: number; lng: number };
+  routeEnd: { lat: number; lng: number };
+  routeGeometry: number[][];
+  waypoints: Array<{
+    name: string;
+    placeId: string;
+    latitude: number;
+    longitude: number;
+    order: number;
+    isStop: boolean;
+  }>;
 }
 
-// Get van path
-export async function GET(
-  request: NextRequest,
+export async function POST(
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const vanId = parseInt(params.id);
+    const body: RouteRequestBody = await req.json();
+    console.log('POST /api/vans/[id]/path - Request body:', body);
 
-    // Get van with path info
-    const van = await prisma.van.findUnique({
+    const {
+      routeStart,
+      routeEnd,
+      routeGeometry,
+      waypoints
+    } = body;
+
+    // Validate required fields
+    if (!routeStart || !routeEnd || !routeGeometry || !Array.isArray(routeGeometry)) {
+      console.log('Missing required fields:', {
+        routeStart: !!routeStart,
+        routeEnd: !!routeEnd,
+        routeGeometry: !!routeGeometry
+      });
+      return NextResponse.json({ error: 'Missing required fields: routeStart, routeEnd, and routeGeometry are required' }, { status: 400 });
+    }
+
+    // Validate van ID
+    if (isNaN(vanId)) {
+      return NextResponse.json({ error: 'Invalid van ID' }, { status: 400 });
+    }
+
+    // Check if van exists
+    const existingVan = await prisma.van.findUnique({
       where: { id: vanId },
-      select: { pathId: true, registrationNumber: true, makeAndModel: true }
+      include: { path: true }
     });
 
-    if (!van || !van.pathId) {
-      return NextResponse.json(
-        { error: 'No path found for this van' },
-        { status: 404 }
-      );
+    if (!existingVan) {
+      return NextResponse.json({ error: 'Van not found' }, { status: 404 });
     }
 
-    // Get path with spatial data
-    const pathData = await prisma.$queryRaw<any[]>`
-      SELECT 
-        p.*,
-        ST_AsGeoJSON(p."routeStart") as route_start_json,
-        ST_AsGeoJSON(p."routeEnd") as route_end_json,
-        ST_AsGeoJSON(p."routeGeometry") as route_geometry_json,
-        ST_AsGeoJSON(p."boundingBox") as bounding_box_json,
-        ST_Length(ST_Transform(p."routeGeometry", 3857)) as calculated_distance
-      FROM "Path" p
-      WHERE p.id = ${van.pathId}
-    `;
-
-    if (!pathData.length) {
-      return NextResponse.json(
-        { error: 'Path data not found' },
-        { status: 404 }
-      );
+    // Calculate total distance (rough estimation using straight-line distance between consecutive points)
+    let totalDistance = 0;
+    for (let i = 0; i < routeGeometry.length - 1; i++) {
+      const [lng1, lat1] = routeGeometry[i];
+      const [lng2, lat2] = routeGeometry[i + 1];
+      
+      // Haversine formula for distance calculation
+      const R = 6371; // Earth's radius in kilometers
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c;
+      totalDistance += distance;
     }
 
-    // Get waypoints
-    const waypoints = await prisma.wayPoints.findMany({
-      where: { pathId: van.pathId },
-      orderBy: { order: 'asc' }
-    });
+    // Rough estimation: 30 km/h average speed in urban areas
+    const estimatedDurationMinutes = Math.round((totalDistance / 30) * 60);
 
-    const path = pathData[0];
-    
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: path.id,
-        totalDistance: path.totalDistance,
-        estimatedDuration: path.estimatedDuration,
-        calculatedDistance: path.calculated_distance,
-        routeStartGeoJSON: path.route_start_json ? JSON.parse(path.route_start_json) : null,
-        routeEndGeoJSON: path.route_end_json ? JSON.parse(path.route_end_json) : null,
-        routeGeometryGeoJSON: path.route_geometry_json ? JSON.parse(path.route_geometry_json) : null,
-        boundingBoxGeoJSON: path.bounding_box_json ? JSON.parse(path.bounding_box_json) : null,
-        waypoints: waypoints.map(wp => ({
-          id: wp.id,
-          name: wp.name,
-          placeId: wp.placeId,
-          latitude: wp.latitude,
-          longitude: wp.longitude,
-          order: wp.order,
-          isStop: wp.isStop,
-          notes: wp.notes
-        })),
-        van: {
-          registrationNumber: van.registrationNumber,
-          makeAndModel: van.makeAndModel
+    // Create bounding box from all coordinates
+    const allLngs = routeGeometry.map(coord => coord[0]);
+    const allLats = routeGeometry.map(coord => coord[1]);
+    const minLng = Math.min(...allLngs);
+    const maxLng = Math.max(...allLngs);
+    const minLat = Math.min(...allLats);
+    const maxLat = Math.max(...allLats);
+
+    // Generate a unique ID for the path
+    const pathId = `path_${vanId}_${Date.now()}`;
+
+    // Use a transaction to ensure data consistency
+    const result = await prisma.$transaction(async (tx) => {
+      // If van already has a path, delete it first (along with its waypoints)
+      if (existingVan.pathId) {
+        await tx.wayPoint.deleteMany({
+          where: { pathId: existingVan.pathId }
+        });
+        await tx.path.delete({
+          where: { id: existingVan.pathId }
+        });
+      }
+
+      // Create the path with PostGIS geometry functions
+      await tx.$executeRaw`
+        INSERT INTO "Path" (
+          id, 
+          "routeStart", 
+          "routeEnd", 
+          "routeGeometry", 
+          "boundingBox", 
+          "totalDistance", 
+          "estimatedDuration"
+        ) VALUES (
+          ${pathId},
+          ST_SetSRID(ST_MakePoint(${routeStart.lng}, ${routeStart.lat}), 4326),
+          ST_SetSRID(ST_MakePoint(${routeEnd.lng}, ${routeEnd.lat}), 4326),
+          ST_SetSRID(ST_MakeLine(ARRAY[${Prisma.join(
+            routeGeometry.map(coord => 
+              Prisma.sql`ST_MakePoint(${coord[0]}, ${coord[1]})`
+            )
+          )}]), 4326),
+          ST_SetSRID(ST_MakePolygon(ST_MakeLine(ARRAY[
+            ST_MakePoint(${minLng}, ${minLat}),
+            ST_MakePoint(${maxLng}, ${minLat}),
+            ST_MakePoint(${maxLng}, ${maxLat}),
+            ST_MakePoint(${minLng}, ${maxLat}),
+            ST_MakePoint(${minLng}, ${minLat})
+          ])), 4326),
+          ${totalDistance},
+          ${estimatedDurationMinutes}
+        )
+      `;
+
+      // Create waypoints if provided
+      if (waypoints && waypoints.length > 0) {
+        for (const waypoint of waypoints) {
+          await tx.$executeRaw`
+            INSERT INTO "WayPoint" (
+              "pathId",
+              name,
+              "placeId",
+              latitude,
+              longitude,
+              location,
+              "order",
+              "isStop",
+              "createdAt"
+            ) VALUES (
+              ${pathId},
+              ${waypoint.name},
+              ${waypoint.placeId || null},
+              ${waypoint.latitude},
+              ${waypoint.longitude},
+              ST_SetSRID(ST_MakePoint(${waypoint.longitude}, ${waypoint.latitude}), 4326),
+              ${waypoint.order},
+              ${waypoint.isStop},
+              NOW()
+            )
+          `;
         }
       }
-    });
 
-  } catch (error) {
-    console.error('Error fetching van path:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch van path' },
-      { status: 500 }
-    );
-  }
-}
-
-// Delete van path
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const vanId = parseInt(params.id);
-
-    await prisma.$transaction(async (tx) => {
-      const van = await tx.van.findUnique({
+      // Update van to reference the new path
+      const updatedVan = await tx.van.update({
         where: { id: vanId },
-        select: { pathId: true }
+        data: { pathId: pathId },
+        include: {
+          path: {
+            include: {
+              waypoints: {
+                orderBy: { order: 'asc' }
+              }
+            }
+          }
+        }
       });
 
-      if (van?.pathId) {
-        // Delete waypoints first
-        await tx.wayPoints.deleteMany({
-          where: { pathId: van.pathId }
-        });
-
-        // Delete path
-        await tx.path.delete({
-          where: { id: van.pathId }
-        });
-
-        // Remove path reference from van
-        await tx.van.update({
-          where: { id: vanId },
-          data: { pathId: null }
-        });
-      }
+      return updatedVan;
     });
 
+    console.log('Path added to van successfully:', { vanId, pathId });
     return NextResponse.json({
-      success: true,
-      message: 'Path deleted successfully'
-    });
+      message: 'Route created successfully',
+      van: result,
+      pathId: pathId,
+      totalDistance: totalDistance,
+      estimatedDuration: estimatedDurationMinutes
+    }, { status: 201 });
 
   } catch (error) {
-    console.error('Error deleting van path:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete van path' },
-      { status: 500 }
-    );
+    console.error('[ADD PATH ERROR]', error);
+    
+    // Handle Prisma-specific errors
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      // Handle unique constraint violations
+      if (error.message.includes('Unique constraint')) {
+        return NextResponse.json({ 
+          error: 'A path with this configuration already exists' 
+        }, { status: 409 });
+      }
+      
+      // Handle foreign key constraint violations
+      if (error.message.includes('Foreign key constraint')) {
+        return NextResponse.json({ 
+          error: 'Invalid reference to related data' 
+        }, { status: 400 });
+      }
+    }
+    
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
