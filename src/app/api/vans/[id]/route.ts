@@ -15,7 +15,7 @@ export async function GET(
     where: { id },
     include: {
       assistant: true,
-      DriverVanJobRequest: {
+      DriverVanJobRequests: {
         where: {
           status: 'ACCEPTED',
         },
@@ -31,7 +31,7 @@ export async function GET(
   }
 
   // Extract driver info from the first accepted request
-  const driverRequest = van.DriverVanJobRequest[0]; // assuming only one accepted at a time
+  const driverRequest = van.DriverVanJobRequests[0]; // assuming only one accepted at a time
 
   const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
 

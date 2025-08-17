@@ -92,7 +92,7 @@ model Van {
   startTime               DateTime?
   assistant               Assistant?
   children                Child[]
-  jobRequests             DriverVanJobRequest[]
+  DriverVanJobRequests    DriverVanJobRequest[]
   owner                   UserProfile           @relation(fields: [ownerId], references: [id])
   path                    Path?                 @relation(fields: [pathId], references: [id])
 }
