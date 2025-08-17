@@ -66,65 +66,62 @@ model DriverProfile {
 }
 
 model Van {
-  id                Int       @id @default(autoincrement())
-  registrationNumber String   @unique
-  licensePlateNumber String
-  makeAndModel       String
-  seatingCapacity    Int
-  acCondition        Boolean
-  rBookUrl           String
-  revenueLicenseUrl  String
-  fitnessCertificateUrl String
+  id                      Int                   @id @default(autoincrement())
+  registrationNumber      String                @unique
+  licensePlateNumber      String
+  makeAndModel            String
+  seatingCapacity         Int
+  acCondition             Boolean
+  rBookUrl                String
+  revenueLicenseUrl       String
+  fitnessCertificateUrl   String
   insuranceCertificateUrl String
-  photoUrl           String
-  createdAt          DateTime @default(now())
-  ownerId            String
-  hasDriver          Boolean  @default(false)
-  assignedDriverId   String?
-  salaryPercentage   Float?   @default(25.0)
-  shiftDetails       String?
-  startTime          DateTime?
-  endTime            DateTime?
-  privateRating      Float    @default(0)
-  studentRating      Float    @default(0)
-  hasAssistant       Boolean  @default(false)
-  status             Int      @default(2)
-  
-  assistant          Assistant?
-  children           Child[]
-  jobRequests        DriverVanJobRequest[]
-  owner              UserProfile @relation(fields: [ownerId], references: [id])
-  pathId            String?  
-  path    Path?   @relation(fields: [pathId], references: [id])
+  photoUrl                String
+  createdAt               DateTime              @default(now())
+  ownerId                 String
+  hasDriver               Boolean               @default(false)
+  assignedDriverId        String?
+  salaryPercentage        Float?                @default(25.0)
+  shiftDetails            String?
+  privateRating           Float                 @default(0)
+  studentRating           Float                 @default(0)
+  hasAssistant            Boolean               @default(false)
+  status                  Int                   @default(2)
+  pathId                  String?
+  endTime                 DateTime?
+  startTime               DateTime?
+  assistant               Assistant?
+  children                Child[]
+  jobRequests             DriverVanJobRequest[]
+  owner                   UserProfile           @relation(fields: [ownerId], references: [id])
+  path                    Path?                 @relation(fields: [pathId], references: [id])
 }
 
 model Path {
-  id                String   @id
-  routeStart        Unsupported("geometry(Point, 4326)")
-  routeEnd          Unsupported("geometry(Point, 4326)")
-  routeGeometry     Unsupported("geometry(LineString, 4326)")
-  boundingBox       Unsupported("geometry(Polygon, 4326)")
-  totalDistance     Float    
-  estimatedDuration Int      
+  id                String                  @id
+  routeStart        Unsupported("geometry")
+  routeEnd          Unsupported("geometry")
+  routeGeometry     Unsupported("geometry")
+  boundingBox       Unsupported("geometry")
+  totalDistance     Float
+  estimatedDuration Int
   van               Van[]
   waypoints         WayPoint[]
 }
 
 model WayPoint {
-  id        Int    @id @default(autoincrement())
+  id        Int                     @id @default(autoincrement())
   pathId    String
   name      String
   placeId   String?
   latitude  Float
   longitude Float
-  location  Unsupported("geometry(Point, 4326)")
+  location  Unsupported("geometry")
   order     Int
   isStop    Boolean
-  createdAt DateTime @default(now())
-  
-  path      Path    @relation(fields: [pathId], references: [id])
+  createdAt DateTime                @default(now())
+  path      Path                    @relation(fields: [pathId], references: [id])
 }
-
 
 model Assistant {
   id         String  @id @default(uuid())

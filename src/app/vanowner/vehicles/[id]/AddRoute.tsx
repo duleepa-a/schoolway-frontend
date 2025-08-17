@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LoadScript, GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
 
 const containerStyle = {
@@ -23,6 +23,55 @@ interface AddRouteProps {
 const AddRoute = ({ vehicleId, onClose }: AddRouteProps) => {
   const [routeStart, setRouteStart] = useState<Location | null>(null);
   const [routeEnd, setRouteEnd] = useState<Location | null>(null);
+  const [path, setPath] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Refs for input fields to set values programmatically
+  const startInputRef = useRef<HTMLInputElement>(null);
+  const endInputRef = useRef<HTMLInputElement>(null);
+
+
+    useEffect(() => {
+      async function fetchPath() {
+        setLoading(true);
+        const res = await fetch(`/api/vans/${vehicleId}/path`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            setPath(data);
+            // If waypoints exist, set them
+            if (Array.isArray(data.waypoints) && data.waypoints.length > 0) {
+              setWaypoints(
+                data.waypoints
+                  .sort((a, b) => a.order - b.order)
+                  .map(wp => ({
+                    name: wp.name,
+                    placeId: wp.placeId,
+                    latitude: wp.latitude,
+                    longitude: wp.longitude,
+                    order: wp.order,
+                    isStop: wp.isStop,
+                  }))
+              );
+              // Set start and end from first and last waypoint
+              const first = data.waypoints[0];
+              const last = data.waypoints[data.waypoints.length - 1];
+              setRouteStart({ lat: first.latitude, lng: first.longitude });
+              setRouteEnd({ lat: last.latitude, lng: last.longitude });
+              if (startInputRef.current) {
+                startInputRef.current.value = first.name || '';
+              }
+              if (endInputRef.current) {
+                endInputRef.current.value = last.name || '';
+              }
+            }
+          }
+        }
+        setLoading(false);
+      }
+      fetchPath();
+    }, [vehicleId]);
+
 
   type Waypoint = {
     name: string;
@@ -167,11 +216,17 @@ const AddRoute = ({ vehicleId, onClose }: AddRouteProps) => {
                   placeholder="Search start location" 
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  ref={startInputRef}
+                  defaultValue={
+                    waypoints.length > 0
+                      ? waypoints[0].name || ''
+                      : ''
+                  }
                 />
               </Autocomplete>
               {routeStart && (
                 <p className="text-sm text-green-600 mt-1">
-                  ✓ Start location selected: {routeStart.lat.toFixed(5)}, {routeStart.lng.toFixed(5)}
+                  Start location selected: {routeStart.lat.toFixed(5)}, {routeStart.lng.toFixed(5)}
                 </p>
               )}
             </div>
@@ -199,11 +254,17 @@ const AddRoute = ({ vehicleId, onClose }: AddRouteProps) => {
                   placeholder="Search end location" 
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  ref={endInputRef}
+                  defaultValue={
+                    waypoints.length > 0
+                      ? waypoints[waypoints.length - 1].name || ''
+                      : ''
+                  }
                 />
               </Autocomplete>
               {routeEnd && (
                 <p className="text-sm text-green-600 mt-1">
-                  ✓ End location selected: {routeEnd.lat.toFixed(5)}, {routeEnd.lng.toFixed(5)}
+                  End location selected: {routeEnd.lat.toFixed(5)}, {routeEnd.lng.toFixed(5)}
                 </p>
               )}
             </div>
@@ -279,15 +340,18 @@ const AddRoute = ({ vehicleId, onClose }: AddRouteProps) => {
 
         <div className="mt-8">
           <h3 className="text-lg font-medium text-gray-700 mb-4">Route Preview</h3>
-          <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={10}>
-            {routeStart && <Marker position={routeStart} label="S" title="Start Location" />}
-            {routeEnd && <Marker position={routeEnd} label="E" title="End Location" />}
+          <GoogleMap mapContainerStyle={containerStyle} center={routeStart || center} zoom={10}>
+            {/* Always show start and end markers if available */}
+            {routeStart && <Marker position={routeStart} label="S" title="Start Location" icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' }} />}
+            {routeEnd && <Marker position={routeEnd} label="E" title="End Location" icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' }} />}
+            {/* Show all waypoints as numbered markers */}
             {waypoints.map((wp, idx) => (
               <Marker 
                 key={idx} 
                 position={{ lat: wp.latitude, lng: wp.longitude }} 
                 label={`${wp.order}`}
                 title={wp.name}
+                icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }}
               />
             ))}
           </GoogleMap>

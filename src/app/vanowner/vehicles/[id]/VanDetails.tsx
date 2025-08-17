@@ -65,21 +65,7 @@ const VanDetails = ({ van }: { van: Van }) => {
     setLocalVan(van);
   }, [van]);
 
-  const schools = [
-    'Good Shephard Convent - Watthala',
-    "St. Lucia's Collage",
-    "St. Benedict's Primary School",
-    "St. Benedict's Upper School",
-    'Good Shephard Convent - Kotahena',
-    "Roman Catholic's Girl's School - Kotahena",
-  ];
-
-  const students = [
-    { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
-    { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
-    { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
-  ];
-
+  
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({

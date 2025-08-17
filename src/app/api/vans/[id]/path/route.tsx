@@ -16,14 +16,51 @@ interface RouteRequestBody {
   }>;
 }
 
+
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
+  try {
+    const params = await context.params;
+    const vanId = parseInt(params.id);
+    const van = await prisma.van.findFirst({
+      where: {
+      id: vanId,
+      }
+    });
+
+    if (!van || !van.pathId) {
+      return NextResponse.json(null, { status: 404 });
+    }
+    
+    const path = await prisma.path.findFirst({
+      where: {
+      id: van.pathId
+      },
+      include: {
+      waypoints: {
+        orderBy: { order: 'asc' }
+      }
+      }
+    });
+
+    console.log('path:', JSON.stringify(path, null, 2));
+    return NextResponse.json(path); 
+    
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+
+    return NextResponse.json([], { status: 500 });
+  }
+}
+
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } } 
 ) {
   try {
+
+    const params = await context.params;
     const vanId = parseInt(params.id);
     const body: RouteRequestBody = await req.json();
-    console.log('POST /api/vans/[id]/path - Request body:', body);
 
     const {
       routeStart,
@@ -102,35 +139,36 @@ export async function POST(
       }
 
       // Create the path with PostGIS geometry functions
-      await tx.$executeRaw`
-        INSERT INTO "Path" (
-          id, 
-          "routeStart", 
-          "routeEnd", 
-          "routeGeometry", 
-          "boundingBox", 
-          "totalDistance", 
-          "estimatedDuration"
-        ) VALUES (
-          ${pathId},
-          ST_SetSRID(ST_MakePoint(${routeStart.lng}, ${routeStart.lat}), 4326),
-          ST_SetSRID(ST_MakePoint(${routeEnd.lng}, ${routeEnd.lat}), 4326),
-          ST_SetSRID(ST_MakeLine(ARRAY[${Prisma.join(
-            routeGeometry.map(coord => 
-              Prisma.sql`ST_MakePoint(${coord[0]}, ${coord[1]})`
-            )
-          )}]), 4326),
-          ST_SetSRID(ST_MakePolygon(ST_MakeLine(ARRAY[
-            ST_MakePoint(${minLng}, ${minLat}),
-            ST_MakePoint(${maxLng}, ${minLat}),
-            ST_MakePoint(${maxLng}, ${maxLat}),
-            ST_MakePoint(${minLng}, ${maxLat}),
-            ST_MakePoint(${minLng}, ${minLat})
-          ])), 4326),
-          ${totalDistance},
-          ${estimatedDurationMinutes}
-        )
-      `;
+      const lineStringWKT = `LINESTRING(${routeGeometry
+  .map(coord => `${coord[0]} ${coord[1]}`)
+  .join(", ")})`;
+
+await tx.$executeRaw`
+  INSERT INTO "Path" (
+    id, 
+    "routeStart", 
+    "routeEnd", 
+    "routeGeometry", 
+    "boundingBox", 
+    "totalDistance", 
+    "estimatedDuration"
+  ) VALUES (
+    ${pathId},
+    ST_SetSRID(ST_MakePoint(${routeStart.lng}, ${routeStart.lat}), 4326),
+    ST_SetSRID(ST_MakePoint(${routeEnd.lng}, ${routeEnd.lat}), 4326),
+    ST_SetSRID(ST_GeomFromText(${lineStringWKT}), 4326),
+    ST_SetSRID(ST_MakePolygon(ST_MakeLine(ARRAY[
+      ST_MakePoint(${minLng}, ${minLat}),
+      ST_MakePoint(${maxLng}, ${minLat}),
+      ST_MakePoint(${maxLng}, ${maxLat}),
+      ST_MakePoint(${minLng}, ${maxLat}),
+      ST_MakePoint(${minLng}, ${minLat})
+    ])), 4326),
+    ${totalDistance},
+    ${estimatedDurationMinutes}
+  )
+`;
+
 
       // Create waypoints if provided
       if (waypoints && waypoints.length > 0) {
