@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     const schoolEndTime = formData.get('schoolEndTime') as string;
     const pickupLat = parseFloat(formData.get('pickupLat') as string);
     const pickupLng = parseFloat(formData.get('pickupLng') as string);
+    const pickupAddress = formData.get('pickupLocation') as string;
     const specialNotes = formData.get('specialNotes') as string;
     const parentId = formData.get('userId') as string;
     const file = formData.get('profilePicture') as File;
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
         profilePicture: imageUrl,
         pickupLat: new Decimal(pickupLat),
         pickupLng: new Decimal(pickupLng),
+        pickupAddress : pickupAddress,
       },
     });
 

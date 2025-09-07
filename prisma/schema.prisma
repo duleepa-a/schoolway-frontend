@@ -76,17 +76,19 @@ model Child {
   qrCode          String                    @unique
   pickupLat       Decimal
   pickupLng       Decimal
+  pickupAddress   String                    @default("Not Specified") 
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
-  status          String                    @default("not assigned")
   schoolID        Int
   grade           Int
   pickupLocation  Unsupported("geography")?
   specialNotes    String?
   parentId        String?
+  status          String                    @default("NOT_ASSIGNED")
   UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
+  VanRequest      VanRequest?
 }
 
 model Van {
@@ -96,8 +98,6 @@ model Van {
   makeAndModel            String
   seatingCapacity         Int
   acCondition             Boolean
-  routeStart              String?
-  routeEnd                String?
   rBookUrl                String
   revenueLicenseUrl       String
   fitnessCertificateUrl   String
@@ -109,16 +109,19 @@ model Van {
   assignedDriverId        String?
   salaryPercentage        Float?                @default(25.0)
   shiftDetails            String?
-  endTime                 String?
   privateRating           Float                 @default(0)
-  startTime               String?
   studentRating           Float                 @default(0)
   hasAssistant            Boolean               @default(false)
   status                  Int                   @default(2)
+  pathId                  String?
+  endTime                 DateTime?
+  startTime               DateTime?
   assistant               Assistant?
   Child                   Child[]
+  VanRequest              VanRequest[]
   DriverVanJobRequest     DriverVanJobRequest[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
+  Path                    Path?                 @relation(fields: [pathId], references: [id])
 }
 
 model Assistant {
@@ -132,13 +135,14 @@ model Assistant {
 }
 
 model School {
-  id             Int                      @id @default(autoincrement())
+  id             Int              @id @default(autoincrement())
   schoolName     String
-  email          String                   @unique
+  email          String           @unique
   contact        String
   address        String
-  location       Unsupported("geometry")?
+  createdAt      DateTime         @default(now())
   Child          Child[]
+  Gate           Gate[]
   SchoolGuardian SchoolGuardian[]
 }
 
@@ -189,6 +193,67 @@ model spatial_ref_sys {
   auth_srid Int?
   srtext    String? @db.VarChar(2048)
   proj4text String? @db.VarChar(2048)
+}
+
+model Gate {
+  id          Int                      @id @default(autoincrement())
+  gateName    String
+  description String?
+  location    Unsupported("geometry")?
+  placeName   String?
+  address     String?
+  isActive    Boolean                  @default(true)
+  schoolId    Int
+  createdAt   DateTime                 @default(now())
+  School      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+  @@index([schoolId])
+}
+
+model Path {
+  id                String                  @id
+  routeStart        Unsupported("geometry")
+  routeEnd          Unsupported("geometry")
+  routeGeometry     Unsupported("geometry")
+  boundingBox       Unsupported("geometry")
+  totalDistance     Float
+  estimatedDuration Int
+  Van               Van[]
+  WayPoint          WayPoint[]
+}
+
+model WayPoint {
+  id        Int                     @id @default(autoincrement())
+  pathId    String
+  name      String
+  placeId   String?
+  latitude  Float
+  longitude Float
+  location  Unsupported("geometry")
+  order     Int
+  isStop    Boolean
+  createdAt DateTime                @default(now())
+  Path      Path                    @relation(fields: [pathId], references: [id])
+}
+
+model VanRequest {
+  id        String      @id @default(cuid())
+  vanId     Int
+  childId   Int          @unique
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  van       Van          @relation(fields: [vanId], references: [id])
+  child     Child        @relation(fields: [childId], references: [id])
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
 }
 
 enum UserRole {
