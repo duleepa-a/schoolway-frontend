@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { LoadScript, GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
 
 const containerStyle = {
   width: '100%',
@@ -18,9 +18,10 @@ type Location = {
 interface AddRouteProps {
   vehicleId?: number;
   onClose?: () => void;
+  isLoaded: boolean;
 }
 
-const AddRoute = ({ vehicleId, onClose }: AddRouteProps) => {
+const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
   const [routeStart, setRouteStart] = useState<Location | null>(null);
   const [routeEnd, setRouteEnd] = useState<Location | null>(null);
   const [path, setPath] = useState<any>(null);
@@ -180,184 +181,178 @@ const AddRoute = ({ vehicleId, onClose }: AddRouteProps) => {
     }
   };
 
+  if (!isLoaded) {
+    return <div>Loading Google Maps...</div>;
+  }
   return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''} libraries={['places']}>
-      <div className="max-w-4xl mx-auto p-6">
-        <h2 className="text-2xl font-bold mb-6">Add a New Route</h2>
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Location *
-              </label>
-              <Autocomplete
-                onLoad={auto => setAutocompleteStart(auto)}
-                onPlaceChanged={() => {
-                  if (!autocompleteStart) return;
-                  const place = autocompleteStart.getPlace();
-                  if (place.geometry && place.geometry.location) {
-                    setRouteStart({ 
-                      lat: place.geometry.location.lat(), 
-                      lng: place.geometry.location.lng() 
-                    });
-                    setError(null);
-                  }
-                }}
-              >
-                <input 
-                  type="text" 
-                  placeholder="Search start location" 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  ref={startInputRef}
-                  defaultValue={
-                    waypoints.length > 0
-                      ? waypoints[0].name || ''
-                      : ''
-                  }
-                />
-              </Autocomplete>
-              {routeStart && (
-                <p className="text-sm text-green-600 mt-1">
-                  Start location selected: {routeStart.lat.toFixed(5)}, {routeStart.lng.toFixed(5)}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                End Location *
-              </label>
-              <Autocomplete
-                onLoad={auto => setAutocompleteEnd(auto)}
-                onPlaceChanged={() => {
-                  if (!autocompleteEnd) return;
-                  const place = autocompleteEnd.getPlace();
-                  if (place.geometry && place.geometry.location) {
-                    setRouteEnd({ 
-                      lat: place.geometry.location.lat(), 
-                      lng: place.geometry.location.lng() 
-                    });
-                    setError(null);
-                  }
-                }}
-              >
-                <input 
-                  type="text" 
-                  placeholder="Search end location" 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  ref={endInputRef}
-                  defaultValue={
-                    waypoints.length > 0
-                      ? waypoints[waypoints.length - 1].name || ''
-                      : ''
-                  }
-                />
-              </Autocomplete>
-              {routeEnd && (
-                <p className="text-sm text-green-600 mt-1">
-                  End location selected: {routeEnd.lat.toFixed(5)}, {routeEnd.lng.toFixed(5)}
-                </p>
-              )}
-            </div>
-          </div>
-
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-6">Add a New Route</h2>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Waypoints (Optional)
+              Start Location *
             </label>
-            <div className="flex gap-2">
-              <Autocomplete
-                onLoad={auto => setAutocompleteWaypoint(auto)}
-                onPlaceChanged={() => {
-                  if (!autocompleteWaypoint) return;
-                  const place = autocompleteWaypoint.getPlace();
-                  if (place.geometry && place.name) {
-                    setWaypointInput(place.name);
-                    setError(null);
-                  }
-                }}
-              >
-                <input
-                  type="text"
-                  value={waypointInput}
-                  onChange={(e) => setWaypointInput(e.target.value)}
-                  placeholder="Add waypoint"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </Autocomplete>
-              <button 
-                type="button" 
-                onClick={handleAddWaypoint}
-                className="btn btn-secondary pt-2 pb-2"
-              >
-                Add Waypoint
-              </button>
-            </div>
-
-            {waypoints.length > 0 && (
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Added Waypoints:</h4>
-                <ul className="space-y-2">
-                  {waypoints.map((wp, idx) => (
-                    <li key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
-                      <div>
-                        <span className="font-medium">{wp.order}. {wp.name}</span>
-                        <span className="text-sm text-gray-500 ml-2">
-                          ({wp.latitude.toFixed(5)}, {wp.longitude.toFixed(5)})
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeWaypoint(idx)}
-                        className="text-red-500 hover:text-red-700 focus:outline-none"
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <Autocomplete
+              onLoad={auto => setAutocompleteStart(auto)}
+              onPlaceChanged={() => {
+                if (!autocompleteStart) return;
+                const place = autocompleteStart.getPlace();
+                if (place.geometry && place.geometry.location) {
+                  setRouteStart({ 
+                    lat: place.geometry.location.lat(), 
+                    lng: place.geometry.location.lng() 
+                  });
+                  setError(null);
+                }
+              }}
+            >
+              <input 
+                type="text" 
+                placeholder="Search start location" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                ref={startInputRef}
+                defaultValue={
+                  waypoints.length > 0
+                    ? waypoints[0].name || ''
+                    : ''
+                }
+              />
+            </Autocomplete>
+            {routeStart && (
+              <p className="text-sm text-green-600 mt-1">
+                Start location selected: {routeStart.lat.toFixed(5)}, {routeStart.lng.toFixed(5)}
+              </p>
             )}
           </div>
-
-          <button 
-            type="submit" 
-            disabled={isSubmitting || !routeStart || !routeEnd}
-            className=" focus:outline-none btn btn-primary mt-8 focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? 'Creating Route...' : 'Create Route'}
-          </button>
-        </form>
-
-        <div className="mt-8">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">Route Preview</h3>
-          <GoogleMap mapContainerStyle={containerStyle} center={routeStart || center} zoom={10}>
-            {/* Always show start and end markers if available */}
-            {routeStart && <Marker position={routeStart} label="S" title="Start Location" icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' }} />}
-            {routeEnd && <Marker position={routeEnd} label="E" title="End Location" icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' }} />}
-            {/* Show all waypoints as numbered markers */}
-            {waypoints.map((wp, idx) => (
-              <Marker 
-                key={idx} 
-                position={{ lat: wp.latitude, lng: wp.longitude }} 
-                label={`${wp.order}`}
-                title={wp.name}
-                icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              End Location *
+            </label>
+            <Autocomplete
+              onLoad={auto => setAutocompleteEnd(auto)}
+              onPlaceChanged={() => {
+                if (!autocompleteEnd) return;
+                const place = autocompleteEnd.getPlace();
+                if (place.geometry && place.geometry.location) {
+                  setRouteEnd({ 
+                    lat: place.geometry.location.lat(), 
+                    lng: place.geometry.location.lng() 
+                  });
+                  setError(null);
+                }
+              }}
+            >
+              <input 
+                type="text" 
+                placeholder="Search end location" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                ref={endInputRef}
+                defaultValue={
+                  waypoints.length > 0
+                    ? waypoints[waypoints.length - 1].name || ''
+                    : ''
+                }
               />
-            ))}
-          </GoogleMap>
+            </Autocomplete>
+            {routeEnd && (
+              <p className="text-sm text-green-600 mt-1">
+                End location selected: {routeEnd.lat.toFixed(5)}, {routeEnd.lng.toFixed(5)}
+              </p>
+            )}
+          </div>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Waypoints (Optional)
+          </label>
+          <div className="flex gap-2">
+            <Autocomplete
+              onLoad={auto => setAutocompleteWaypoint(auto)}
+              onPlaceChanged={() => {
+                if (!autocompleteWaypoint) return;
+                const place = autocompleteWaypoint.getPlace();
+                if (place.geometry && place.name) {
+                  setWaypointInput(place.name);
+                  setError(null);
+                }
+              }}
+            >
+              <input
+                type="text"
+                value={waypointInput}
+                onChange={(e) => setWaypointInput(e.target.value)}
+                placeholder="Add waypoint"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </Autocomplete>
+            <button 
+              type="button" 
+              onClick={handleAddWaypoint}
+              className="btn btn-secondary pt-2 pb-2"
+            >
+              Add Waypoint
+            </button>
+          </div>
+          {waypoints.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Added Waypoints:</h4>
+              <ul className="space-y-2">
+                {waypoints.map((wp, idx) => (
+                  <li key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+                    <div>
+                      <span className="font-medium">{wp.order}. {wp.name}</span>
+                      <span className="text-sm text-gray-500 ml-2">
+                        ({wp.latitude.toFixed(5)}, {wp.longitude.toFixed(5)})
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeWaypoint(idx)}
+                      className="text-red-500 hover:text-red-700 focus:outline-none"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+        <button 
+          type="submit" 
+          disabled={isSubmitting || !routeStart || !routeEnd}
+          className=" focus:outline-none btn btn-primary mt-8 focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Creating Route...' : 'Create Route'}
+        </button>
+      </form>
+      <div className="mt-8">
+        <h3 className="text-lg font-medium text-gray-700 mb-4">Route Preview</h3>
+        <GoogleMap mapContainerStyle={containerStyle} center={routeStart || center} zoom={10}>
+          {/* Always show start and end markers if available */}
+          {routeStart && <Marker position={routeStart} label="S" title="Start Location" icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' }} />}
+          {routeEnd && <Marker position={routeEnd} label="E" title="End Location" icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' }} />}
+          {/* Show all waypoints as numbered markers */}
+          {waypoints.map((wp, idx) => (
+            <Marker 
+              key={idx} 
+              position={{ lat: wp.latitude, lng: wp.longitude }} 
+              label={`${wp.order}`}
+              title={wp.name}
+              icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }}
+            />
+          ))}
+        </GoogleMap>
       </div>
-    </LoadScript>
+    </div>
   );
 };
 

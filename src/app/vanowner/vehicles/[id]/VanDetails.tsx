@@ -42,7 +42,7 @@ interface Van {
   salaryPercentage: number;
   hasDriver: boolean;
   hasAssistant: boolean;
-  isApproved: boolean;
+  status : number;
   assistant?: Assistant | null;
   driver?: Driver | null;
 }
@@ -58,15 +58,26 @@ interface FormData {
 }
 
 const VanDetails = ({ van }: { van: Van }) => {
+  // Handler for opening Add Route modal
+  const handleAddRouteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAddRoute(true);
+  };
 
+  // Handler for closing Add Route modal
+  const handleCloseAddRoute = () => {
+    setShowAddRoute(false);
+  };
+
+  // Removed duplicate useState declarations for localVan and showAddRoute
+
+
+
+
+  // Move all hooks to the top level
   const [localVan, setLocalVan] = useState<Van>(van);
-
-  useEffect(() => {
-    setLocalVan(van);
-  }, [van]);
-
-  
-
+  const [showAddRoute, setShowAddRoute] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     makeAndModel: van.makeAndModel,
@@ -75,75 +86,29 @@ const VanDetails = ({ van }: { van: Van }) => {
     privateRating: van.privateRating,
     salaryPercentage: van.salaryPercentage,
   });
-
-  const handleEditClick = () => {
-    setIsModalOpen(true);
-  };
-
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-
-      const newErrors: Record<string, string> = {};
-
-      if (!formData.makeAndModel.trim()) newErrors.makeAndModel = 'Model is required';
-      if (formData.seatingCapacity <= 0) newErrors.seatingCapacity = 'Must be greater than 0';
-      if (formData.studentRating <= 0) newErrors.studentRating = 'Student rating must be positive';
-      if (formData.privateRating <= 0) newErrors.privateRating = 'Private hire rating must be positive';
-      if (formData.salaryPercentage < 0 || formData.salaryPercentage > 100) newErrors.salaryPercentage = 'Salary % must be between 0 and 100';
-
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
-      }
-      const res = await fetch(`/api/vans/${van.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          makeAndModel: formData.makeAndModel,
-          seatingCapacity: Number(formData.seatingCapacity),
-          studentRating: Number(formData.studentRating),
-          privateRating: Number(formData.privateRating),
-          salaryPercentage: Number(formData.salaryPercentage),
-        }),
-      });
-
-    if (!res.ok) {
-      alert('Update failed');
-      return;
-    }
-
-    const updatedVan = await res.json();
-    setLocalVan(prev => ({
-      ...prev,
-      ...updatedVan,
-    }));
-    // alert('Van updated successfully');
-    setIsModalOpen(false);
-  };
-
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: ['places'],
   });
-
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [isAssistantModalOpen, setIsAssistantModalOpen] = useState(false);
+  const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
+  const [assistantFormData, setAssistantFormData] = useState({
+    name:  van.assistant?.name || '',
+    nic: van.assistant?.nic || '',
+    contactNo: van.assistant?.contact || '',
+    profilePicture: null as File | null,
+  });
 
   useEffect(() => {
-    if (isLoaded && van.routeStart && van.routeEnd) {                    //this needs to be updated later when the child routes are set 
-      const directionsService = new google.maps.DirectionsService();
+    setLocalVan(van);
+  // setLocalVan is stable from useState, so no need to add it to deps
+  }, [van]);
 
+  useEffect(() => {
+    if (isLoaded && van.routeStart && van.routeEnd) {
+      const directionsService = new google.maps.DirectionsService();
       directionsService.route(
         {
           origin: van.routeStart,
@@ -161,17 +126,57 @@ const VanDetails = ({ van }: { van: Van }) => {
     }
   }, [isLoaded, van.routeStart, van.routeEnd]);
 
-  // Assistant Add Logic
+  // Handlers
+  // Removed duplicate declarations of handleAddRouteClick and handleCloseAddRoute
 
-  const [isAssistantModalOpen, setIsAssistantModalOpen] = useState(false);
-  const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
+  const handleEditClick = () => {
+    setIsModalOpen(true);
+  };
 
-  const [assistantFormData, setAssistantFormData] = useState({
-    name:  van.assistant?.name || '',
-    nic: van.assistant?.nic || '',
-    contactNo: van.assistant?.contact || '',
-    profilePicture: null as File | null,
-  });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!formData.makeAndModel.trim()) newErrors.makeAndModel = 'Model is required';
+    if (formData.seatingCapacity <= 0) newErrors.seatingCapacity = 'Must be greater than 0';
+    if (formData.studentRating <= 0) newErrors.studentRating = 'Student rating must be positive';
+    if (formData.privateRating <= 0) newErrors.privateRating = 'Private hire rating must be positive';
+    if (formData.salaryPercentage < 0 || formData.salaryPercentage > 100) newErrors.salaryPercentage = 'Salary % must be between 0 and 100';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    const res = await fetch(`/api/vans/${van.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        makeAndModel: formData.makeAndModel,
+        seatingCapacity: Number(formData.seatingCapacity),
+        studentRating: Number(formData.studentRating),
+        privateRating: Number(formData.privateRating),
+        salaryPercentage: Number(formData.salaryPercentage),
+      }),
+    });
+    if (!res.ok) {
+      alert('Update failed');
+      return;
+    }
+    const updatedVan = await res.json();
+    setLocalVan(prev => ({
+      ...prev,
+      ...updatedVan,
+    }));
+    setIsModalOpen(false);
+  };
 
   const handleAssistantChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
@@ -238,6 +243,27 @@ const VanDetails = ({ van }: { van: Van }) => {
   };
 
 
+  if (showAddRoute) {
+    return (
+      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h2 className="text-xl font-semibold">Add Route for {van.makeAndModel}</h2>
+            <button 
+              onClick={handleCloseAddRoute}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-4">
+            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isLoaded} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Van Details */}
@@ -245,7 +271,7 @@ const VanDetails = ({ van }: { van: Van }) => {
           <h2 className="text-lg font-semibold mb-4">{localVan.makeAndModel}</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
-            <img
+            <Image
               src={localVan.photoUrl || '/Images/vehicle_placeholder.png'}
               alt="Van"
               width={250}
@@ -273,21 +299,19 @@ const VanDetails = ({ van }: { van: Van }) => {
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-2 text-gray-900">Schools</h3>
+          <h3 className="text-lg font-semibold mb-2 text-gray-900">Actions</h3>
           <div className="relative">
-            <button 
-              onClick={() => setIsRouteModalOpen(true)}
-              className="btn-primary px-4 py-2 rounded-lg"
-            >
-              Add Route
-            </button>
+            <ul>
+              <li>Change Driver</li>
+            </ul>
+            
           </div>
         </div>
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-              {(van.isApproved) && <>
+              {(van.status == 1) && <>
                 { van.hasDriver ?
                 <>
                   <h2 className="text-base font-semibold mb-4">Driver</h2>
@@ -365,26 +389,41 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </>
                 :
 
-                <div className="my-3 grid  grid-cols-2">
-                  <div>
-                    <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
-                    <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
-                  </div>
-                  <div className='flex items-center justify-center'> 
-                      <button className="btn-secondary px-8 py-3 rounded-2xl"
-                        onClick={() => setIsAssistantModalOpen(true)}
-                      >
-                        Assign an Assistant
-                      </button>
-                  </div>
+                <><div className="my-3 grid  grid-cols-2">
+                <div>
+                  <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
+                  <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
                 </div>
+                <div className='flex items-center justify-center'>
+                  <button className="btn-secondary px-8 py-3 rounded-2xl"
+                    onClick={() => setIsAssistantModalOpen(true)}
+                  >
+                    Assign an Assistant
+                  </button>
+                </div>
+              </div><div className="my-3 grid  grid-cols-2">
+                  <div>
+                    <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please create a route for this van</p>
+                  </div>
+                  <div className='flex items-center justify-center'>
+                    <button
+                      onClick={handleAddRouteClick}
+                      className="btn-secondary px-8 py-3 rounded-2xl"
+                    >
+                      Add route
+                    </button>
+                  </div>
+                </div></>
+
+
 
                 } 
                   
               </> 
               } 
 
-            {!van.isApproved && (
+            {!van.status && (
                 <div className=" my-12">
                   <h2 className="text-base font-semibold mb-4">Van Not Approved</h2>
                   <p className="text-sm text-gray-500 mb-4">Please wait for the approval of your van.</p>
@@ -414,7 +453,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             <h2 className="text-lg font-semibold mb-4">Edit Van Details</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <FormInput
+                {/* <FormInput
                   type="text"
                   name="makeAndModel"
                   label='Van Model'
@@ -422,7 +461,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                   onChange={handleChange}
                   placeholder="Enter van model"
                   error={errors.makeAndModel}
-                />
+                /> */}
               </div>
 
               <div>
