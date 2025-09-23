@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,13 +9,26 @@ export async function POST(req: NextRequest) {
     const updated = await prisma.van.update({
       where: { id: vanID },
       data: {
-        isApproved: true, 
+        status: 1, // Assuming 1 represents approval
+      },
+      include: {
+        UserProfile: true, // Fetch owner details
       },
     });
 
-    return NextResponse.json({ message: 'Van approved', van: updated });
+    // Send approval email
+    await sendEmail({
+      to: updated.UserProfile.email,
+      subject: "Van Application Approved",
+      html: `<p>Dear ${updated.UserProfile.firstname || "Applicant"},</p>
+             <p>Congratulations! Your van application has been approved.</p>
+             <p>Thank you,</p>
+             <p>SchoolWay Team</p>`,
+    });
+
+    return NextResponse.json({ message: "Van approved", van: updated });
   } catch (error) {
-    console.error('Error approving van:', error);
-    return NextResponse.json({ error: 'Error approving van' }, { status: 500 });
+    console.error("Error approving van:", error);
+    return NextResponse.json({ error: "Error approving van" }, { status: 500 });
   }
 }

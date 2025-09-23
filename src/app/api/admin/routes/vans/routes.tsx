@@ -4,21 +4,7 @@ import prisma from "@/lib/prisma";
 export async function GET() {
   try {
     const vans = await prisma.van.findMany({
-      select: {
-        id: true,
-        registrationNumber: true,
-        licensePlateNumber: true,
-        makeAndModel: true,
-        seatingCapacity: true,
-        acCondition: true,
-        rBookUrl: true,
-        revenueLicenseUrl: true,
-        fitnessCertificateUrl: true,
-        insuranceCertificateUrl: true,
-        photoUrl: true,
-        createdAt: true,
-        ownerId: true,
-        hasDriver: true,
+      include: {
         UserProfile: {
           include: {
             vanService: true,
@@ -29,7 +15,6 @@ export async function GET() {
         createdAt: "desc",
       },
     });
-
     console.log(vans);
     return NextResponse.json(vans);
   } catch (error) {

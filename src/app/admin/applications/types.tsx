@@ -2,7 +2,7 @@ export interface ApplicationData {
   id: string;
   name: string;
   email: string;
-  contact: string;
+  mobile: string;
   dob: string;
   address: string;
   drivingLicense: string;
@@ -22,7 +22,6 @@ export interface ApplicationData {
   date?: string;
 }
 
-
 export type VanApplication = {
   id: string;
   name: string;
@@ -41,7 +40,7 @@ export type VanApplication = {
   fitnessCertificateUrl: string;
   insuranceCertificateUrl: string;
   photoUrl: string;
-  isApproved: boolean | string; // use string if you're formatting it for display
+  status: string;
   createdAt: string;
 
   ownerName: string;

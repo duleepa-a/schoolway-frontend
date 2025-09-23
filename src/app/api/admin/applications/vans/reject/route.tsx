@@ -1,20 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
-    const { vanID } = await req.json();
+    const { vanID, reason } = await req.json();
 
     const updated = await prisma.van.update({
       where: { id: vanID },
       data: {
-        isApproved: false,
+        status: 0, // Assuming 0 represents rejection
+      },
+      include: {
+        UserProfile: true, // Fetch owner details
       },
     });
 
-    return NextResponse.json({ message: 'Van  marked as inactive (rejected)', user: updated });
+    // Send rejection email
+    await sendEmail({
+      to: updated.UserProfile.email,
+      subject: "Van Application Rejected",
+      html: `<p>Dear ${updated.UserProfile.firstname || "Applicant"},</p>
+             <p>Your van application has been rejected.</p>
+             ${reason ? `<p>Reason: ${reason}</p>` : ""}
+             <p>Thank you,</p>
+             <p>SchoolWay Team</p>`,
+    });
+
+    return NextResponse.json({
+      message: "Van marked as inactive (rejected)",
+      user: updated,
+    });
   } catch (error) {
-    console.error('Error rejecting van:', error);
-    return NextResponse.json({ error: 'Error rejecting van' }, { status: 500 });
+    console.error("Error rejecting van:", error);
+    return NextResponse.json({ error: "Error rejecting van" }, { status: 500 });
   }
 }
