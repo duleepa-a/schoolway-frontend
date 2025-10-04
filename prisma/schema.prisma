@@ -29,7 +29,8 @@ model UserProfile {
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
-  SchoolGuardian                                                  SchoolGuardian[]
+  PrivateHire                                                     PrivateHire[]
+  SchoolGuardian                                                  SchoolGuardian?              
   Van                                                             Van[]
   vanService                                                      VanService?
 }
@@ -76,7 +77,6 @@ model Child {
   qrCode          String                    @unique
   pickupLat       Decimal
   pickupLng       Decimal
-  pickupAddress   String                    @default("Not Specified") 
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
   schoolID        Int
@@ -85,6 +85,7 @@ model Child {
   specialNotes    String?
   parentId        String?
   status          String                    @default("NOT_ASSIGNED")
+  pickupAddress   String                    @default("Not Specified")
   UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
@@ -118,10 +119,11 @@ model Van {
   startTime               DateTime?
   assistant               Assistant?
   Child                   Child[]
-  VanRequest              VanRequest[]
   DriverVanJobRequest     DriverVanJobRequest[]
+  PrivateHire             PrivateHire[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
   Path                    Path?                 @relation(fields: [pathId], references: [id])
+  VanRequest              VanRequest[]
 }
 
 model Assistant {
@@ -181,9 +183,18 @@ model DriverVanJobRequest {
 model SchoolGuardian {
   id          Int         @id @default(autoincrement())
   schoolId    Int
-  guardianId  String
+  guardianId  String      @unique
+  createdAt   DateTime    @default(now())
+  email       String      @unique
+  firstName   String      
+  lastName    String      
+  phone       String?
+  updatedAt   DateTime?   @updatedAt
   UserProfile UserProfile @relation(fields: [guardianId], references: [id])
-  School      School      @relation(fields: [schoolId], references: [id])
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+  @@index([email])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -238,15 +249,36 @@ model WayPoint {
 }
 
 model VanRequest {
-  id        String      @id @default(cuid())
+  id        String        @id @default(cuid())
   vanId     Int
-  childId   Int          @unique
+  childId   Int           @unique
   status    RequestStatus @default(PENDING)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  child     Child         @relation(fields: [childId], references: [id])
+  van       Van           @relation(fields: [vanId], references: [id])
+}
 
-  van       Van          @relation(fields: [vanId], references: [id])
-  child     Child        @relation(fields: [childId], references: [id])
+model PrivateHire {
+  id                 String      @id
+  userId             String
+  vanId              Int
+  pickupLat          Float
+  pickupLng          Float
+  pickupAddress      String
+  destinationLat     Float
+  destinationLng     Float
+  destinationAddress String
+  departureDate      DateTime
+  returnDate         DateTime?
+  noOfPassengers     Int
+  fare               Float
+  notes              String?
+  status             HireStatus  @default(PENDING)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime
+  UserProfile        UserProfile @relation(fields: [userId], references: [id])
+  Van                Van         @relation(fields: [vanId], references: [id])
 }
 
 enum RequestStatus {
@@ -274,4 +306,12 @@ enum JobRequestStatus {
 
 enum JobRequestType {
   VAN_OWNER_TO_DRIVER
+}
+
+enum HireStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
 }
