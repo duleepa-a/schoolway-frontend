@@ -2,11 +2,10 @@ import { NextResponse } from 'next/server';
 import  prisma  from '@/lib/prisma';
 import cloudinary from '@/lib/cloudinary';
 import { Decimal } from 'decimal.js';
+import QRCode from 'qrcode';
 
 export async function POST(req: Request) {
   try {
-    console.log('in post');
-    console.log(Object.keys(prisma));
     const formData = await req.formData();
 
     const name = formData.get('name') as string;
@@ -21,8 +20,6 @@ export async function POST(req: Request) {
     const specialNotes = formData.get('specialNotes') as string;
     const parentId = formData.get('userId') as string;
     const file = formData.get('profilePicture') as File;
-
-    console.log('Parent ID: ',parentId);
 
     if (!file || typeof file === 'string') {
       return NextResponse.json({ error: 'No valid image file' }, { status: 400 });
@@ -42,8 +39,6 @@ export async function POST(req: Request) {
 
     const imageUrl = (uploadResult as any).secure_url;
 
-    console.log('in post');
-    console.log(typeof prisma.child);
     const newChild = await prisma.child.create({
       data: {
         name,
@@ -54,7 +49,7 @@ export async function POST(req: Request) {
         schoolEndTime,
         parentId : parentId,
         specialNotes,
-        qrCode: generateQRCode(),
+        qrCode: 'default',
         profilePicture: imageUrl,
         pickupLat: new Decimal(pickupLat),
         pickupLng: new Decimal(pickupLng),
@@ -62,7 +57,14 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(newChild, { status: 201 });
+    const qrImageDataUrl = await QRCode.toDataURL('http://localhost:3000/childInfo/' + newChild.id.toString());
+
+    const updatedChild = await prisma.child.update({
+      where: { id: newChild.id },
+      data: { qrCode: qrImageDataUrl },
+    });
+
+    return NextResponse.json(updatedChild, { status: 201 });
 
   } catch (error) {
     console.error('Error creating child:', error);
@@ -70,7 +72,3 @@ export async function POST(req: Request) {
   }
 }
 
-// Generate unique QR code
-function generateQRCode() {
-  return 'QR-' + Math.random().toString(36).substring(2, 10);
-}
