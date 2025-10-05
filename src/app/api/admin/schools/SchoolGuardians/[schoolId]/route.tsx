@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/app/lib/prisma';
+import prisma from '@/lib/prisma';
 
 export async function GET(req: Request, { params }: { params: { schoolId: string } }) {
   try {
@@ -8,15 +8,14 @@ export async function GET(req: Request, { params }: { params: { schoolId: string
       return NextResponse.json({ error: 'Missing schoolId parameter' }, { status: 400 });
     }
 
-    const guardians = await prisma.guardian.findMany({
+    const guardians = await prisma.schoolGuardian.findMany({
       where: { schoolId: Number(schoolId) },
       select: {
         guardianId: true,
-        firstname: true,
-        lastname: true,
+        firstName: true,
+        lastName: true,
         email: true,
-        contact: true,
-      },
+        },
     });
 
     return NextResponse.json({ guardians });
