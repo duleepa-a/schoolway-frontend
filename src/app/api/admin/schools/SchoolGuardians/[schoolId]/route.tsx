@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET(
-  req: Request,
-  context: { params: { schoolId: string } }
-) {
+  req: NextRequest,
+  { params }: { params: { schoolId: string } }
+): Promise<NextResponse> {
   try {
-    const { schoolId } = context.params;
+    const schoolId = params.schoolId;
 
     if (!schoolId) {
       return NextResponse.json({ error: 'Missing schoolId parameter' }, { status: 400 });
@@ -22,8 +22,9 @@ export async function GET(
       },
     });
 
-    return NextResponse.json({ guardians });
+    return NextResponse.json({ guardians }, { status: 200 });
   } catch (error) {
+    console.error('Error fetching guardians:', error);
     return NextResponse.json(
       { error: 'Failed to fetch guardians', details: String(error) },
       { status: 500 }
