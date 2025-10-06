@@ -13,7 +13,14 @@ export async function GET(
 
   try {
    const children = await prisma.child.findMany({
-      where: { parentId: id },
+      where: { 
+        parentId: id 
+      },
+      include: {
+        Van: { 
+          select: { id: true, makeAndModel: true } 
+        },
+      },
     });
 
     return NextResponse.json(children, { status: 200 });

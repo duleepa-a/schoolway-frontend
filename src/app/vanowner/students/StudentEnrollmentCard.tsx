@@ -2,7 +2,7 @@ import React from 'react';
 import { MapPin, School, User, MessageSquare, Car, Calendar } from 'lucide-react';
 
 type EnrollmentRequest = {
-  id: number;
+  id: String | number;
   student: {
     name: string;
     profilePic: string;
