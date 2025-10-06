@@ -55,7 +55,7 @@ export default function VanTab() {
     });
 
     setSelectedVan(null);
-    setVans((prev) => prev.filter((v) => v.id !== id));
+    setVans((prev) => prev.filter((v) => v.id !== id.toString()));
     window.location.reload();
   };
 
@@ -82,13 +82,13 @@ export default function VanTab() {
             type: 'custom',
             label: 'Approve',
             icon: <FileCheck size={16} color="green" />,
-            onClick: (row) => handleStatusUpdate('approve', (row as VanApplication).id),
+            onClick: (row) => handleStatusUpdate('approve', parseInt((row as VanApplication).id)),
           },
           {
             type: 'custom',
             label: 'Reject',
             icon: <FileX size={16} color="red" />,
-            onClick: (row) => handleStatusUpdate('reject', (row as VanApplication).id),
+            onClick: (row) => handleStatusUpdate('reject', parseInt((row as VanApplication).id)),
           },
         ]}
       />
@@ -96,8 +96,8 @@ export default function VanTab() {
       {selectedVan && (
         <ViewVanApplication
           van={selectedVan}
-          onApprove={() => handleStatusUpdate('approve', selectedVan.id)}
-          onReject={() => handleStatusUpdate('reject', selectedVan.id)}
+          onApprove={() => handleStatusUpdate('approve', parseInt(selectedVan.id))}
+          onReject={() => handleStatusUpdate('reject', parseInt(selectedVan.id))}
           onClose={() => setSelectedVan(null)}
         />
       )}

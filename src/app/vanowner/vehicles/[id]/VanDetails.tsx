@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
-import { GoogleMap, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, DirectionsRenderer } from '@react-google-maps/api';
+import { loadGoogleMapsAPI } from '@/lib/googleMapsLoader';
 import { useEffect, useState } from 'react';
 import { Edit2 } from 'lucide-react';
 import FormInput from '@/app/components/FormInput';
@@ -146,15 +147,25 @@ const VanDetails = ({ van }: { van: Van }) => {
     setIsModalOpen(false);
   };
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
-  });
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadMaps = async () => {
+      try {
+        await loadGoogleMapsAPI();
+        setIsGoogleMapsLoaded(true);
+      } catch (error) {
+        console.error('Failed to load Google Maps API:', error);
+      }
+    };
+    
+    loadMaps();
+  }, []);
 
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   useEffect(() => {
-    if (isLoaded && van.routeStart && van.routeEnd) {
+    if (isGoogleMapsLoaded && van.routeStart && van.routeEnd) {
       const directionsService = new google.maps.DirectionsService();
 
       directionsService.route(
@@ -172,7 +183,7 @@ const VanDetails = ({ van }: { van: Van }) => {
         }
       );
     }
-  }, [isLoaded, van.routeStart, van.routeEnd]);
+  }, [isGoogleMapsLoaded, van.routeStart, van.routeEnd]);
 
   // Assistant Add Logic
 
@@ -420,7 +431,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
               <h2 className="text-base font-semibold mb-4">Current Route</h2>
-              {isLoaded && (
+              {isGoogleMapsLoaded && (
                     <GoogleMap
                       mapContainerStyle={{ width: '100%', height: '300px' }}
                       center={{ lat: 7.8731, lng: 80.7718 }}
@@ -429,7 +440,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                       {directions && <DirectionsRenderer directions={directions} />}
                     </GoogleMap>
                 )}
-              {!isLoaded && <p>Loading map...</p>}
+              {!isGoogleMapsLoaded && <p>Loading map...</p>}
             </div>
       </div>
 

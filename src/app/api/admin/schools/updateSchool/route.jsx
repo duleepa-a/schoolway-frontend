@@ -24,35 +24,35 @@ export async function PUT(request) {
     }
     
     // Validate location data if provided
-    let hasLocation = false;
-    let lat = null;
-    let lng = null;
-
-    if (body.location) {
-      console.log("Processing location data for update:", body.location);
-      
-      // Validate location data
-      if (!body.location.lat || !body.location.lng) {
-        return NextResponse.json({ 
-          error: 'Invalid location data', 
-          message: 'Location must include lat and lng coordinates'
-        }, { status: 400 });
-      }
-      
-      // Convert string values to numbers if needed
-      lat = typeof body.location.lat === 'string' ? parseFloat(body.location.lat) : body.location.lat;
-      lng = typeof body.location.lng === 'string' ? parseFloat(body.location.lng) : body.location.lng;
-      
-      // Check if coordinates are valid numbers
-      if (isNaN(lat) || isNaN(lng)) {
-        return NextResponse.json({ 
-          error: 'Invalid location coordinates', 
-          message: 'Latitude and longitude must be valid numbers'
-        }, { status: 400 });
-      }
-
-      hasLocation = true;
-    }
+    // let hasLocation = false;
+    // let lat = null;
+    // let lng = null;
+    //
+    // if (body.location) {
+    //   console.log("Processing location data for update:", body.location);
+    //
+    //   // Validate location data
+    //   if (!body.location.lat || !body.location.lng) {
+    //     return NextResponse.json({
+    //       error: 'Invalid location data',
+    //       message: 'Location must include lat and lng coordinates'
+    //     }, { status: 400 });
+    //   }
+    //
+    //   // Convert string values to numbers if needed
+    //   lat = typeof body.location.lat === 'string' ? parseFloat(body.location.lat) : body.location.lat;
+    //   lng = typeof body.location.lng === 'string' ? parseFloat(body.location.lng) : body.location.lng;
+    //
+    //   // Check if coordinates are valid numbers
+    //   if (isNaN(lat) || isNaN(lng)) {
+    //     return NextResponse.json({
+    //       error: 'Invalid location coordinates',
+    //       message: 'Latitude and longitude must be valid numbers'
+    //     }, { status: 400 });
+    //   }
+    //
+    //   hasLocation = true;
+    // }
 
     // First check if the school exists
     const existingSchool = await prisma.school.findUnique({
@@ -79,21 +79,21 @@ export async function PUT(request) {
     });
     
     // If location is provided, update with raw SQL for PostGIS
-    if (hasLocation && lat !== null && lng !== null) {
-      try {
-        // Use Prisma's executeRaw to run a SQL update for the PostGIS Point
-        await prisma.$executeRaw`
-          UPDATE "School"
-          SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
-          WHERE id = ${updatedSchool.id}
-        `;
-        
-        console.log(`Updated school ${updatedSchool.id} with new location: (${lng}, ${lat})`);
-      } catch (err) {
-        console.error("Error updating location with PostGIS:", err);
-        // The school was already updated, so we return success but with a warning
-      }
-    }
+    // if (hasLocation && lat !== null && lng !== null) {
+    //   try {
+    //     // Use Prisma's executeRaw to run a SQL update for the PostGIS Point
+    //     await prisma.$executeRaw`
+    //       UPDATE "School"
+    //       SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
+    //       WHERE id = ${updatedSchool.id}
+    //     `;
+    //
+    //     console.log(`Updated school ${updatedSchool.id} with new location: (${lng}, ${lat})`);
+    //   } catch (err) {
+    //     console.error("Error updating location with PostGIS:", err);
+    //     // The school was already updated, so we return success but with a warning
+    //   }
+    // }
 
     // Fetch the updated school record to include in response
     let finalSchool = updatedSchool;
@@ -113,8 +113,8 @@ export async function PUT(request) {
     // Include a message about the location status in the response
     const response = {
       ...finalSchool,
-      locationUpdated: hasLocation,
-      locationCoordinates: hasLocation ? { lat, lng } : null,
+      locationUpdated: false,
+      locationCoordinates: null,
       message: 'School information updated successfully'
     };
     
@@ -165,41 +165,16 @@ export async function GET(request) {
       }, { status: 404 });
     }
 
-    // If school has location, try to extract it
-    let locationData = null;
-    if (school.location) {
-      try {
-        // For PostGIS point, we need a raw query to extract coordinates
-        const locationResult = await prisma.$queryRaw`
-          SELECT 
-            ST_X(location::geometry) as lng,
-            ST_Y(location::geometry) as lat
-          FROM "School"
-          WHERE id = ${schoolId}
-        `;
-
-        if (locationResult && locationResult.length > 0) {
-          locationData = {
-            lat: locationResult[0].lat,
-            lng: locationResult[0].lng
-          };
-        }
-      } catch (err) {
-        console.error("Error extracting location coordinates:", err);
-      }
-    }
-
-    // Return the school data with location if available
+    // Return the school data
     return NextResponse.json({
       ...school,
-      location: locationData,
     });
   } catch (error) {
     console.error('Error fetching school:', error);
-    return NextResponse.json({ 
-      error: 'Error fetching school', 
+    return NextResponse.json({
+      error: 'Error fetching school',
       message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 });
   }
 }

@@ -1,69 +1,46 @@
-import { IncomingForm } from 'formidable';
-import { NextResponse } from 'next/server';
-import { Readable } from 'stream';
+import { NextRequest, NextResponse } from 'next/server';
+import cloudinary from '@/lib/cloudinary';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export const runtime = 'nodejs';
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const form = new IncomingForm();
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
 
-    const contentType = req.headers.get('content-type') || '';
+    if (!file) {
+      return NextResponse.json(
+        { error: 'No file uploaded' },
+        { status: 400 }
+      );
+    }
 
-    const contentLength = req.headers.get('content-length') || '';
+    // Convert File to buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    const buffer = Buffer.from(await req.arrayBuffer());
-
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null);
-
-    const fakeReq = Object.assign(stream, {
-      headers: {
-        'content-type': contentType,
-        'content-length': contentLength,
-      },
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'auto',
+          folder: 'vanowner-profiles',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(buffer);
     });
 
-    return new Promise((resolve) => {
-      form.parse(fakeReq as any, async (err, fields, files) => {
-        if (err) {
-          console.error(err);
-          resolve(NextResponse.json({ error: 'Error parsing form data' }, { status: 500 }));
-          return;
-        }
-
-        const file = files.file;
-        if (!file) {
-          resolve(NextResponse.json({ error: 'No file uploaded' }, { status: 400 }));
-          return;
-        }
-
-        // @ts-ignore
-        const filePath = Array.isArray(file) ? file[0].filepath : file.filepath;
-
-        try {
-          const cloudinary = (await import('@/lib/cloudinary')).default;
-
-          const result = await cloudinary.uploader.upload(filePath, {
-            folder: 'profile_pics',
-          });
-
-          resolve(NextResponse.json({ url: result.secure_url }));
-        } catch (uploadErr) {
-          console.error(uploadErr);
-          resolve(NextResponse.json({ error: 'Upload failed' }, { status: 500 }));
-        }
-      });
+    return NextResponse.json({
+      success: true,
+      url: (result as any).secure_url,
+      publicId: (result as any).public_id,
     });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return NextResponse.json(
+      { error: 'Upload failed' },
+      { status: 500 }
+    );
   }
 }

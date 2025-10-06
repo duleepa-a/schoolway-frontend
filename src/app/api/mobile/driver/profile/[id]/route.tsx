@@ -57,10 +57,11 @@ interface FormData {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const resolvedParams = await params;
+    const userId = resolvedParams.id;
     console.log("Getting profile for user:", userId);
     
     const user = await prisma.userProfile.findUnique({
@@ -81,10 +82,11 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const resolvedParams = await params;
+    const userId = resolvedParams.id;
     console.log('Processing update for user:', userId);
     
     const data = await req.json() as FormData;

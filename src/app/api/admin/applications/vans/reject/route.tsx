@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const updated = await prisma.van.update({
       where: { id: vanID },
       data: {
-        isApproved: false,
+        status: 0, // 0 = rejected
       },
     });
 

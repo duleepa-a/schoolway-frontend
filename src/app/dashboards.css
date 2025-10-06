@@ -115,7 +115,8 @@
   }
 
   .table-head {
-    @apply bg-yellow-400 text-left text-sm font-semibold text-white;
+    @apply text-left text-sm font-semibold text-white;
+    background: linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%);
   }
 
   .table-head-cell {
@@ -164,7 +165,8 @@
   }
 
   .pagination-select {
-    @apply border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400;
+    @apply border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2;
+    --tw-ring-color: #00d4aa;
   }
 
   .pagination-controls {
@@ -184,7 +186,8 @@
   }
 
   .pagination-number-active {
-    @apply bg-yellow-400 text-black border-yellow-400;
+    @apply text-white border-transparent;
+    background: linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%);
   }
 
   .pagination-ellipsis {
