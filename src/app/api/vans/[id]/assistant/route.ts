@@ -68,10 +68,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const formData = await req.formData();
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
 
     const name = formData.get('name') as string;
     const nic = formData.get('nic') as string;

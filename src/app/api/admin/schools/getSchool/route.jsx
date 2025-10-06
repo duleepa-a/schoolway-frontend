@@ -37,41 +37,16 @@ export async function GET(request) {
       }, { status: 404 });
     }
 
-    // If school has location, try to extract it
-    let locationData = null;
-    if (school.location) {
-      try {
-        // For PostGIS point, we need a raw query to extract coordinates
-        const locationResult = await prisma.$queryRaw`
-          SELECT 
-            ST_X(location::geometry) as lng,
-            ST_Y(location::geometry) as lat
-          FROM "School"
-          WHERE id = ${schoolId}
-        `;
-
-        if (locationResult && locationResult.length > 0) {
-          locationData = {
-            lat: locationResult[0].lat,
-            lng: locationResult[0].lng
-          };
-        }
-      } catch (err) {
-        console.error("Error extracting location coordinates:", err);
-      }
-    }
-
-    // Return the school data with location if available
+    // Return the school data
     return NextResponse.json({
       ...school,
-      location: locationData,
     });
   } catch (error) {
     console.error('Error fetching school:', error);
-    return NextResponse.json({ 
-      error: 'Error fetching school', 
+    return NextResponse.json({
+      error: 'Error fetching school',
       message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 });
   }
 }

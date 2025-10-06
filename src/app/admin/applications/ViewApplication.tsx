@@ -79,7 +79,7 @@ export default function ViewApplication({
               <p><span className="font-semibold">Name:</span> {application.name}</p>
               <p><span className="font-semibold">Email:</span> {application.email}</p>
               <p><span className="font-semibold">NIC:</span> {application.nic}</p>
-              <p><span className="font-semibold">Contact:</span> {application.mobile}</p>
+              <p><span className="font-semibold">Contact:</span> {application.contact}</p>
               <p><span className="font-semibold">DOB:</span> {application.dob}</p>
               <p><span className="font-semibold">Address:</span> {application.address}</p>
               <p><span className="font-semibold">Bio:</span> {application.bio || 'N/A'}</p>

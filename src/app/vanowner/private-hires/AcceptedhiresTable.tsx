@@ -66,7 +66,11 @@ export default function AcceptedhiresTable() {
           <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
         </div>
         
-        <TablePagination totalPages={5} />
+        <TablePagination 
+            totalPages={5} 
+            currentPage={1} 
+            onPageChange={(page) => console.log('Page changed to:', page)} 
+        />
 
       </div>
 

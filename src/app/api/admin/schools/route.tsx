@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     console.error('Error adding school:', error);
     
     // Check for duplicate email error
+    // @ts-ignore
     if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
       return NextResponse.json(
         { error: 'A school with this email already exists' },
@@ -64,40 +65,22 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    // Query that returns schools with location in GeoJSON format
-    const schools = await prisma.$queryRaw`
-      SELECT 
-        "id", 
-        "schoolName", 
-        "email", 
-        "contact", 
-        "address",
-        ST_AsGeoJSON("location") as "locationGeoJSON"
-      FROM "School"
-    `;
-    
-    // Process the results to convert GeoJSON strings to objects
-    const processedSchools = schools.map(school => {
-      try {
-        if (school.locationGeoJSON) {
-          const locationObject = JSON.parse(school.locationGeoJSON);
-          return {
-            ...school,
-            location: {
-              lat: locationObject.coordinates[1], 
-              lng: locationObject.coordinates[0]
-            },
-            locationGeoJSON: undefined
-          };
-        }
-        return school;
-      } catch (e) {
-        console.error('Error parsing GeoJSON:', e);
-        return school;
+    // Since location field is commented out in schema, use standard Prisma query
+    const schools = await prisma.school.findMany({
+      select: {
+        id: true,
+        schoolName: true,
+        email: true,
+        contact: true,
+        address: true,
+        createdAt: true
+      },
+      orderBy: {
+        schoolName: 'asc'
       }
     });
 
-    return NextResponse.json(processedSchools, { status: 200 });
+    return NextResponse.json(schools, { status: 200 });
   } catch (error) {
     console.error('Error fetching schools:', error);
     return NextResponse.json(

@@ -59,7 +59,7 @@ export default function Navbar() {
           <div className="flex justify-center align-middle">
              <div tabIndex={0} role="button" className=" btn-ghost rounded-full">
               <Image
-                src={ session.user?.image ||  "/illustrations/profile_d2.png"}
+                src={ session.user?.dp ||  "/illustrations/profile_d2.png"}
                 width={40}
                 height={40}
                 alt="User image"
