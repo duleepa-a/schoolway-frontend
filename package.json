@@ -23,6 +23,7 @@
     "busboy": "^1.6.0",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.18",
     "decimal.js": "^10.6.0",
     "dotenv": "^16.5.0",
     "formidable": "^3.5.4",
@@ -42,6 +43,7 @@
     "react-slick": "^0.30.3",
     "recharts": "^3.0.2",
     "slick-carousel": "^1.8.1",
+    "stripe": "^19.1.0",
     "sweetalert2": "^11.22.2",
     "zod": "^3.25.67"
   },

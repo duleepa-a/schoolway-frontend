@@ -82,6 +82,7 @@ model Child {
   updatedAt       DateTime                  @updatedAt
   schoolID        Int
   grade           Int
+  feeAmount     Float                 @default(0)
   pickupLocation  Unsupported("geography")?
   specialNotes    String?
   parentId        String?
