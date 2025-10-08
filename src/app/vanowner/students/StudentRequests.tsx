@@ -13,6 +13,7 @@ interface StudentRequest {
   status: RequestStatus;
   createdAt: string;
   updatedAt?: string;
+  estimatedFare: number;
   child: {
     id: number;
     name: string;
@@ -165,6 +166,7 @@ const StudentRequests = () => {
               specialNotes: request.child.specialNotes ?? '',
               requestDate: request.createdAt,
               status: request.status.toLowerCase(),
+              estimatedFare: request.estimatedFare,
             }}
             onAccept={() => performAction(request.id, 'accept')}
             onReject={() => performAction(request.id, 'reject')}
@@ -185,18 +187,36 @@ const StudentRequests = () => {
             </div>
 
             <div className="p-6">
-              <div className="flex items-center space-x-4 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
-                <div className="relative">
-                  <Image src={selectedRequest.child.profilePicture ?? '/Images/male_pro_pic_placeholder.png'} alt={selectedRequest.child.name} width={80} height={80} className="rounded-full border-4 border-white shadow-lg" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-1">{selectedRequest.child.name}</h3>
-                  <p className="text-lg text-gray-600 flex items-center"><FaUser className="mr-2" />{`Grade ${selectedRequest.child.grade}`}</p>
-                </div>
-                <div className={`px-4 py-2 rounded-full border text-sm font-semibold capitalize ${selectedRequest.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : selectedRequest.status === 'ACCEPTED' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
-                  {selectedRequest.status.toLowerCase()}
-                </div>
+            <div className="flex items-center space-x-4 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
+              <div className="relative w-20 h-20"> {/* enforce 80x80 size */}
+                <Image
+                  src={selectedRequest.child.profilePicture ?? '/Images/male_pro_pic_placeholder.png'}
+                  alt={selectedRequest.child.name}
+                  fill
+                  className="rounded-full border-4 border-white shadow-lg object-cover object-center"
+                />
               </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-gray-800 mb-1">
+                  {selectedRequest.child.name}
+                </h3>
+                <p className="text-lg text-gray-600 flex items-center">
+                  <FaUser className="mr-2" />{`Grade ${selectedRequest.child.grade}`}
+                </p>
+              </div>
+              <div
+                className={`px-4 py-2 rounded-full border text-sm font-semibold capitalize ${
+                  selectedRequest.status === 'PENDING'
+                    ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                    : selectedRequest.status === 'ACCEPTED'
+                    ? 'bg-green-100 text-green-800 border-green-200'
+                    : 'bg-red-100 text-red-800 border-red-200'
+                }`}
+              >
+                Rs. {selectedRequest.estimatedFare}
+              </div>
+            </div>
+
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg">

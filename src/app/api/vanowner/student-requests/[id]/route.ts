@@ -49,6 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         data: {
           status: 'AT_HOME',
           vanID: found.van.id,
+          feeAmount: found.estimatedFare,
         },
       });
     }

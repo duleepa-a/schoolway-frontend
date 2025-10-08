@@ -17,6 +17,7 @@ type EnrollmentRequest = {
   specialNotes: string;
   requestDate: string;
   status: string;
+  estimatedFare?: number;
 };
 
 type StudentEnrollmentCardProps = {
@@ -82,7 +83,7 @@ const StudentEnrollmentCard = ({
             </span>
           </div>
           <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
-            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+            Rs. {request.estimatedFare}
           </span>
         </div>
       </div>
@@ -143,19 +144,19 @@ const StudentEnrollmentCard = ({
         {request.status === 'pending' && (
           <div className="flex space-x-1">
             <button
-              onClick={() => onAccept?.(request.id)}
+              onClick={() => onAccept?.(Number(request.id))}
               className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg text-xs font-medium hover:bg-green-700 transition-colors duration-200 cursor-pointer"
             >
               Accept Request
             </button>
             <button
-              onClick={() => onReject?.(request.id)}
+              onClick={() => onReject?.(Number(request.id))}
               className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg text-xs font-medium hover:bg-red-700 transition-colors duration-200 cursor-pointer"
             >
               Reject Request
             </button>
             <button
-              onClick={() => onViewDetails?.(request.id)}
+              onClick={() => onViewDetails?.(Number(request.id))}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors duration-200  cursor-pointer"
             >
               Details
@@ -165,7 +166,7 @@ const StudentEnrollmentCard = ({
 
         {request.status !== 'pending' && (
           <button
-            onClick={() => onViewDetails?.(request.id)}
+            onClick={() => onViewDetails?.(Number(request.id))}
             className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200 text-xs  cursor-pointer"
           >
             View Details

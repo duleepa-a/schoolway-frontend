@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
   try {
     const requests = await prisma.vanRequest.findMany({
       where: {
+        status: 'PENDING',
         van: {
           ownerId: ownerId,
         },
@@ -37,6 +38,7 @@ export async function GET(req: NextRequest) {
     const payload = requests.map((r) => ({
       id: r.id,
       status: r.status,
+      estimatedFare: r.estimatedFare,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
       van: {

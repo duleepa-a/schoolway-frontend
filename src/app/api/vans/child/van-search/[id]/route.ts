@@ -10,8 +10,6 @@ export async function GET(
   try {
     const childId = parseInt(params.id);
 
-    console.log("Fetching vans for child ID:", childId);
-
     // 1️⃣ Fetch the child's pickup + school locations
     const child = await prisma.child.findUnique({
       where: { id: childId },
@@ -41,8 +39,6 @@ export async function GET(
     // For now, if you store in address, you can geocode it:
     const schoolAddress = schoolLocation.address;
 
-    console.log(`Child pickup: (${pickupLat}, ${pickupLng}), School address: ${schoolAddress}`);
-
     // 2️⃣ Fetch all vans
     const vans = await prisma.van.findMany({
       include: {
@@ -50,8 +46,6 @@ export async function GET(
         Path: true,
       },
     });
-
-    console.log(`Found ${vans.length} vans`);
 
     // 3️⃣ Use Google Distance Matrix API to get distance (in meters)
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${pickupLat},${pickupLng}&destinations=${encodeURIComponent(
@@ -80,8 +74,6 @@ export async function GET(
       ...van,
       estimatedFare: Math.round(distanceInKm * van.studentRating * 100) / 100,
     }));
-
-    console.log("Vans with estimated fare:", vansWithEstimate);
 
     // 5️⃣ Return combined response
     return NextResponse.json(vansWithEstimate, { status: 200 });
