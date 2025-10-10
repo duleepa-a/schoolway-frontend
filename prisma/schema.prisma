@@ -29,10 +29,10 @@ model UserProfile {
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  payments                                                        Payment[]
   PrivateHire                                                     PrivateHire[]
   SchoolGuardian                                                  SchoolGuardian?
   Van                                                             Van[]
-  payments Payment[]
   vanService                                                      VanService?
 }
 
@@ -82,17 +82,17 @@ model Child {
   updatedAt       DateTime                  @updatedAt
   schoolID        Int
   grade           Int
-  feeAmount     Float                 @default(0)
   pickupLocation  Unsupported("geography")?
   specialNotes    String?
   parentId        String?
-  status          ChildStatus               @default(NOT_ASSIGNED)
   pickupAddress   String                    @default("Not Specified")
+  status          ChildStatus               @default(NOT_ASSIGNED)
+  feeAmount       Float                     @default(0)
   UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
+  payments        Payment[]
   VanRequest      VanRequest?
-  payments Payment[]
 }
 
 model Van {
@@ -123,11 +123,11 @@ model Van {
   assistant               Assistant?
   Child                   Child[]
   DriverVanJobRequest     DriverVanJobRequest[]
+  payments                Payment[]
   PrivateHire             PrivateHire[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
   Path                    Path?                 @relation(fields: [pathId], references: [id])
   VanRequest              VanRequest[]
-  payments Payment[]
 }
 
 model Assistant {
@@ -141,21 +141,20 @@ model Assistant {
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
-  child     Child    @relation(fields: [childId], references: [id])
-  childId   Int
-  parentId  String     
-  vanId     Int     
-  van       Van @relation(fields: [vanId], references: [id])
-  amount    Float
-  month     String
-  status     PaymentStatus @default(PENDING)
-  paidAt    DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  paymentType PaymentType @default(SCHOOL_VAN)
-  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
-
+  id          Int           @id @default(autoincrement())
+  childId     Int
+  parentId    String
+  vanId       Int
+  amount      Float
+  month       String
+  status      PaymentStatus @default(PENDING)
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  paymentType PaymentType   @default(SCHOOL_VAN)
+  child       Child         @relation(fields: [childId], references: [id])
+  UserProfile UserProfile   @relation(fields: [parentId], references: [id])
+  van         Van           @relation(fields: [vanId], references: [id])
 
   @@unique([childId, month])
 }
@@ -273,15 +272,15 @@ model WayPoint {
 }
 
 model VanRequest {
-  id        String        @id @default(cuid())
-  vanId     Int
-  childId   Int           @unique
-  status    RequestStatus @default(PENDING)
-  estimatedFare Float     @default(0)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  child     Child         @relation(fields: [childId], references: [id])
-  van       Van           @relation(fields: [vanId], references: [id])
+  id            String        @id @default(cuid())
+  vanId         Int
+  childId       Int           @unique
+  status        RequestStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  estimatedFare Float         @default(0)
+  child         Child         @relation(fields: [childId], references: [id])
+  van           Van           @relation(fields: [vanId], references: [id])
 }
 
 model PrivateHire {
