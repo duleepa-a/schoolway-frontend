@@ -11,16 +11,25 @@ export async function POST(req: NextRequest) {
       data: {
         status: 1, // Assuming 1 represents approval
       },
-      include: {
-        UserProfile: true, // Fetch owner details
+    });
+
+    const user = await prisma.van.findUnique({
+      where: { id: vanID },
+      select: {
+        UserProfile: {
+          select: {
+            email: true,
+            firstname: true,
+          },
+        },
       },
     });
 
     // Send approval email
     await sendEmail({
-      to: updated.UserProfile.email,
+      to: user.UserProfile.email,
       subject: "Van Application Approved",
-      html: `<p>Dear ${updated.UserProfile.firstname || "Applicant"},</p>
+      html: `<p>Dear ${user.UserProfile.firstname || "Applicant"},</p>
              <p>Congratulations! Your van application has been approved.</p>
              <p>Thank you,</p>
              <p>SchoolWay Team</p>`,

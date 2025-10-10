@@ -5,22 +5,43 @@ import { sendEmail } from "@/lib/email";
 export async function POST(req: NextRequest) {
   try {
     const { vanID, reason } = await req.json();
+    console.log(
+      "vanID:ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+      vanID
+    );
 
     const updated = await prisma.van.update({
       where: { id: vanID },
       data: {
         status: 0, // Assuming 0 represents rejection
       },
-      include: {
-        UserProfile: true, // Fetch owner details
+    });
+    console.log(
+      "updateeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeed",
+      updated
+    );
+    // Fetch user profile to get email and first name
+    const user = await prisma.van.findUnique({
+      where: { id: vanID },
+      select: {
+        UserProfile: {
+          select: {
+            email: true,
+            firstname: true,
+          },
+        },
       },
     });
+    console.log(
+      "userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+      user
+    );
 
     // Send rejection email
     await sendEmail({
-      to: updated.UserProfile.email,
+      to: user.UserProfile.email,
       subject: "Van Application Rejected",
-      html: `<p>Dear ${updated.UserProfile.firstname || "Applicant"},</p>
+      html: `<p>Dear ${user.UserProfile.firstname || "Applicant"},</p>
              <p>Your van application has been rejected.</p>
              ${reason ? `<p>Reason: ${reason}</p>` : ""}
              <p>Thank you,</p>

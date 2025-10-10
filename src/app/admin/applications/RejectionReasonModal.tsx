@@ -163,7 +163,7 @@ export default function RejectionReasonModal({
                   <p className="text-gray-800">Hi {"Applicant"},</p>
                   <p className="text-gray-800 mt-4">
                     We appreciate your interest in joining SchoolWay. After
-                    review, your application was <strong>not approved</strong>
+                    review, your application was <strong> not approved</strong>
                     at this time.
                   </p>
                   {!useNoneReason && (

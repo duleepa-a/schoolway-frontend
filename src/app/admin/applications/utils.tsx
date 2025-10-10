@@ -50,7 +50,7 @@ export function formatVanApplication(van: any): VanApplication {
     makeAndModel: van.makeAndModel || "N/A",
     seatingCapacity: van.seatingCapacity || 0,
     acCondition: van.acCondition || false,
-    routeStart: van.routeStart || "",
+    // routeStart: van.routeStart || "",
     routeEnd: van.routeEnd || "",
     rBookUrl: van.rBookUrl || "",
     revenueLicenseUrl: van.revenueLicenseUrl || "",

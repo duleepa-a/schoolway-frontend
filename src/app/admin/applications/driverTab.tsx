@@ -29,11 +29,48 @@ export default function DriverTab() {
   }, []);
 
   // Common status update function with confirmation wit swal
+  //  Prevent re-approving or re-rejecting same application
   const handleStatusUpdate = async (
     action: "approve" | "reject",
     userId: string,
     reason?: string
   ) => {
+    // Find the application in the current list
+    const app = applications.find((a) => a.id === userId);
+    if (!app) return;
+    //console.log(app);
+    //console.log(app.status);
+
+    // ✅ Check current status before taking action
+    if (action === "approve" && (app.status === "Approved" || app.status === "approved")) {
+      Swal.fire({
+        icon: "info",
+        title: "Already Approved",
+        text: "This application has already been approved.",
+        confirmButtonColor: "#3b82f6",
+      });
+      return;
+    }
+    
+    if (action === "reject" && (app.status === "Rejected" || app.status === "rejected")) {
+      Swal.fire({
+        icon: "info",
+        title: "Already Rejected",
+        text: "This application has already been rejected.",
+        confirmButtonColor: "#3b82f6",
+      });
+      return;
+    }
+
+    // For rejection, open modal if not provided via modal already
+    if (action === "reject" && (!reason || reason.trim() === "")) {
+      setRejectUserId(userId);
+      setRejectInitialReason("");
+      setRejectModalOpen(true);
+      return;
+    }
+
+    // Continue with normal confirmation
     const { isConfirmed } = await Swal.fire({
       title: `Are you sure you want to ${action} this driver?`,
       icon: action === "approve" ? "success" : "warning",
@@ -44,6 +81,8 @@ export default function DriverTab() {
     });
 
     if (!isConfirmed) return;
+
+    // Perform backend update
     await fetch(`/api/admin/applications/drivers/${action}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,16 +92,36 @@ export default function DriverTab() {
       }),
     });
 
+    // Update local UI state
     setSelectedApp(null);
-    setApplications((prev) => prev.filter((a) => a.id !== userId));
+    setApplications((prev) =>
+      prev.map((a) =>
+        a.id === userId
+          ? { ...a, status: action === "approve" ? "approved" : "rejected" }
+          : a
+      )
+    );
     setRejectModalOpen(false);
     setRejectUserId(null);
     setRejectInitialReason("");
-    window.location.reload();
   };
 
   // Open rejection modal from table reject button
   const onRejectClick = (userId: string) => {
+    // Find the application and check status
+    const app = applications.find((a) => a.id === userId);
+    if (!app) return;
+
+    if (app.status === "Rejected" || app.status === "rejected") {
+      Swal.fire({
+        icon: "info",
+        title: "Already Rejected",
+        text: "This application has already been rejected.",
+        confirmButtonColor: "#3b82f6",
+      });
+      return;
+    }
+
     setRejectUserId(userId);
     setRejectInitialReason("");
     setRejectModalOpen(true);

@@ -16,6 +16,7 @@ export async function GET() {
         fitnessCertificateUrl: true,
         insuranceCertificateUrl: true,
         photoUrl: true,
+        status: true,
         createdAt: true,
         ownerId: true,
         hasDriver: true,
@@ -30,7 +31,7 @@ export async function GET() {
       },
     });
 
-    console.log(vans);
+    // console.log(vans);
     return NextResponse.json(vans);
   } catch (error) {
     console.error("Error fetching vans:", error);

@@ -33,7 +33,7 @@ export type VanApplication = {
   makeAndModel: string;
   seatingCapacity: number;
   acCondition: boolean;
-  routeStart: string;
+  // routeStart: string;
   routeEnd: string;
   rBookUrl: string;
   revenueLicenseUrl: string;

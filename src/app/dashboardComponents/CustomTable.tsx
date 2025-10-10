@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useMemo, ReactNode } from 'react';
+import { Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useMemo, ReactNode } from "react";
 
 interface Column {
   key: string;
@@ -9,7 +9,7 @@ interface Column {
 }
 
 interface Action {
-  type: 'edit' | 'delete' | 'custom';
+  type: "edit" | "delete" | "custom";
   onClick: (rowData: any) => void;
   icon?: ReactNode;
   label?: string;
@@ -25,19 +25,19 @@ interface DataTableProps {
   renderCell?: (column: string, value: any, row: any) => ReactNode;
 }
 
-export default function DataTable({ 
-  columns, 
-  data, 
-  actions = [], 
+export default function DataTable({
+  columns,
+  data,
+  actions = [],
   itemsPerPageOptions = [5, 10, 25, 50],
   defaultItemsPerPage = 10,
-  renderCell
+  renderCell,
 }: DataTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
-  
+
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -56,24 +56,32 @@ export default function DataTable({
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
       if (currentPage <= 3) {
-        pages.push(1, 2, 3, '...', totalPages);
+        pages.push(1, 2, 3, "...", totalPages);
       } else if (currentPage >= totalPages - 2) {
-        pages.push(1, '...', totalPages - 2, totalPages - 1, totalPages);
+        pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
       } else {
-        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages
+        );
       }
     }
-    
+
     return pages;
   };
-   
+
   return (
     <div className="table-container">
       <table className="custom-table">
@@ -92,7 +100,9 @@ export default function DataTable({
             <tr key={rowIndex} className="table-row-even">
               {columns.map((col) => (
                 <td key={col.key} className="table-cell">
-                  {renderCell ? renderCell(col.key, row[col.key], row) : String(row[col.key] ?? '')}
+                  {renderCell
+                    ? renderCell(col.key, row[col.key], row)
+                    : String(row[col.key] ?? "")}
                 </td>
               ))}
               {actions.length > 0 && (
@@ -104,7 +114,12 @@ export default function DataTable({
                       icon = action.icon;
                     } else {
                       // Default icons based on type
-                      icon = action.type === 'edit' ? <Pencil size={16} /> : <Trash2 size={16} />;
+                      icon =
+                        action.type === "edit" ? (
+                          <Pencil size={16} />
+                        ) : (
+                          <Trash2 size={16} />
+                        );
                     }
 
                     // Determine CSS class
@@ -113,7 +128,8 @@ export default function DataTable({
                       buttonClass = action.className;
                     } else {
                       // Default classes based on type
-                      buttonClass = action.type === 'edit' ? 'edit-icon' : 'delete-icon';
+                      buttonClass =
+                        action.type === "edit" ? "edit-icon" : "delete-icon";
                     }
 
                     return (
@@ -133,13 +149,13 @@ export default function DataTable({
           ))}
         </tbody>
       </table>
-      
+
       {/* Pagination Controls */}
       <div className="pagination-container">
         <div className="pagination-info">
           <span>Rows per page</span>
-          <select 
-            value={itemsPerPage} 
+          <select
+            value={itemsPerPage}
             onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
             className="pagination-select"
           >
@@ -149,11 +165,9 @@ export default function DataTable({
               </option>
             ))}
           </select>
-          <span>
-            of {data.length} rows
-          </span>
+          <span>of {data.length} rows</span>
         </div>
-        
+
         <div className="pagination-controls">
           <button
             onClick={() => handlePageChange(1)}
@@ -161,10 +175,9 @@ export default function DataTable({
             className="pagination-button"
             title="First page"
           >
-            
             <ChevronLeft size={16} className="-ml-2" />
           </button>
-          
+
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -173,22 +186,24 @@ export default function DataTable({
           >
             <ChevronLeft size={16} />
           </button>
-          
+
           <div className="pagination-numbers">
             {getPageNumbers().map((page, index) => (
               <button
                 key={index}
-                onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
-                disabled={typeof page !== 'number'}
+                onClick={() =>
+                  typeof page === "number" ? handlePageChange(page) : undefined
+                }
+                disabled={typeof page !== "number"}
                 className={`pagination-number ${
-                  page === currentPage ? 'pagination-number-active' : ''
-                } ${typeof page !== 'number' ? 'pagination-ellipsis' : ''}`}
+                  page === currentPage ? "pagination-number-active" : ""
+                } ${typeof page !== "number" ? "pagination-ellipsis" : ""}`}
               >
                 {page}
               </button>
             ))}
           </div>
-          
+
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -197,14 +212,13 @@ export default function DataTable({
           >
             <ChevronRight size={16} />
           </button>
-          
+
           <button
             onClick={() => handlePageChange(totalPages)}
             disabled={currentPage === totalPages}
             className="pagination-button"
             title="Last page"
           >
-            
             <ChevronRight size={16} className="-ml-2" />
           </button>
         </div>

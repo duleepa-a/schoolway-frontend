@@ -1,8 +1,7 @@
-@import "tailwindcss"; 
+@import "tailwindcss";
 
 /*------------------------common dashboard styles------------------------------*/
-@layer utilities{
-
+@layer utilities {
   /*admin and van owner dashboard bg color */
   .dashboard {
     @apply bg-[#F4F7FE] h-screen;
@@ -18,7 +17,7 @@
   }
 
   .topBarImage {
-    @apply rounded-full object-cover border-2 ml-14 border-amber-400;
+    @apply rounded-full object-cover border-2 ml-14 border-[#0099cc];
   }
 
   .topBarIcon {
@@ -209,7 +208,7 @@
   }
 
   .driver-stats-summary {
-    @apply mt-4 space-y-2;
+    @apply grid grid-cols-2 gap-4 mt-4 space-y-2;
   }
 
   .driver-stat-item {
@@ -217,7 +216,7 @@
   }
 
   .driver-stat-indicator {
-    @apply w-3 h-3 rounded-full mr-2;
+    @apply w-4 h-4 text-sm mr-2;
   }
 
   .driver-stat-label {
@@ -225,7 +224,7 @@
   }
 
   .driver-stat-value {
-    @apply text-sm font-semibold text-gray-800;
+    @apply text-sm font-semibold text-gray-800 mr-5;
   }
 
   /* Activity Feed Styles */

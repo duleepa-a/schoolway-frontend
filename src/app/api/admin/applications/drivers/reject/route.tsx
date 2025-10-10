@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { renderDriverRejectionEmail, sendEmail } from '@/lib/email';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { renderDriverRejectionEmail, sendEmail } from "@/lib/email";
 
-export const runtime = 'nodejs'
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,24 +19,30 @@ export async function POST(req: NextRequest) {
     const user = await prisma.userProfile.findUnique({
       where: { id: userId },
       select: { email: true, firstname: true },
-    })
+    });
 
     if (user?.email) {
       try {
         await sendEmail({
           to: user.email,
-          subject: 'Update on your driver application',
-          html: renderDriverRejectionEmail(user.firstname ?? 'there', reason),
-        })
+          subject: "Update on your driver application",
+          html: renderDriverRejectionEmail(user.firstname ?? "there", reason),
+        });
       } catch (emailErr) {
-        console.error('Failed to send rejection email:', emailErr)
+        console.error("Failed to send rejection email:", emailErr);
         // Do not fail the API because of email issues
       }
     }
 
-    return NextResponse.json({ message: 'Driver marked as inactive (rejected)', user: updated });
+    return NextResponse.json({
+      message: "Driver marked as inactive (rejected)",
+      user: updated,
+    });
   } catch (error) {
-    console.error('Error rejecting driver:', error);
-    return NextResponse.json({ error: 'Error rejecting driver' }, { status: 500 });
+    console.error("Error rejecting driver:", error);
+    return NextResponse.json(
+      { error: "Error rejecting driver" },
+      { status: 500 }
+    );
   }
 }

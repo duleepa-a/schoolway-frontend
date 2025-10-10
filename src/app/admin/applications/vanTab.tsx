@@ -5,7 +5,6 @@ import CustomTable from "@/app/dashboardComponents/CustomTable";
 import ViewVanApplication from "./ViewVanApplication";
 import Swal from "sweetalert2";
 import { FileText, FileCheck, FileX } from "lucide-react";
-
 import { VanApplication } from "./types";
 import { formatVanApplication } from "./utils";
 import RejectionReasonModal from "./RejectionReasonModal";
@@ -15,34 +14,63 @@ export default function VanTab() {
   const [selectedVan, setSelectedVan] = useState<VanApplication | null>(null);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
 
+  // Fetch vans once on mount
   useEffect(() => {
     const fetchVans = async () => {
       try {
         const res = await fetch("/api/admin/applications/vans");
         const data = await res.json();
-        console.log(data);
         const formatted = data.map(formatVanApplication);
         setVans(formatted);
       } catch (error) {
         console.error("Failed to fetch vans:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error fetching data",
+          text: "Could not load van applications.",
+        });
       }
     };
 
     fetchVans();
   }, []);
 
+  // Handle approve or reject
   const handleStatusUpdate = async (
     action: "approve" | "reject",
     id: string,
     reason?: string
   ) => {
-    if (action === "reject" && !reason) {
-      setShowRejectionModal(true);
+    const van = vans.find((v) => v.id === id);
+
+    if (!van) return;
+
+    // Prevent duplicate approvals/rejections
+    if (van.status === "Approved" && action === "approve") {
+      Swal.fire({
+        icon: "info",
+        title: "Already Approved",
+        text: "This van has already been approved.",
+      });
       return;
     }
 
+    if (van.status === "Rejected" && action === "reject") {
+      Swal.fire({
+        icon: "info",
+        title: "Already Rejected",
+        text: "This van has already been rejected.",
+      });
+      return;
+    }
+
+    // Confirm action
     const { isConfirmed } = await Swal.fire({
-      title: `Are you sure you want to ${action} this van?`,
+      title: `Confirm ${action === "approve" ? "Approval" : "Rejection"}`,
+      text:
+        action === "approve"
+          ? "Do you want to approve this van application?"
+          : "Do you want to reject this van application?",
       icon: action === "approve" ? "success" : "warning",
       showCancelButton: true,
       confirmButtonColor: action === "approve" ? "#22c55e" : "#ef4444",
@@ -52,15 +80,40 @@ export default function VanTab() {
 
     if (!isConfirmed) return;
 
-    await fetch(`/api/admin/applications/vans/${action}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ vanID: id, reason }),
-    });
+    try {
+      const response = await fetch(`/api/admin/applications/vans/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vanID: id, reason }),
+      });
 
-    setSelectedVan(null);
-    setVans((prev) => prev.filter((v) => v.id !== id));
-    window.location.reload();
+      if (!response.ok) throw new Error("Request failed");
+
+      // Update UI instantly
+      setVans((prev) =>
+        prev.map((v) =>
+          v.id === id
+            ? { ...v, status: action === "approve" ? "Approved" : "Rejected" }
+            : v
+        )
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: `Van ${action === "approve" ? "Approved" : "Rejected"}`,
+        text: `The van has been successfully ${action}ed.`,
+      });
+
+      setSelectedVan(null);
+      setShowRejectionModal(false);
+    } catch (err) {
+      console.error(`Error ${action}ing van:`, err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: `Failed to ${action} van. Please try again.`,
+      });
+    }
   };
 
   return (
@@ -94,14 +147,24 @@ export default function VanTab() {
             label: "Reject",
             icon: <FileX size={16} color="red" />,
             onClick: (row) => {
-              setSelectedVan(row as VanApplication);
+              const van = row as VanApplication;
+              if (van.status === "Rejected") {
+                Swal.fire({
+                  icon: "info",
+                  title: "Already Rejected",
+                  text: "This van application has already been rejected.",
+                });
+                return;
+              }
+              setSelectedVan(van);
               setShowRejectionModal(true);
             },
           },
         ]}
       />
 
-      {selectedVan && (
+      {/* View modal */}
+      {selectedVan && !showRejectionModal && (
         <ViewVanApplication
           van={selectedVan}
           onApprove={() => handleStatusUpdate("approve", selectedVan.id)}
@@ -110,13 +173,16 @@ export default function VanTab() {
         />
       )}
 
-      {showRejectionModal && (
+      {/* Rejection reason modal */}
+      {showRejectionModal && selectedVan && (
         <RejectionReasonModal
           open={showRejectionModal}
-          onClose={() => setShowRejectionModal(false)}
-          onConfirm={(reason) => {
+          onClose={() => {
             setShowRejectionModal(false);
-            handleStatusUpdate("reject", selectedVan?.id || "", reason);
+            setSelectedVan(null);
+          }}
+          onConfirm={(reason) => {
+            handleStatusUpdate("reject", selectedVan.id, reason);
           }}
           context="van"
         />
