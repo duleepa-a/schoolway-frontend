@@ -22,32 +22,32 @@ export default function HeroSection() {
   };
 
   // Particle effect on mouse move
-  if (typeof window !== "undefined") {
-    if (!document.querySelector(".cursor-trail")) {
-      document.addEventListener("mousemove", (e) => {
-        let trail = document.querySelector(".cursor-trail") as HTMLDivElement | null;
-        if (!trail) {
-          trail = document.createElement("div");
-          trail.className = "cursor-trail";
-          trail.style.cssText = `
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transition: all 0.1s ease;
-          `;
-          document.body.appendChild(trail);
-        }
-        if (trail) {
-          trail.style.left = e.clientX - 5 + "px";
-          trail.style.top = e.clientY - 5 + "px";
-        }
-      });
-    }
-  }
+  // if (typeof window !== "undefined") {
+  //   if (!document.querySelector(".cursor-trail")) {
+  //     document.addEventListener("mousemove", (e) => {
+  //       let trail = document.querySelector(".cursor-trail") as HTMLDivElement | null;
+  //       if (!trail) {
+  //         trail = document.createElement("div");
+  //         trail.className = "cursor-trail";
+  //         trail.style.cssText = `
+  //           position: fixed;
+  //           width: 10px;
+  //           height: 10px;
+  //           background: rgba(255, 255, 255, 0.6);
+  //           border-radius: 50%;
+  //           pointer-events: none;
+  //           z-index: 9999;
+  //           transition: all 0.1s ease;
+  //         `;
+  //         document.body.appendChild(trail);
+  //       }
+  //       if (trail) {
+  //         trail.style.left = e.clientX - 5 + "px";
+  //         trail.style.top = e.clientY - 5 + "px";
+  //       }
+  //     });
+  //   }
+  // }
 
   return (
     <section className="relative w-full h-screen overflow-hidden bg-white font-sans">
@@ -62,7 +62,7 @@ export default function HeroSection() {
               <stop offset="100%" stopColor="var(--blue-shade-dark)" />
             </linearGradient>
           </defs>
-          <path d="M0,120 Q360,200 720,120 T1440,120 L1440,400 L0,400 Z" fill="url(#heroGradient)" />
+          <path d="M0,120 Q360,210 720,120 T1440,120 L1440,400 L0,400 Z" fill="url(#heroGradient)" />
           <path d="M0,200 Q360,300 720,200 T1440,200 L1440,400 L0,400 Z" fill="rgba(255,255,255,0.10)" />
         </svg>
         {/* Floating elements */}
@@ -72,7 +72,7 @@ export default function HeroSection() {
       </div>
 
       {/* Main content */}
-      <div className="container absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 py-8 w-full">
+      <div className="container absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 py-8 mb-36 w-full">
         <h1 className="font-extrabold text-gray-900 mb-6 leading-tight" style={{fontSize: "clamp(2.5rem, 8vw, 4.5rem)", textShadow: "0 2px 10px rgba(0,0,0,0.1)"}}>Welcome to SchoolWay
           !
         </h1>

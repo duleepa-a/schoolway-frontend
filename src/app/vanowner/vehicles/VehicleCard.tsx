@@ -1,8 +1,11 @@
+'use client';
+
 import Link from 'next/link';
-import React from 'react';
-import { PiStarFill,PiSeatFill } from "react-icons/pi";
-import { MdLocalGasStation } from "react-icons/md";
+import Image from 'next/image';
+import React, { useState } from 'react';
+import { PiSeatFill } from "react-icons/pi";
 import { FaTemperatureLow } from "react-icons/fa";
+import AddRoute from './[id]/AddRoute';
 
 
 interface Vehicle {
@@ -24,13 +27,16 @@ interface Vehicle {
 }
 
 const VehicleCard = ({ vehicle }: { vehicle: Vehicle }) => {
+  
+
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
       <div className="relative h-52">
-        <img
+        <Image
           src={vehicle.photoUrl || '/Images/vehicle_placeholder.png'}
           alt={vehicle.makeAndModel}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent"></div>
       </div>
@@ -76,6 +82,8 @@ const VehicleCard = ({ vehicle }: { vehicle: Vehicle }) => {
             View Details
           </button>
         </Link>
+        
+        
       </div>
     </div>
   );

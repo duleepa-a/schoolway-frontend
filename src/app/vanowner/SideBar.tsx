@@ -8,14 +8,16 @@ import { FaChartSimple } from "react-icons/fa6";
 import { TbBriefcase2Filled } from "react-icons/tb";
 import { HiRectangleGroup } from "react-icons/hi2";
 import Image from "next/image";
+import { FaBus } from "react-icons/fa6";
 
 const navItems = [
   { label: 'Dashboard', icon: <HiHome />, href: '/vanowner' },
   { label: 'Students', icon: <FaUser/>, href: '/vanowner/students' },
-  { label: 'Vehicles', icon: <FaChartSimple  />, href: '/vanowner/vehicles' },
+  { label: 'Vehicles', icon: <FaBus />, href: '/vanowner/vehicles' },
   { label: 'Private hires', icon: <HiRectangleGroup/>, href: '/vanowner/private-hires' },
   { label: 'Profile', icon: <FaUserAlt />, href: '/vanowner/profile' },
   { label: 'Revenue', icon: <TbBriefcase2Filled />, href: '/vanowner/revenue' },
+  // { label: 'Private hires', icon: <FaBus />, href: '/vanowner/private-hires' },
 ];
 
 export default function Sidebar() {

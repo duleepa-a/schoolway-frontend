@@ -53,8 +53,6 @@ export async function GET(
           select: {
             id: true,
             makeAndModel: true,
-            routeStart: true,
-            routeEnd: true,
             photoUrl: true,
             salaryPercentage: true,
             shiftDetails: true,
