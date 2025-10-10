@@ -109,11 +109,6 @@ const AddGuardianModal = ({ preselectedSchool, onClose, onSuccess }: AddGuardian
         schoolId: preselectedSchool || ''
       });
       
-      // Call onSuccess after a short delay to show the success message
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
-      
     } catch (error) {
       console.error('Error adding guardian:', error);
       setConfirmationMessage(`Failed to add guardian: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -228,7 +223,10 @@ const AddGuardianModal = ({ preselectedSchool, onClose, onSuccess }: AddGuardian
           title="Success"
           confirmationMessage={confirmationMessage}
           objectName=""
-          onConfirm={() => setShowSuccessConfirmation(false)}
+          onConfirm={() => {
+            setShowSuccessConfirmation(false);
+            onSuccess();
+          }}
           onCancel={() => setShowSuccessConfirmation(false)}
           confirmText="OK"
           cancelText="Close"
