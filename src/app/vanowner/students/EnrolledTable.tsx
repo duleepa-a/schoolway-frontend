@@ -1,7 +1,7 @@
 // components/EnrolledTable.tsx
 'use client';
 import { useEffect, useState } from 'react';
-import { FaSearch, FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown } from 'react-icons/fa';
 import TablePagination from '@/app/components/TablePagination';
 import Image from 'next/image';
 
@@ -17,7 +17,7 @@ type StudentRow = {
 };
 
 const statusColors: Record<string, string> = {
-  Active: 'bg-green-100 text-green-600 border-green-500',
+  Active: 'bg-[var(--green-shade-light)] text-[var(--green-shade-dark)] border-[var(--green-shade-dark)]',
   Inactive: 'bg-gray-100 text-gray-600 border-gray-400',
 };
 
@@ -73,32 +73,25 @@ export default function EnrolledTable() {
 
   return (
     <div className="">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start  mb-4 gap-4">
-        <div className="relative w-full md:w-1/3">
-          <FaSearch className="absolute left-3 top-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search students"
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg"
-          />
-        </div>
-
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start mb-4 gap-4">
+        {/* Van Filter Dropdown */}
         <div className="relative w-full md:w-48">
-          <select className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none" defaultValue="Van 1">
+          <select className="w-full px-4 py-3 bg-white rounded-md text-sm cursor-pointer appearance-none border border-gray-200" defaultValue="Van 1">
             <option disabled>Select Van</option>
             <option>Van 1</option>
           </select>
-          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
+          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer text-gray-400" />
         </div>
 
+        {/* Status Filter Dropdown */}
         <div className="relative w-full md:w-48">
-          <select className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none" defaultValue="Van 1">
+          <select className="w-full px-4 py-3 bg-white rounded-md text-sm cursor-pointer appearance-none border border-gray-200" defaultValue="All">
             <option disabled>Student Status</option>
             <option>All</option>
             <option>Active</option>
             <option>Inactive</option>
           </select>
-          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
+          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer text-gray-400" />
         </div>
 
         <TablePagination totalPages={5} onPageChange={(p) => setPage(p)} currentPage={page} />
@@ -110,7 +103,7 @@ export default function EnrolledTable() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse rounded-md overflow-hidden">
             <thead>
-              <tr className="bg-primary text-white text-left text-sm">
+              <tr style={{background: 'var(--blue-shade-light)'}} className="text-left text-sm">
                 <th className="p-3 font-medium"><input type="checkbox" /></th>
                 <th className="p-3">Full Name</th>
                 <th className="p-3">Grade</th>
@@ -123,31 +116,40 @@ export default function EnrolledTable() {
             </thead>
             <tbody className="text-sm">
               {students.map((s, idx) => (
-                <tr key={s.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-b border-border-light-shade`}>
+                <tr
+                  key={s.id}
+                  className={`transition-colors ${idx === 0 ? 'bg-white' : ''}`}
+                  style={{
+                    background: idx === 0 ? 'white' : undefined,
+                    color: 'black',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--blue-shade-light)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = idx === 0 ? 'white' : '')}
+                >
                   <td className="p-3"><input type="checkbox" /></td>
                   <td className="p-3 flex items-center gap-2">
                     <Image src={s.profilePicture ?? '/Images/male_pro_pic_placeholder.png'} alt={s.name} width={32} height={32} className="rounded-full object-cover" />
-                    <span className="text-gray-800 font-medium">{s.name}</span>
+                    <span className="font-medium" style={{color: 'black'}}>{s.name}</span>
                   </td>
-                  <td className="p-3 text-gray-600">{s.grade}</td>
+                  <td className="p-3" style={{color: 'black'}}>{s.grade}</td>
                   <td className="p-3">
                     <span className={`text-xs px-3 py-1 rounded-full border ${statusColors[s.status] || statusColors.Inactive}`}>{s.status}</span>
                   </td>
-                  <td className="p-3 text-gray-700">{s.van?.name ?? '—'}</td>
-                  <td className="p-3 text-gray-700">{s.contactParent ?? '—'}</td>
-                  <td className="p-3 text-gray-500">{s.joinedDate}</td>
+                  <td className="p-3" style={{color: 'black'}}>{s.van?.name ?? '—'}</td>
+                  <td className="p-3" style={{color: 'black'}}>{s.contactParent ?? '—'}</td>
+                  <td className="p-3" style={{color: 'black'}}>{s.joinedDate}</td>
                   <td className="p-3">
                     {s.status === 'Active' ? (
                       <button
                         onClick={() => handleAction(s.id, 'inactive')}
-                        className="text-white bg-black px-3 py-1 rounded-lg hover:bg-red-700 cursor-pointer items-center"
+                        className="text-white bg-[var(--blue-shade-dark)] px-3 py-1 rounded-lg hover:bg-[var(--green-shade-dark)] cursor-pointer items-center"
                       >
                         Inactive
                       </button>
                     ) : (
                       <button
                         onClick={() => handleAction(s.id, 'remove')}
-                        className="text-white bg-red-500 px-3 py-1 rounded-lg hover:bg-red-700 cursor-pointer items-center"
+                        className="text-white bg-[var(--red-shade-dark)] px-3 py-1 rounded-lg hover:bg-red-700 cursor-pointer items-center"
                       >
                         Remove
                       </button>
