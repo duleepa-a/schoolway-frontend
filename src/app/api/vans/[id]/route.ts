@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = parseInt(params.id);
+  const { id: idString } = await params;
+  const id = parseInt(idString);
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
@@ -15,7 +16,7 @@ export async function GET(
     where: { id },
     include: {
       assistant: true,
-      DriverVanJobRequest: {
+      DriverVanJobRequests: {
         where: {
           status: 'ACCEPTED',
         },
@@ -31,7 +32,7 @@ export async function GET(
   }
 
   // Extract driver info from the first accepted request
-  const driverRequest = van.DriverVanJobRequest[0]; // assuming only one accepted at a time
+  const driverRequest = van.DriverVanJobRequests[0]; // assuming only one accepted at a time
 
   const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
 
@@ -42,9 +43,10 @@ export async function GET(
 }
 
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = Number(params.id);
+    const { id: idString } = await params;
+    const id = Number(idString);
     const data = await req.json();
 
     const updatedVan = await prisma.van.update({

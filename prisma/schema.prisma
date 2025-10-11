@@ -29,10 +29,10 @@ model UserProfile {
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
-  Payment                                                         Payment[]
   PrivateHire                                                     PrivateHire[]
   SchoolGuardian                                                  SchoolGuardian?
   Van                                                             Van[]
+  payments Payment[]
   vanService                                                      VanService?
 }
 
@@ -67,6 +67,34 @@ model DriverProfile {
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
+model Child {
+  id              Int                       @id @default(autoincrement())
+  name            String
+  age             Int
+  profilePicture  String
+  vanID           Int?
+  schoolStartTime String
+  schoolEndTime   String
+  qrCode          String                    @unique
+  pickupLat       Decimal
+  pickupLng       Decimal
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  schoolID        Int
+  grade           Int
+  feeAmount     Float                 @default(0)
+  pickupLocation  Unsupported("geography")?
+  specialNotes    String?
+  parentId        String?
+  status          ChildStatus               @default(NOT_ASSIGNED)
+  pickupAddress   String                    @default("Not Specified")
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
+  School          School                    @relation(fields: [schoolID], references: [id])
+  Van             Van?                      @relation(fields: [vanID], references: [id])
+  VanRequest      VanRequest?
+  payments Payment[]
+}
+
 model Van {
   id                      Int                   @id @default(autoincrement())
   registrationNumber      String                @unique
@@ -93,13 +121,36 @@ model Van {
   endTime                 DateTime?
   startTime               DateTime?
   assistant               Assistant?
-  Child                   Child[]
-  DriverVanJobRequest     DriverVanJobRequest[]
-  Payment                 Payment[]
-  PrivateHire             PrivateHire[]
-  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
-  Path                    Path?                 @relation(fields: [pathId], references: [id])
-  VanRequest              VanRequest[]
+  children                Child[]
+  DriverVanJobRequests    DriverVanJobRequest[]
+  owner                   UserProfile           @relation(fields: [ownerId], references: [id])
+  path                    Path?                 @relation(fields: [pathId], references: [id])
+}
+
+model Path {
+  id                String                  @id
+  routeStart        Unsupported("geometry")
+  routeEnd          Unsupported("geometry")
+  routeGeometry     Unsupported("geometry")
+  boundingBox       Unsupported("geometry")
+  totalDistance     Float
+  estimatedDuration Int
+  van               Van[]
+  waypoints         WayPoint[]
+}
+
+model WayPoint {
+  id        Int                     @id @default(autoincrement())
+  pathId    String
+  name      String
+  placeId   String?
+  latitude  Float
+  longitude Float
+  location  Unsupported("geometry")
+  order     Int
+  isStop    Boolean
+  createdAt DateTime                @default(now())
+  path      Path                    @relation(fields: [pathId], references: [id])
 }
 
 model Assistant {
@@ -110,6 +161,26 @@ model Assistant {
   vanId      Int?    @unique
   profilePic String?
   van        Van?    @relation(fields: [vanId], references: [id])
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  child     Child    @relation(fields: [childId], references: [id])
+  childId   Int
+  parentId  String     
+  vanId     Int     
+  van       Van @relation(fields: [vanId], references: [id])
+  amount    Float
+  month     String
+  status     PaymentStatus @default(PENDING)
+  paidAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  paymentType PaymentType @default(SCHOOL_VAN)
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
+
+
+  @@unique([childId, month])
 }
 
 model School {
@@ -165,12 +236,12 @@ model SchoolGuardian {
   firstName   String
   lastName    String
   phone       String?
-  updatedAt   DateTime?
+  updatedAt   DateTime?   @updatedAt
   UserProfile UserProfile @relation(fields: [guardianId], references: [id])
-  School      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  @@index([email])
   @@index([schoolId])
+  @@index([email])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -200,14 +271,10 @@ model Child {
   pickupLocation  Unsupported("geography")?
   specialNotes    String?
   parentId        String?
-  pickupAddress   String                    @default("Not Specified")
-  status          ChildStatus               @default(NOT_ASSIGNED)
-  feeAmount       Float                     @default(0)
+  status          String                    @default("not assigned")
   UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
-  Payment         Payment[]
-  VanRequest      VanRequest?
 }
 
 model Gate {
@@ -224,85 +291,6 @@ model Gate {
 
   @@index([isActive])
   @@index([schoolId])
-}
-
-model Path {
-  id                String                  @id
-  routeStart        Unsupported("geometry")
-  routeEnd          Unsupported("geometry")
-  routeGeometry     Unsupported("geometry")
-  boundingBox       Unsupported("geometry")
-  totalDistance     Float
-  estimatedDuration Int
-  Van               Van[]
-  WayPoint          WayPoint[]
-}
-
-model PrivateHire {
-  id                 String      @id
-  userId             String
-  vanId              Int
-  pickupLat          Float
-  pickupLng          Float
-  pickupAddress      String
-  destinationLat     Float
-  destinationLng     Float
-  destinationAddress String
-  departureDate      DateTime
-  returnDate         DateTime?
-  noOfPassengers     Int
-  fare               Float
-  notes              String?
-  status             HireStatus  @default(PENDING)
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime
-  UserProfile        UserProfile @relation(fields: [userId], references: [id])
-  Van                Van         @relation(fields: [vanId], references: [id])
-}
-
-model VanRequest {
-  id            String        @id
-  vanId         Int
-  childId       Int           @unique
-  status        RequestStatus @default(PENDING)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime
-  estimatedFare Float         @default(0)
-  Child         Child         @relation(fields: [childId], references: [id])
-  Van           Van           @relation(fields: [vanId], references: [id])
-}
-
-model WayPoint {
-  id        Int                     @id @default(autoincrement())
-  pathId    String
-  name      String
-  placeId   String?
-  latitude  Float
-  longitude Float
-  location  Unsupported("geometry")
-  order     Int
-  isStop    Boolean
-  createdAt DateTime                @default(now())
-  Path      Path                    @relation(fields: [pathId], references: [id])
-}
-
-model Payment {
-  id          Int           @id @default(autoincrement())
-  childId     Int
-  parentId    String
-  vanId       Int
-  amount      Float
-  month       String
-  status      PaymentStatus @default(PENDING)
-  paidAt      DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime
-  paymentType PaymentType   @default(SCHOOL_VAN)
-  Child       Child         @relation(fields: [childId], references: [id])
-  UserProfile UserProfile   @relation(fields: [parentId], references: [id])
-  Van         Van           @relation(fields: [vanId], references: [id])
-
-  @@unique([childId, month])
 }
 
 enum UserRole {
@@ -333,11 +321,10 @@ enum HireStatus {
   COMPLETED
 }
 
-enum RequestStatus {
+enum PaymentStatus {
   PENDING
-  ACCEPTED
-  REJECTED
-  CANCELLED
+  FAILED
+  PAID
 }
 
 enum ChildStatus {
@@ -346,12 +333,6 @@ enum ChildStatus {
   AT_HOME
   AT_SCHOOL
   ON_VAN
-}
-
-enum PaymentStatus {
-  PENDING
-  FAILED
-  PAID
 }
 
 enum PaymentType {

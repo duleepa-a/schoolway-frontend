@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const updated = await prisma.van.update({
       where: { id: vanID },
       data: {
-        status: 1, // Assuming 1 represents approval
+        status: 1, // 1 = approved 
       },
     });
 

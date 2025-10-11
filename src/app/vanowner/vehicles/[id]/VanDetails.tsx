@@ -3,10 +3,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
-import { GoogleMap, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, DirectionsRenderer } from '@react-google-maps/api';
+import { loadGoogleMapsAPI } from '@/lib/googleMapsLoader';
 import { useEffect, useState } from 'react';
 import { Edit2 } from 'lucide-react';
 import FormInput from '@/app/components/FormInput';
+import AddRoute from './AddRoute';
 
 interface Assistant {
   name: string;
@@ -41,7 +43,7 @@ interface Van {
   salaryPercentage: number;
   hasDriver: boolean;
   hasAssistant: boolean;
-  isApproved: boolean;
+  status : number;
   assistant?: Assistant | null;
   driver?: Driver | null;
 }
@@ -57,29 +59,26 @@ interface FormData {
 }
 
 const VanDetails = ({ van }: { van: Van }) => {
+  // Handler for opening Add Route modal
+  const handleAddRouteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAddRoute(true);
+  };
 
+  // Handler for closing Add Route modal
+  const handleCloseAddRoute = () => {
+    setShowAddRoute(false);
+  };
+
+  // Removed duplicate useState declarations for localVan and showAddRoute
+
+
+
+
+  // Move all hooks to the top level
   const [localVan, setLocalVan] = useState<Van>(van);
-
-  useEffect(() => {
-    setLocalVan(van);
-  }, [van]);
-
-  const schools = [
-    'Good Shephard Convent - Watthala',
-    "St. Lucia's Collage",
-    "St. Benedict's Primary School",
-    "St. Benedict's Upper School",
-    'Good Shephard Convent - Kotahena',
-    "Roman Catholic's Girl's School - Kotahena",
-  ];
-
-  const students = [
-    { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
-    { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
-    { name: 'Ayanga Wethmini', time: '1:30 PM', image: '/Images/male_pro_pic_placeholder.png' },
-  ];
-
-
+  const [showAddRoute, setShowAddRoute] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     makeAndModel: van.makeAndModel,
@@ -146,15 +145,25 @@ const VanDetails = ({ van }: { van: Van }) => {
     setIsModalOpen(false);
   };
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
-  });
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadMaps = async () => {
+      try {
+        await loadGoogleMapsAPI();
+        setIsGoogleMapsLoaded(true);
+      } catch (error) {
+        console.error('Failed to load Google Maps API:', error);
+      }
+    };
+    
+    loadMaps();
+  }, []);
 
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   useEffect(() => {
-    if (isLoaded && van.routeStart && van.routeEnd) {
+    if (isGoogleMapsLoaded && van.routeStart && van.routeEnd) {
       const directionsService = new google.maps.DirectionsService();
 
       directionsService.route(
@@ -172,7 +181,7 @@ const VanDetails = ({ van }: { van: Van }) => {
         }
       );
     }
-  }, [isLoaded, van.routeStart, van.routeEnd]);
+  }, [isGoogleMapsLoaded, van.routeStart, van.routeEnd]);
 
   // Assistant Add Logic
 
@@ -250,6 +259,27 @@ const VanDetails = ({ van }: { van: Van }) => {
   };
 
 
+  if (showAddRoute) {
+    return (
+      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h2 className="text-xl font-semibold">Add Route for {van.makeAndModel}</h2>
+            <button 
+              onClick={handleCloseAddRoute}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-4">
+            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isLoaded} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Van Details */}
@@ -257,7 +287,7 @@ const VanDetails = ({ van }: { van: Van }) => {
           <h2 className="text-lg font-semibold mb-4">{localVan.makeAndModel}</h2>
         <div className="rounded-xl border-border-bold-shade border p-4 mb-4 flex">
           <div>
-            <img
+            <Image
               src={localVan.photoUrl || '/Images/vehicle_placeholder.png'}
               alt="Van"
               width={250}
@@ -285,35 +315,19 @@ const VanDetails = ({ van }: { van: Van }) => {
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-2 text-gray-900">Schools</h3>
+          <h3 className="text-lg font-semibold mb-2 text-gray-900">Actions</h3>
           <div className="relative">
-            <div className="absolute left-1.5 top-2 bottom-2 w-0.5 bg-gray-300"></div>
-              <ul className="space-y-3">
-                {schools.map((school, idx) => (
-                  <li key={idx} className="flex items-start relative">
-                    <div className="relative z-10 flex-shrink-0 mt-1">
-                      {idx === 3 ? (
-                        <div className="w-3 h-3 rounded-full border-2 border-yellow-500 bg-white"></div>
-                      ) : (
-                        <div className={`w-3 h-3 rounded-full ${
-                          idx < 4 ? 'bg-yellow-500' : 'bg-gray-400'
-                        }`}></div>
-                      )}
-                    </div>
-                    
-                    <span className="ml-4 text-sm text-gray-600 leading-relaxed">
-                      {school}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul>
+              <li>Change Driver</li>
+            </ul>
+            
           </div>
+        </div>
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-              {(van.isApproved) && <>
+              {(van.status == 1) && <>
                 { van.hasDriver ?
                 <>
                   <h2 className="text-base font-semibold mb-4">Driver</h2>
@@ -354,7 +368,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </div>
                   <div className='flex items-center justify-center'> 
                     <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
-                      <button className="btn-small-primary px-10">Find a Driver</button>
+                      <button className="btn-secondary px-14 py-3 rounded-2xl">Find a Driver</button>
                     </Link>
                   </div>
                 </div>
@@ -391,26 +405,41 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </>
                 :
 
-                <div className="my-3 grid  grid-cols-2">
-                  <div>
-                    <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
-                    <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
-                  </div>
-                  <div className='flex items-center justify-center'> 
-                      <button className="btn-small-primary font-bold"
-                        onClick={() => setIsAssistantModalOpen(true)}
-                      >
-                        Assign an Assistant
-                      </button>
-                  </div>
+                <><div className="my-3 grid  grid-cols-2">
+                <div>
+                  <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
+                  <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
                 </div>
+                <div className='flex items-center justify-center'>
+                  <button className="btn-secondary px-8 py-3 rounded-2xl"
+                    onClick={() => setIsAssistantModalOpen(true)}
+                  >
+                    Assign an Assistant
+                  </button>
+                </div>
+              </div><div className="my-3 grid  grid-cols-2">
+                  <div>
+                    <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please create a route for this van</p>
+                  </div>
+                  <div className='flex items-center justify-center'>
+                    <button
+                      onClick={handleAddRouteClick}
+                      className="btn-secondary px-8 py-3 rounded-2xl"
+                    >
+                      Add route
+                    </button>
+                  </div>
+                </div></>
+
+
 
                 } 
                   
               </> 
               } 
 
-            {!van.isApproved && (
+            {!van.status && (
                 <div className=" my-12">
                   <h2 className="text-base font-semibold mb-4">Van Not Approved</h2>
                   <p className="text-sm text-gray-500 mb-4">Please wait for the approval of your van.</p>
@@ -420,7 +449,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-lg col-span-2">
               <h2 className="text-base font-semibold mb-4">Current Route</h2>
-              {isLoaded && (
+              {isGoogleMapsLoaded && (
                     <GoogleMap
                       mapContainerStyle={{ width: '100%', height: '300px' }}
                       center={{ lat: 7.8731, lng: 80.7718 }}
@@ -429,7 +458,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                       {directions && <DirectionsRenderer directions={directions} />}
                     </GoogleMap>
                 )}
-              {!isLoaded && <p>Loading map...</p>}
+              {!isGoogleMapsLoaded && <p>Loading map...</p>}
             </div>
       </div>
 
@@ -440,7 +469,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             <h2 className="text-lg font-semibold mb-4">Edit Van Details</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <FormInput
+                {/* <FormInput
                   type="text"
                   name="makeAndModel"
                   label='Van Model'
@@ -448,7 +477,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                   onChange={handleChange}
                   placeholder="Enter van model"
                   error={errors.makeAndModel}
-                />
+                /> */}
               </div>
 
               <div>
@@ -573,6 +602,24 @@ const VanDetails = ({ van }: { van: Van }) => {
               </div>
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {/* Add Route Modal */}
+      {isRouteModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[95%] max-w-5xl shadow-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Add New Route</h2>
+              <button
+                onClick={() => setIsRouteModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <AddRoute />
           </div>
         </div>
       )}

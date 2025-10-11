@@ -27,17 +27,17 @@ const AdminDashboard = () => {
           <AwarenessPost
             title="School Safety Awareness"
             content="Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!"
-            imageUrl={sessiomImg}
+            imageUrl={sessiomImg.src}
           />
           <AwarenessPost
             title="School Safety Awareness"
             content="Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!"
-            imageUrl={sessiomImg}
+            imageUrl={sessiomImg.src}
           />
           <AwarenessPost
             title="School Safety Awareness"
             content="Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!"
-            imageUrl={sessiomImg}
+            imageUrl={sessiomImg.src}
           />
         </div>
 

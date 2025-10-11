@@ -5,21 +5,14 @@ import { sendEmail } from "@/lib/email";
 export async function POST(req: NextRequest) {
   try {
     const { vanID, reason } = await req.json();
-    console.log(
-      "vanID:ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-      vanID
-    );
 
     const updated = await prisma.van.update({
       where: { id: vanID },
       data: {
-        status: 0, // Assuming 0 represents rejection
+        status: 0, // 0 = rejected
       },
     });
-    console.log(
-      "updateeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeed",
-      updated
-    );
+  
     // Fetch user profile to get email and first name
     const user = await prisma.van.findUnique({
       where: { id: vanID },
@@ -32,11 +25,6 @@ export async function POST(req: NextRequest) {
         },
       },
     });
-    console.log(
-      "userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
-      user
-    );
-
     // Send rejection email
     await sendEmail({
       to: user.UserProfile.email,

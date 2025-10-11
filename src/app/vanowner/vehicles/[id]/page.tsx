@@ -3,9 +3,9 @@ import TopBar from '@/app/dashboardComponents/TopBar';
 import { notFound } from 'next/navigation';
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function VanDetailsPage({ params }: Props) {
