@@ -460,7 +460,7 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                 onClose={handleCloseModal}
                 onConfirm={handleConfirmJobOffer}
                 driverName={driver?.name || ''}
-                vanModel={vanMakeAndModel}
+                vanModel={vanMakeAndModel || ''}
                 isLoading={requestLoading}
             />
         </div>

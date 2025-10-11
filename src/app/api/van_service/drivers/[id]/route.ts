@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -61,7 +61,7 @@ export async function GET(
       id: driver.user.id,
       name: fullName || 'No name provided',
       profilePic: driver.user.dp || '/Images/male_pro_pic_placeholder.png',
-      city: driver.user.city || 'City not provided',
+      city: 'City not provided', // city field doesn't exist in UserProfile
       district: driver.user.district || 'District not provided',
       contactNumber: driver.user.mobile || 'Contact not provided',
       nic: driver.user.nic || 'NIC not provided',

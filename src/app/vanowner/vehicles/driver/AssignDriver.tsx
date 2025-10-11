@@ -135,7 +135,7 @@ const AssignDriver = () => {
                     <button
                         onClick={() => fetchDrivers()}
                         disabled={loading}
-                        className="px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium transition-colors flex items-center gap-1.5 shadow-sm"
+                        className=" btn-primary px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium transition-colors flex items-center gap-1.5 shadow-sm"
                     >
                         {loading ? (
                             <>
@@ -155,21 +155,21 @@ const AssignDriver = () => {
             </div>
 
             {/* Available Drivers */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
+                <div className="flex justify-between items-center mb-6 border-b border-blue-shade-light/30 pb-4">
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-900">
+                        <h2 className="text-xl font-semibold text-swblue">
                             Available Drivers
-                            <span className="ml-2 text-primary font-bold">{pagination.totalCount}</span>
+                            <span className="ml-2 text-blue-shade-dark font-bold">{pagination.totalCount}</span>
                         </h2>
                         {!loading && availableDrivers.length > 0 && (
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-blue-shade-dark/70 mt-1">
                                 Showing <span className="font-medium">{((pagination.currentPage - 1) * pagination.limit) + 1}</span> to <span className="font-medium">{Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)}</span> of <span className="font-medium">{pagination.totalCount}</span> drivers
                             </p>
                         )}
                     </div>
                     <div className="hidden md:block">
-                        <span className="inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">
+                        <span className="inline-flex items-center bg-blue-shade-light/10 text-blue-shade-dark px-3 py-1 rounded-full text-xs font-medium">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -212,9 +212,9 @@ const AssignDriver = () => {
                 {!loading && !error && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                         {availableDrivers.map((driver) => (
-                            <div key={driver.id} className="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-shadow bg-white relative overflow-hidden">
+                            <div key={driver.id} className="rounded-xl p-5 shadow-card transition-shadow bg-white relative overflow-hidden">
                                 {/* Decorative element */}
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full"></div>
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-shade-light/10 rounded-bl-full"></div>
                                 
                                 <div className="flex items-center space-x-4 mb-4">
                                     <div className="relative">
@@ -223,14 +223,14 @@ const AssignDriver = () => {
                                             alt={driver.name}
                                             width={60}
                                             height={60}
-                                            className="rounded-full ring-2 ring-primary/20 object-cover"
+                                            className="rounded-full ring-2 ring-blue-shade-light/30 object-cover"
                                         />
-                                        <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full ring-2 ring-white"></span>
+                                        <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-shade-light rounded-full ring-2 ring-white"></span>
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-semibold text-base">{driver.name}</h3>
+                                        <h3 className="font-semibold text-base text-swblue">{driver.name}</h3>
                                         <div className="flex items-center text-xs mt-1">
-                                            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                            <span className="bg-blue-shade-light/10 text-blue-shade-dark px-2 py-0.5 rounded-full">
                                                 {driver.experience} exp
                                             </span>
                                         </div>
@@ -240,42 +240,31 @@ const AssignDriver = () => {
                                 <div className="mb-4 space-y-2">
                                     <div className="flex items-center space-x-1">
                                         {renderStars(driver.rating)}
-                                        <span className="text-xs text-gray-600 ml-1 font-medium">
+                                        <span className="text-xs text-blue-shade-dark ml-1 font-medium">
                                             {driver.rating.toFixed(1)}/5 {driver.ratingCount > 0 && `• ${driver.ratingCount} reviews`}
                                         </span>
                                     </div>
                                     
                                     <div className="grid grid-cols-2 gap-2 text-sm mt-2">
                                         <div className="flex items-center gap-1.5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-shade-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
-                                            <span className="text-xs text-gray-700">{driver.district}</span>
+                                            <span className="text-xs text-blue-shade-dark">{driver.district}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex space-x-2 mt-4">
                                     <button
-                                        className="flex-1 bg-primary text-white py-2.5 px-3 rounded-lg hover:bg-primary/90 transition-all font-medium text-xs flex items-center justify-center gap-1 shadow-sm"
+                                        className="flex-1 btn-primary text-xs py-2 px-2 rounded-lg min-w-[90px]"
                                         onClick={() => handleAssignDriver(driver.id, driver.name)}
                                     >
-                                        {/* {vanId ? 'Request for Van' : 'Request Driver'}
-                                    </button>
-                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`}>
-                                        <button className="flex-1 border border-primary text-primary text-xs py-2 px-3 rounded-lg hover:bg-primary/10 transition-colors"> */}
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
                                         Request Driver
                                     </button>
-                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`}>
-                                        <button className="flex-1 border border-primary text-primary py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-all font-medium text-xs flex items-center justify-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
+                                    <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`} className="flex-1">
+                                        <button className="btn-secondary text-xs py-2 px-2 rounded-lg min-w-[90px] w-full">
                                             View Details
                                         </button>
                                     </Link>

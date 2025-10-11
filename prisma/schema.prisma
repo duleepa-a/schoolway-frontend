@@ -25,11 +25,14 @@ model UserProfile {
   nic_pic                                                         String?
   district                                                        String?
   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  Child                                                           Child[]
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
-  SchoolGuardian                                                  SchoolGuardian[]
+  PrivateHire                                                     PrivateHire[]
+  SchoolGuardian                                                  SchoolGuardian?
   Van                                                             Van[]
+  payments Payment[]
   vanService                                                      VanService?
 }
 
@@ -64,6 +67,34 @@ model DriverProfile {
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
+model Child {
+  id              Int                       @id @default(autoincrement())
+  name            String
+  age             Int
+  profilePicture  String
+  vanID           Int?
+  schoolStartTime String
+  schoolEndTime   String
+  qrCode          String                    @unique
+  pickupLat       Decimal
+  pickupLng       Decimal
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  schoolID        Int
+  grade           Int
+  feeAmount     Float                 @default(0)
+  pickupLocation  Unsupported("geography")?
+  specialNotes    String?
+  parentId        String?
+  status          ChildStatus               @default(NOT_ASSIGNED)
+  pickupAddress   String                    @default("Not Specified")
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
+  School          School                    @relation(fields: [schoolID], references: [id])
+  Van             Van?                      @relation(fields: [vanID], references: [id])
+  VanRequest      VanRequest?
+  payments Payment[]
+}
+
 model Van {
   id                      Int                   @id @default(autoincrement())
   registrationNumber      String                @unique
@@ -71,8 +102,6 @@ model Van {
   makeAndModel            String
   seatingCapacity         Int
   acCondition             Boolean
-  routeStart              String?
-  routeEnd                String?
   rBookUrl                String
   revenueLicenseUrl       String
   fitnessCertificateUrl   String
@@ -81,18 +110,47 @@ model Van {
   createdAt               DateTime              @default(now())
   ownerId                 String
   hasDriver               Boolean               @default(false)
-  isApproved              Boolean               @default(false)
   assignedDriverId        String?
   salaryPercentage        Float?                @default(25.0)
   shiftDetails            String?
-  endTime                 String?
   privateRating           Float                 @default(0)
-  startTime               String?
   studentRating           Float                 @default(0)
   hasAssistant            Boolean               @default(false)
+  status                  Int                   @default(2)
+  pathId                  String?
+  endTime                 DateTime?
+  startTime               DateTime?
   assistant               Assistant?
-  DriverVanJobRequest     DriverVanJobRequest[]
-  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
+  children                Child[]
+  DriverVanJobRequests    DriverVanJobRequest[]
+  owner                   UserProfile           @relation(fields: [ownerId], references: [id])
+  path                    Path?                 @relation(fields: [pathId], references: [id])
+}
+
+model Path {
+  id                String                  @id
+  routeStart        Unsupported("geometry")
+  routeEnd          Unsupported("geometry")
+  routeGeometry     Unsupported("geometry")
+  boundingBox       Unsupported("geometry")
+  totalDistance     Float
+  estimatedDuration Int
+  van               Van[]
+  waypoints         WayPoint[]
+}
+
+model WayPoint {
+  id        Int                     @id @default(autoincrement())
+  pathId    String
+  name      String
+  placeId   String?
+  latitude  Float
+  longitude Float
+  location  Unsupported("geometry")
+  order     Int
+  isStop    Boolean
+  createdAt DateTime                @default(now())
+  path      Path                    @relation(fields: [pathId], references: [id])
 }
 
 model Assistant {
@@ -105,13 +163,35 @@ model Assistant {
   van        Van?    @relation(fields: [vanId], references: [id])
 }
 
+model Payment {
+  id        Int      @id @default(autoincrement())
+  child     Child    @relation(fields: [childId], references: [id])
+  childId   Int
+  parentId  String     
+  vanId     Int     
+  van       Van @relation(fields: [vanId], references: [id])
+  amount    Float
+  month     String
+  status     PaymentStatus @default(PENDING)
+  paidAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  paymentType PaymentType @default(SCHOOL_VAN)
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
+
+
+  @@unique([childId, month])
+}
+
 model School {
-  id             Int                      @id @default(autoincrement())
+  id             Int              @id @default(autoincrement())
   schoolName     String
-  email          String                   @unique
+  email          String           @unique
   contact        String
   address        String
-  location       Unsupported("geometry")?
+  createdAt      DateTime         @default(now())
+  Child          Child[]
+  Gate           Gate[]
   SchoolGuardian SchoolGuardian[]
 }
 
@@ -127,7 +207,7 @@ model ContactUs {
 }
 
 model DriverVanJobRequest {
-  id                                                      String   @id @default(cuid())
+  id                                                      String           @id @default(cuid())
   driverId                                                String
   vanId                                                   Int
   vanOwnerId                                              String
@@ -138,7 +218,7 @@ model DriverVanJobRequest {
   responseMessage                                         String?
   respondedAt                                             DateTime?
   createdAt                                               DateTime         @default(now())
-  updatedAt                                               DateTime      @default(now())
+  updatedAt                                               DateTime         @default(now())
   expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
   UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
   Van                                                     Van              @relation(fields: [vanId], references: [id])
@@ -150,9 +230,18 @@ model DriverVanJobRequest {
 model SchoolGuardian {
   id          Int         @id @default(autoincrement())
   schoolId    Int
-  guardianId  String
+  guardianId  String      @unique
+  createdAt   DateTime    @default(now())
+  email       String      @unique
+  firstName   String
+  lastName    String
+  phone       String?
+  updatedAt   DateTime?   @updatedAt
   UserProfile UserProfile @relation(fields: [guardianId], references: [id])
-  School      School      @relation(fields: [schoolId], references: [id])
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+  @@index([email])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -162,6 +251,46 @@ model spatial_ref_sys {
   auth_srid Int?
   srtext    String? @db.VarChar(2048)
   proj4text String? @db.VarChar(2048)
+}
+
+model Child {
+  id              Int                       @id @default(autoincrement())
+  name            String
+  age             Int
+  profilePicture  String
+  vanID           Int?
+  schoolStartTime String
+  schoolEndTime   String
+  qrCode          String                    @unique
+  pickupLat       Decimal
+  pickupLng       Decimal
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime
+  schoolID        Int
+  grade           Int
+  pickupLocation  Unsupported("geography")?
+  specialNotes    String?
+  parentId        String?
+  status          String                    @default("not assigned")
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
+  School          School                    @relation(fields: [schoolID], references: [id])
+  Van             Van?                      @relation(fields: [vanID], references: [id])
+}
+
+model Gate {
+  id          Int                      @id @default(autoincrement())
+  gateName    String
+  description String?
+  location    Unsupported("geometry")?
+  placeName   String?
+  address     String?
+  isActive    Boolean                  @default(true)
+  schoolId    Int
+  createdAt   DateTime                 @default(now())
+  School      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+  @@index([schoolId])
 }
 
 enum UserRole {
@@ -182,4 +311,31 @@ enum JobRequestStatus {
 
 enum JobRequestType {
   VAN_OWNER_TO_DRIVER
+}
+
+enum HireStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  FAILED
+  PAID
+}
+
+enum ChildStatus {
+  NOT_ASSIGNED
+  INACTIVE
+  AT_HOME
+  AT_SCHOOL
+  ON_VAN
+}
+
+enum PaymentType {
+  SCHOOL_VAN
+  PRIVATE_HIRE
 }

@@ -1,0 +1,1771 @@
+Index: src/app/api/vans/[id]/route.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { NextRequest, NextResponse } from 'next/server';\r\nimport prisma from '@/lib/prisma';\r\n\r\nexport async function GET(\r\n  req: NextRequest,\r\n  { params }: { params: { id: string } }\r\n) {\r\n  const id = parseInt(params.id);\r\n\r\n  if (isNaN(id)) {\r\n    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });\r\n  }\r\n\r\n  const van = await prisma.van.findUnique({\r\n    where: { id },\r\n    include: {\r\n      assistant: true,\r\n      DriverVanJobRequest: {\r\n        where: {\r\n          status: 'ACCEPTED',\r\n        },\r\n        include: {\r\n          UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,\r\n        },\r\n      },\r\n    },\r\n  });\r\n\r\n  if (!van) {\r\n    return NextResponse.json({ error: 'Van not found' }, { status: 404 });\r\n  }\r\n\r\n  // Extract driver info from the first accepted request\r\n  const driverRequest = van.DriverVanJobRequest[0]; // assuming only one accepted at a time\r\n\r\n  const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;\r\n\r\n  return NextResponse.json({\r\n    ...van,\r\n    driver, \r\n  });\r\n}\r\n\r\n\r\nexport async function PUT(req: NextRequest, { params }: { params: { id: string } }) {\r\n  try {\r\n    const id = Number(params.id);\r\n    const data = await req.json();\r\n\r\n    const updatedVan = await prisma.van.update({\r\n      where: { id },\r\n      data: {\r\n        makeAndModel: data.makeAndModel,\r\n        seatingCapacity: data.seatingCapacity,\r\n        studentRating: data.studentRating,\r\n        privateRating: data.privateRating,\r\n        salaryPercentage: data.salaryPercentage,\r\n      },\r\n    });\r\n\r\n    return NextResponse.json(updatedVan, { status: 200 });\r\n  } catch (error) {\r\n    console.error('Update error:', error);\r\n    return NextResponse.json({ message: 'Update failed' }, { status: 500 });\r\n  }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/app/api/vans/[id]/route.ts b/src/app/api/vans/[id]/route.ts
+--- a/src/app/api/vans/[id]/route.ts	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/api/vans/[id]/route.ts	(date 1757229539442)
+@@ -3,9 +3,10 @@
+ 
+ export async function GET(
+   req: NextRequest,
+-  { params }: { params: { id: string } }
++  { params }: { params: Promise<{ id: string }> }
+ ) {
+-  const id = parseInt(params.id);
++  const resolvedParams = await params;
++  const id = parseInt(resolvedParams.id);
+ 
+   if (isNaN(id)) {
+     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+@@ -42,9 +43,10 @@
+ }
+ 
+ 
+-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
++export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+   try {
+-    const id = Number(params.id);
++    const resolvedParams = await params;
++    const id = Number(resolvedParams.id);
+     const data = await req.json();
+ 
+     const updatedVan = await prisma.van.update({
+Index: prisma/schema.prisma
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>generator client {\r\n  provider = \"prisma-client-js\"\r\n  output   = \"../src/generated/prisma\"\r\n}\r\n\r\ndatasource db {\r\n  provider = \"postgresql\"\r\n  url      = env(\"DATABASE_URL\")\r\n}\r\n\r\nmodel UserProfile {\r\n  id                                                              String                @id @default(cuid())\r\n  email                                                           String                @unique\r\n  firstname                                                       String?\r\n  createdAt                                                       DateTime              @default(now())\r\n  updatedAt                                                       DateTime              @updatedAt\r\n  lastname                                                        String?\r\n  role                                                            UserRole?\r\n  password                                                        String\r\n  activeStatus                                                    Boolean               @default(true)\r\n  address                                                         String?\r\n  birthDate                                                       DateTime?\r\n  mobile                                                          String?\r\n  nic                                                             String?\r\n  nic_pic                                                         String?\r\n  district                                                        String?\r\n  dp                                                              String?               @default(\"/Images/male_pro_pic_placeholder.png\")\r\n  driverProfile                                                   DriverProfile?\r\n  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation(\"DriverVanJobRequest_driverIdToUserProfile\")\r\n  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation(\"DriverVanJobRequest_vanOwnerIdToUserProfile\")\r\n  SchoolGuardian                                                  SchoolGuardian[]\r\n  Van                                                             Van[]\r\n  vanService                                                      VanService?\r\n}\r\n\r\nmodel VanService {\r\n  id               String      @id @default(cuid())\r\n  serviceName      String\r\n  contactNo        String\r\n  serviceRegNumber String\r\n  businessDocument String?\r\n  userId           String      @unique\r\n  user             UserProfile @relation(fields: [userId], references: [id])\r\n}\r\n\r\nmodel DriverProfile {\r\n  id             String      @id @default(cuid())\r\n  licenseId      String\r\n  licenseExpiry  DateTime\r\n  licenseFront   String?\r\n  licenseBack    String?\r\n  policeReport   String?\r\n  userId         String      @unique\r\n  rating         Float       @default(0)\r\n  ratingCount    Int         @default(0)\r\n  startedDriving DateTime?   @default(now())\r\n  status         Int         @default(2)\r\n  bio            String?\r\n  languages      String[]\r\n  licenseType    String[]\r\n  medicalReport  String?\r\n  relocate       Boolean     @default(false)\r\n  hasVan         Int         @default(0)\r\n  user           UserProfile @relation(fields: [userId], references: [id])\r\n}\r\n\r\nmodel Van {\r\n  id                      Int                   @id @default(autoincrement())\r\n  registrationNumber      String                @unique\r\n  licensePlateNumber      String\r\n  makeAndModel            String\r\n  seatingCapacity         Int\r\n  acCondition             Boolean\r\n  routeStart              String?\r\n  routeEnd                String?\r\n  rBookUrl                String\r\n  revenueLicenseUrl       String\r\n  fitnessCertificateUrl   String\r\n  insuranceCertificateUrl String\r\n  photoUrl                String\r\n  createdAt               DateTime              @default(now())\r\n  ownerId                 String\r\n  hasDriver               Boolean               @default(false)\r\n  isApproved              Boolean               @default(false)\r\n  assignedDriverId        String?\r\n  salaryPercentage        Float?                @default(25.0)\r\n  shiftDetails            String?\r\n  endTime                 String?\r\n  privateRating           Float                 @default(0)\r\n  startTime               String?\r\n  studentRating           Float                 @default(0)\r\n  hasAssistant            Boolean               @default(false)\r\n  assistant               Assistant?\r\n  DriverVanJobRequest     DriverVanJobRequest[]\r\n  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])\r\n}\r\n\r\nmodel Assistant {\r\n  id         String  @id @default(uuid())\r\n  name       String\r\n  contact    String\r\n  nic        String\r\n  vanId      Int?    @unique\r\n  profilePic String?\r\n  van        Van?    @relation(fields: [vanId], references: [id])\r\n}\r\n\r\nmodel School {\r\n  id             Int                      @id @default(autoincrement())\r\n  schoolName     String\r\n  email          String                   @unique\r\n  contact        String\r\n  address        String\r\n  location       Unsupported(\"geometry\")?\r\n  SchoolGuardian SchoolGuardian[]\r\n}\r\n\r\nmodel ContactUs {\r\n  id        Int      @id @default(autoincrement())\r\n  name      String\r\n  email     String\r\n  subject   String\r\n  message   String\r\n  userType  String\r\n  status    String   @default(\"Pending\")\r\n  createdAt DateTime @default(now())\r\n}\r\n\r\nmodel DriverVanJobRequest {\r\n  id                                                      String   @id @default(cuid())\r\n  driverId                                                String\r\n  vanId                                                   Int\r\n  vanOwnerId                                              String\r\n  status                                                  JobRequestStatus @default(PENDING)\r\n  message                                                 String?\r\n  proposedSalary                                          Float?\r\n  turn                                                    String?\r\n  responseMessage                                         String?\r\n  respondedAt                                             DateTime?\r\n  createdAt                                               DateTime         @default(now())\r\n  updatedAt                                               DateTime      @default(now())\r\n  expiresAt                                               DateTime?        @default(dbgenerated(\"(now() + '21 days'::interval)\"))\r\n  UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation(\"DriverVanJobRequest_driverIdToUserProfile\", fields: [driverId], references: [id])\r\n  Van                                                     Van              @relation(fields: [vanId], references: [id])\r\n  UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation(\"DriverVanJobRequest_vanOwnerIdToUserProfile\", fields: [vanOwnerId], references: [id])\r\n\r\n  @@unique([driverId, vanOwnerId, vanId])\r\n}\r\n\r\nmodel SchoolGuardian {\r\n  id          Int         @id @default(autoincrement())\r\n  schoolId    Int\r\n  guardianId  String\r\n  UserProfile UserProfile @relation(fields: [guardianId], references: [id])\r\n  School      School      @relation(fields: [schoolId], references: [id])\r\n}\r\n\r\n/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.\r\nmodel spatial_ref_sys {\r\n  srid      Int     @id\r\n  auth_name String? @db.VarChar(256)\r\n  auth_srid Int?\r\n  srtext    String? @db.VarChar(2048)\r\n  proj4text String? @db.VarChar(2048)\r\n}\r\n\r\nenum UserRole {\r\n  ADMIN\r\n  PARENT\r\n  SERVICE\r\n  DRIVER\r\n  TEACHER\r\n}\r\n\r\nenum JobRequestStatus {\r\n  PENDING\r\n  ACCEPTED\r\n  REJECTED\r\n  CANCELLED\r\n  EXPIRED\r\n}\r\n\r\nenum JobRequestType {\r\n  VAN_OWNER_TO_DRIVER\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+--- a/prisma/schema.prisma	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/prisma/schema.prisma	(date 1757236284025)
+@@ -25,10 +25,12 @@
+   nic_pic                                                         String?
+   district                                                        String?
+   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
++  Child                                                           Child[]
+   driverProfile                                                   DriverProfile?
+   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
+   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+-  SchoolGuardian                                                  SchoolGuardian[]
++  PrivateHire                                                     PrivateHire[]
++  SchoolGuardian                                                  SchoolGuardian?
+   Van                                                             Van[]
+   vanService                                                      VanService?
+ }
+@@ -71,8 +73,6 @@
+   makeAndModel            String
+   seatingCapacity         Int
+   acCondition             Boolean
+-  routeStart              String?
+-  routeEnd                String?
+   rBookUrl                String
+   revenueLicenseUrl       String
+   fitnessCertificateUrl   String
+@@ -81,18 +81,23 @@
+   createdAt               DateTime              @default(now())
+   ownerId                 String
+   hasDriver               Boolean               @default(false)
+-  isApproved              Boolean               @default(false)
+   assignedDriverId        String?
+   salaryPercentage        Float?                @default(25.0)
+   shiftDetails            String?
+-  endTime                 String?
+   privateRating           Float                 @default(0)
+-  startTime               String?
+   studentRating           Float                 @default(0)
+   hasAssistant            Boolean               @default(false)
++  status                  Int                   @default(2)
++  pathId                  String?
++  endTime                 DateTime?
++  startTime               DateTime?
+   assistant               Assistant?
++  Child                   Child[]
+   DriverVanJobRequest     DriverVanJobRequest[]
++  PrivateHire             PrivateHire[]
+   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
++  Path                    Path?                 @relation(fields: [pathId], references: [id])
++  VanRequest              VanRequest[]
+ }
+ 
+ model Assistant {
+@@ -106,15 +111,33 @@
+ }
+ 
+ model School {
+-  id             Int                      @id @default(autoincrement())
++  id             Int              @id @default(autoincrement())
+   schoolName     String
+-  email          String                   @unique
++  email          String           @unique
+   contact        String
+   address        String
+-  location       Unsupported("geometry")?
++  createdAt      DateTime         @default(now())
++  Child          Child[]
++  gates          Gate[]
+   SchoolGuardian SchoolGuardian[]
+ }
+ 
++model Gate {
++  id          Int                      @id @default(autoincrement())
++  gateName    String
++  description String?
++  location    Unsupported("geometry")?
++  placeName   String?
++  address     String?
++  isActive    Boolean                  @default(true)
++  schoolId    Int
++  createdAt   DateTime                 @default(now())
++  school      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
++
++  @@index([schoolId])
++  @@index([isActive])
++}
++
+ model ContactUs {
+   id        Int      @id @default(autoincrement())
+   name      String
+@@ -127,7 +150,7 @@
+ }
+ 
+ model DriverVanJobRequest {
+-  id                                                      String   @id @default(cuid())
++  id                                                      String           @id @default(cuid())
+   driverId                                                String
+   vanId                                                   Int
+   vanOwnerId                                              String
+@@ -138,7 +161,7 @@
+   responseMessage                                         String?
+   respondedAt                                             DateTime?
+   createdAt                                               DateTime         @default(now())
+-  updatedAt                                               DateTime      @default(now())
++  updatedAt                                               DateTime         @default(now())
+   expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
+   UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
+   Van                                                     Van              @relation(fields: [vanId], references: [id])
+@@ -150,9 +173,18 @@
+ model SchoolGuardian {
+   id          Int         @id @default(autoincrement())
+   schoolId    Int
+-  guardianId  String
+-  UserProfile UserProfile @relation(fields: [guardianId], references: [id])
+-  School      School      @relation(fields: [schoolId], references: [id])
++  guardianId  String      @unique
++  createdAt   DateTime    @default(now())
++  email       String      @unique
++  firstName   String
++  lastName    String
++  phone       String?
++  updatedAt   DateTime?   @updatedAt
++  userProfile UserProfile @relation(fields: [guardianId], references: [id])
++  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
++
++  @@index([schoolId])
++  @@index([email])
+ }
+ 
+ /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+@@ -164,6 +196,91 @@
+   proj4text String? @db.VarChar(2048)
+ }
+ 
++model Child {
++  id              Int                       @id @default(autoincrement())
++  name            String
++  age             Int
++  profilePicture  String
++  vanID           Int?
++  schoolStartTime String
++  schoolEndTime   String
++  qrCode          String                    @unique
++  pickupLat       Decimal
++  pickupLng       Decimal
++  createdAt       DateTime                  @default(now())
++  updatedAt       DateTime
++  schoolID        Int
++  grade           Int
++  pickupLocation  Unsupported("geography")?
++  specialNotes    String?
++  parentId        String?
++  status          String                    @default("NOT_ASSIGNED")
++  pickupAddress   String                    @default("Not Specified")
++  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
++  School          School                    @relation(fields: [schoolID], references: [id])
++  Van             Van?                      @relation(fields: [vanID], references: [id])
++  VanRequest      VanRequest?
++}
++
++model Path {
++  id                String                  @id
++  routeStart        Unsupported("geometry")
++  routeEnd          Unsupported("geometry")
++  routeGeometry     Unsupported("geometry")
++  boundingBox       Unsupported("geometry")
++  totalDistance     Float
++  estimatedDuration Int
++  Van               Van[]
++  WayPoint          WayPoint[]
++}
++
++model PrivateHire {
++  id                 String      @id
++  userId             String
++  vanId              Int
++  pickupLat          Float
++  pickupLng          Float
++  pickupAddress      String
++  destinationLat     Float
++  destinationLng     Float
++  destinationAddress String
++  departureDate      DateTime
++  returnDate         DateTime?
++  noOfPassengers     Int
++  fare               Float
++  notes              String?
++  status             HireStatus  @default(PENDING)
++  createdAt          DateTime    @default(now())
++  updatedAt          DateTime
++  UserProfile        UserProfile @relation(fields: [userId], references: [id])
++  Van                Van         @relation(fields: [vanId], references: [id])
++}
++
++model VanRequest {
++  id        String        @id
++  vanId     Int
++  childId   Int           @unique
++  status    RequestStatus @default(PENDING)
++  createdAt DateTime      @default(now())
++  updatedAt DateTime
++  Child     Child         @relation(fields: [childId], references: [id])
++  Van       Van           @relation(fields: [vanId], references: [id])
++}
++
++model WayPoint {
++  id        Int                     @id @default(autoincrement())
++  pathId    String
++  name      String
++  placeId   String?
++  latitude  Float
++  longitude Float
++  location  Unsupported("geometry")
++  order     Int
++  isStop    Boolean
++  createdAt DateTime                @default(now())
++  Path      Path                    @relation(fields: [pathId], references: [id])
++}
++
+ enum UserRole {
+   ADMIN
+   PARENT
+@@ -183,3 +300,18 @@
+ enum JobRequestType {
+   VAN_OWNER_TO_DRIVER
+ }
++
++enum HireStatus {
++  PENDING
++  ACCEPTED
++  REJECTED
++  CANCELLED
++  COMPLETED
++}
++
++enum RequestStatus {
++  PENDING
++  ACCEPTED
++  REJECTED
++  CANCELLED
++}
+Index: src/app/admin/school/ManageSchoolsPageContent.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>'use client';\r\nimport { useState, useMemo, useEffect, useRef } from 'react';\r\nimport DataTable from '@/app/dashboardComponents/CustomTable';\r\n// Using backend data instead of dummy data\r\nimport { School as SchoolIcon, Trash2, MapPin, Users, Eye, Edit, MoreVertical } from 'lucide-react';\r\nimport MapLocationPicker from '@/app/components/MapLocationPicker';\r\nimport EditSchool from './EditSchool';\r\nimport StatCard from '@/app/dashboardComponents/StatCard';\r\nimport { FaUser, FaUserCheck, FaUserTimes } from 'react-icons/fa';\r\nimport { FaUserClock } from 'react-icons/fa6';\r\n\r\n// Define interfaces\r\ninterface Location {\r\n  lat: number;\r\n  lng: number;\r\n}\r\n\r\n// Define the School interface\r\ninterface School {\r\n  id: number;\r\n  schoolName: string;\r\n  email: string;\r\n  contact: string;\r\n  address: string;\r\n  location?: Location;\r\n  [key: string]: string | number | boolean | null | undefined | Location | undefined;\r\n}\r\n\r\n\r\n\r\nconst columns = [\r\n  { key: \"schoolName\", label: \"School Name\" },\r\n  { key: \"email\", label: \"Email\" },\r\n  { key: \"contact\", label: \"Contact\" },\r\n  { key: \"address\", label: \"Address\" },\r\n  { key: \"actions\", label: \"Actions\" }\r\n];\r\n\r\nconst ManageSchoolsPageContent = () => {\r\n  // State for viewing guardians modal\r\n  const [showGuardiansModal, setShowGuardiansModal] = useState(false);\r\n  const [guardians, setGuardians] = useState<any[]>([]);\r\n  const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');\r\n  const [searchTerm, setSearchTerm] = useState('');\r\n  const [schools, setSchools] = useState<School[]>([]);\r\n  const [isLoading, setIsLoading] = useState(true);\r\n  const [error, setError] = useState<string | null>(null);\r\n  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);\r\n  const dropdownRef = useRef<HTMLDivElement>(null);\r\n  const [editingSchool, setEditingSchool] = useState<number | null>(null);\r\n  const [selectedSchoolData, setSelectedSchoolData] = useState<School | null>(null);\r\n  \r\n  // Form state\r\n  const [formData, setFormData] = useState({\r\n    schoolName: '',\r\n    email: '',\r\n    contact: '',\r\n    schoolAddress: '',\r\n    schoolLocation: { lat: 7.8731, lng: 80.7718 } // Default to Sri Lanka center\r\n  });\r\n\r\n  // Add click outside handler for dropdowns\r\n  useEffect(() => {\r\n    const handleClickOutside = (event: MouseEvent) => {\r\n      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {\r\n        setActiveDropdown(null);\r\n      }\r\n    };\r\n\r\n    document.addEventListener('mousedown', handleClickOutside);\r\n    return () => {\r\n      document.removeEventListener('mousedown', handleClickOutside);\r\n    };\r\n  }, []);\r\n\r\n  // Fetch data from API\r\n  useEffect(() => {\r\n    const fetchSchools = async () => {\r\n      try {\r\n        setIsLoading(true);\r\n        setError(null);\r\n        const response = await fetch('http://localhost:3000/api/admin/schools/SchoolDetails');\r\n        \r\n        if (!response.ok) {\r\n          throw new Error(`Error ${response.status}: ${response.statusText}`);\r\n        }\r\n        \r\n        const data = await response.json();\r\n        \r\n        if (!data || !Array.isArray(data)) {\r\n          throw new Error('Invalid data format received from server');\r\n        }\r\n        \r\n        setSchools(data);\r\n      } catch (err) {\r\n        console.error('Failed to fetch schools:', err);\r\n        setError(err instanceof Error ? err.message : 'Failed to load schools data');\r\n      } finally {\r\n        setIsLoading(false);\r\n      }\r\n    };\r\n    \r\n    fetchSchools();\r\n  }, []);\r\n\r\n  // Filter the data based on search criteria\r\n  const filteredData = useMemo(() => {\r\n    return schools.filter((school) => {\r\n      // Search filter - searches in name, email, and id\r\n      const matchesSearch = searchTerm === '' || \r\n        school.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||\r\n        school.email.toLowerCase().includes(searchTerm.toLowerCase()) ||\r\n        school.id.toString().includes(searchTerm.toLowerCase());\r\n\r\n      return matchesSearch;\r\n    });\r\n  }, [schools, searchTerm]);\r\n\r\n  const handleEdit = (row: Record<string, string | number | boolean | null | undefined>) => {\r\n    console.log(\"Edit clicked:\", row);\r\n    // Set the selected school for editing\r\n    setEditingSchool(row.id as number);\r\n    \r\n      // Convert row data to School object for the edit form\r\n    const schoolData: School = {\r\n      id: row.id as number,\r\n      schoolName: row.schoolName as string,\r\n      email: row.email as string,\r\n      contact: row.contact as string,\r\n      address: row.address as string,\r\n      // Default location if none provided\r\n      location: { lat: 7.8731, lng: 80.7718 }\r\n    };    setSelectedSchoolData(schoolData);\r\n  };\r\n\r\n  const handleDelete = (row: Record<string, string | number | boolean | null | undefined>) => {\r\n    console.log(\"Delete clicked:\", row);\r\n    \r\n    if (window.confirm(`Are you sure you want to delete ${row.schoolName}?`)) {\r\n      const deleteSchool = async () => {\r\n        try {\r\n          setIsLoading(true);\r\n          const response = await fetch(`http://localhost:3000/api/admin/schools/deleteSchool?id=${row.id}`, { \r\n            method: 'DELETE' \r\n          });\r\n          \r\n          if (!response.ok) {\r\n            const errorText = await response.text();\r\n            throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);\r\n          }\r\n          \r\n          setSchools(prevSchools => prevSchools.filter(school => school.id !== row.id));\r\n          alert('School deleted successfully');\r\n        } catch (err) {\r\n          console.error('Failed to delete school:', err);\r\n          const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';\r\n          alert(`Failed to delete school: ${errorMessage}`);\r\n        } finally {\r\n          setIsLoading(false);\r\n        }\r\n      };\r\n      \r\n      deleteSchool();\r\n    }\r\n  };\r\n  \r\n  const handleViewGuardians = async (row: Record<string, string | number | boolean | null | undefined>) => {\r\n    setSelectedSchoolName(row.schoolName as string);\r\n    setShowGuardiansModal(true);\r\n    // Fetch guardians for the selected school\r\n    try {\r\n      const response = await fetch(`http://localhost:3000/api/admin/guardian/getGuardians?schoolId=${row.id}`);\r\n      if (!response.ok) throw new Error('Failed to fetch guardians');\r\n      const data = await response.json();\r\n      if (Array.isArray(data)) {\r\n        setGuardians(data);\r\n      } else if (data.guardians && Array.isArray(data.guardians)) {\r\n        setGuardians(data.guardians);\r\n      } else {\r\n        setGuardians([]);\r\n      }\r\n    } catch {\r\n      setGuardians([]);\r\n    }\r\n  };\r\n\r\n  const handleAddGuardian = (row: Record<string, string | number | boolean | null | undefined>) => {\r\n    window.location.href = '/admin/guardian';\r\n  };\r\n\r\n  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {\r\n    const { name, value } = e.target;\r\n    setFormData(prev => ({\r\n      ...prev,\r\n      [name]: value\r\n    }));\r\n  };\r\n\r\n  const handleSubmit = async (e: React.FormEvent) => {\r\n    e.preventDefault();\r\n\r\n    // Email validation\r\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\r\n    if (!emailRegex.test(formData.email)) {\r\n      alert(\"Please enter a valid email address.\");\r\n      return;\r\n    }\r\n\r\n    // Phone validation with more flexibility for international formats\r\n    const phoneRegex = /^(\\+?[0-9]{1,3}[-\\s.]?)?([0-9]{3,}[-\\s.]?){1,2}[0-9]{3,}$/;\r\n    if (!phoneRegex.test(formData.contact)) {\r\n      alert(\"Please enter a valid contact number.\");\r\n      return;\r\n    }\r\n\r\n    console.log(\"Form submitted:\", formData);\r\n\r\n    try {\r\n      // Prepare the data to match the API structure\r\n      const schoolData = {\r\n        schoolName: formData.schoolName,\r\n        email: formData.email,\r\n        contact: formData.contact,\r\n        address: formData.schoolAddress,\r\n        location: formData.schoolLocation\r\n      };\r\n\r\n      // Send POST request to the API\r\n      const response = await fetch('http://localhost:3000/api/admin/schools/addAccount', {\r\n        method: 'POST',\r\n        headers: {\r\n          'Content-Type': 'application/json',\r\n        },\r\n        body: JSON.stringify(schoolData)\r\n      });\r\n\r\n      if (!response.ok) {\r\n        const errorText = await response.text();\r\n        throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);\r\n      }\r\n\r\n      const data = await response.json();\r\n      console.log(\"School added successfully:\", data);\r\n      \r\n      // Add the new school to the state\r\n      const newSchool: School = {\r\n        id: data.id || Math.floor(Math.random() * 10000), // Use returned ID or generate one for demo\r\n        schoolName: schoolData.schoolName,\r\n        email: schoolData.email,\r\n        contact: schoolData.contact,\r\n        address: schoolData.address,\r\n        location: schoolData.location\r\n      };\r\n      \r\n      setSchools(prevSchools => [...prevSchools, newSchool]);\r\n      \r\n      alert(\"School added successfully!\");\r\n\r\n      // Clear form after submission\r\n      setFormData({\r\n        schoolName: '',\r\n        email: '',\r\n        contact: '',\r\n        schoolAddress: '',\r\n        schoolLocation: { lat: 7.8731, lng: 80.7718 } // Reset to Sri Lanka center\r\n      });\r\n    } catch (err) {\r\n      console.error(\"Failed to add school:\", err);\r\n      const errorMessage = err instanceof Error ? err.message : 'Failed to add school';\r\n      alert(`Failed to add school: ${errorMessage}`);\r\n    }\r\n  };\r\n\r\n  const handleClearForm = () => {\r\n    setFormData({\r\n      schoolName: '',\r\n      email: '',\r\n      contact: '',\r\n      schoolAddress: '',\r\n      schoolLocation: { lat: 7.8731, lng: 80.7718 } // Reset to Sri Lanka center\r\n    });\r\n  };\r\n\r\n  // Function to handle successful edit\r\n  const handleEditSuccess = async () => {\r\n    setEditingSchool(null);\r\n    setSelectedSchoolData(null);\r\n    \r\n    // Refetch schools data\r\n    try {\r\n      setIsLoading(true);\r\n      setError(null);\r\n      const response = await fetch('http://localhost:3000/api/admin/schools/getSchools');\r\n      \r\n      if (!response.ok) {\r\n        throw new Error(`Error ${response.status}: ${response.statusText}`);\r\n      }\r\n      \r\n      const data = await response.json();\r\n      setSchools(data);\r\n    } catch (err) {\r\n      console.error('Failed to refresh schools:', err);\r\n      setError(err instanceof Error ? err.message : 'Failed to refresh schools data');\r\n    } finally {\r\n      setIsLoading(false);\r\n    }\r\n  };\r\n\r\n  return (\r\n      <div>\r\n        {/* Guardians Modal */}\r\n        {showGuardiansModal && (\r\n          <div className=\"fixed inset-0 bg-black/40 flex items-center justify-center z-50\">\r\n            <div className=\"bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 relative max-h-[90vh] overflow-y-auto\">\r\n              <button\r\n                onClick={() => setShowGuardiansModal(false)}\r\n                className=\"absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer\"\r\n              >\r\n                &times;\r\n              </button>\r\n              <h2 className=\"text-2xl font-semibold text-active-text mb-6\">Guardians for {selectedSchoolName}</h2>\r\n              {guardians.length === 0 ? (\r\n                <div className=\"text-center py-4 text-gray-500\">No guardians found for this school.</div>\r\n              ) : (\r\n                <table className=\"w-full border rounded-lg\">\r\n                  <thead>\r\n                    <tr>\r\n                      <th className=\"px-4 py-2 border-b\">First Name</th>\r\n                      <th className=\"px-4 py-2 border-b\">Last Name</th>\r\n                      <th className=\"px-4 py-2 border-b\">Email</th>\r\n                      <th className=\"px-4 py-2 border-b\">Contact</th>\r\n                    </tr>\r\n                  </thead>\r\n                  <tbody>\r\n                    {guardians.map((g, idx) => (\r\n                      <tr key={idx}>\r\n                        <td className=\"px-4 py-2 border-b\">{g.firstname}</td>\r\n                        <td className=\"px-4 py-2 border-b\">{g.lastname}</td>\r\n                        <td className=\"px-4 py-2 border-b\">{g.email}</td>\r\n                        <td className=\"px-4 py-2 border-b\">{g.contact}</td>\r\n                      </tr>\r\n                    ))}\r\n                  </tbody>\r\n                </table>\r\n              )}\r\n            </div>\r\n          </div>\r\n        )}\r\n          {/* Edit School Modal */}\r\n          {editingSchool !== null && (\r\n            <EditSchool \r\n              schoolId={editingSchool}\r\n              initialData={selectedSchoolData}\r\n              onClose={() => {\r\n                setEditingSchool(null);\r\n                setSelectedSchoolData(null);\r\n              }}\r\n              onSuccess={handleEditSuccess}\r\n            />\r\n          )}\r\n\r\n          {/* Statistics Cards */}\r\n          {/** Dummy guardian stats for demonstration. Replace with real data as needed. */}\r\n          {(() => {\r\n            // Dummy data for demonstration\r\n            const guardians: any[] = [\"hello\", \"this\", \"is\", \"just\", \"to\", \"test\"];\r\n            const activeGuardians = 29;\r\n            const pendingGuardians = 450;\r\n            const inactiveGuardians = 0;\r\n            return (\r\n              <div className=\"grid grid-cols-2 md:grid-cols-4 gap-4 mb-8\">\r\n                <StatCard icon={<FaUser className=\"text-xl\" />} text=\"Total School\" number={guardians.length} />\r\n                <StatCard icon={<FaUserCheck className=\"text-xl\" />} text=\"Total Guardians\" number={activeGuardians} />\r\n                <StatCard icon={<FaUserClock className=\"text-xl\" />} text=\"Total Students\" number={pendingGuardians} />\r\n                <StatCard icon={<FaUserTimes className=\"text-xl\" />} text=\"Inactive\" number={inactiveGuardians} />\r\n              </div>\r\n            );\r\n          })()}\r\n\r\n          {/* Split Layout Container */}\r\n          <div className=\"grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6\">\r\n            \r\n            \r\n            {/* Left Side - Add School Form */}\r\n            <div className=\"lg:col-span-1\">\r\n              <div className=\"bg-white rounded-lg shadow-md p-6\">\r\n                <div className=\"flex items-center mb-4\">\r\n                  <SchoolIcon className=\"mr-2 text-yellow-400\" size={24} />\r\n                  <h2 className=\"text-xl font-semibold text-gray-800\">Add New School</h2>\r\n                </div>\r\n                \r\n                <form onSubmit={handleSubmit} className=\"space-y-4\">\r\n                  <div>\r\n                    <label htmlFor=\"schoolName\" className=\"block text-sm font-medium text-gray-700 mb-1\">\r\n                      School Name *\r\n                    </label>\r\n                    <input\r\n                      type=\"text\"\r\n                      id=\"schoolName\"\r\n                      name=\"schoolName\"\r\n                      value={formData.schoolName}\r\n                      onChange={handleInputChange}\r\n                      required\r\n                      className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\r\n                      placeholder=\"Enter school name\"\r\n                    />\r\n                  </div>\r\n\r\n                  <div>\r\n                    <label htmlFor=\"schoolAddress\" className=\"block text-sm font-medium text-gray-700 mb-1\">\r\n                      School Address *\r\n                    </label>\r\n                    <input\r\n                      type=\"text\"\r\n                      id=\"schoolAddress\"\r\n                      name=\"schoolAddress\"\r\n                      value={formData.schoolAddress}\r\n                      onChange={handleInputChange}\r\n                      required\r\n                      className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\r\n                      placeholder=\"Enter school address\"\r\n                    />\r\n                  </div>\r\n\r\n                  \r\n\r\n                  <div>\r\n                    <label htmlFor=\"email\" className=\"block text-sm font-medium text-gray-700 mb-1\">\r\n                      Email *\r\n                    </label>\r\n                    <input\r\n                      type=\"email\"\r\n                      id=\"email\"\r\n                      name=\"email\"\r\n                      value={formData.email}\r\n                      onChange={handleInputChange}\r\n                      required\r\n                      className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\r\n                      placeholder=\"Enter email address\"\r\n                    />\r\n                  </div>\r\n\r\n                  <div>\r\n                    <label htmlFor=\"contact\" className=\"block text-sm font-medium text-gray-700 mb-1\">\r\n                      Contact Number *\r\n                    </label>\r\n                    <input\r\n                      type=\"tel\"\r\n                      id=\"contact\"\r\n                      name=\"contact\"\r\n                      value={formData.contact}\r\n                      onChange={handleInputChange}\r\n                      required\r\n                      className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\r\n                      placeholder=\"Enter contact number\"\r\n                    />\r\n                  </div>\r\n\r\n                  <div className=\"mb-4\">\r\n                    <label className=\"block text-sm font-medium text-gray-700 mb-1\">\r\n                      <span className=\"flex items-center\">\r\n                        <MapPin size={16} className=\"mr-1 text-yellow-400\" />\r\n                        School Location *\r\n                      </span>\r\n                    </label>\r\n                    <div className=\"border border-gray-300 rounded-md\">\r\n                      <MapLocationPicker \r\n                        onLocationSelect={(location) => {\r\n                          setFormData(prev => ({\r\n                            ...prev,\r\n                            schoolLocation: location\r\n                          }));\r\n                        }}\r\n                        initialLocation={formData.schoolLocation}\r\n                      />\r\n                    </div>\r\n                    <p className=\"mt-1 text-xs text-gray-500\">Search for a location or click on the map to select the exact school location</p>\r\n                  </div>\r\n\r\n                  <div className=\"flex space-x-3 pt-4\">\r\n                    <button\r\n                      type=\"submit\"\r\n                      className=\"flex-1 bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-amber-500 transition-colors flex items-center justify-center\"\r\n                    >\r\n                      Add School\r\n                    </button>\r\n                    <button\r\n                      type=\"button\"\r\n                      onClick={handleClearForm}\r\n                      className=\"flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors\"\r\n                    >\r\n                      Clear\r\n                    </button>\r\n                  </div>\r\n                </form>\r\n              </div>\r\n            </div>\r\n\r\n            {/* Right Side - Schools Table */}\r\n            <div className=\"lg:col-span-2\">\r\n              <div className=\"bg-white rounded-lg\">\r\n                <div className=\"p-4 border-b\">\r\n                  <h2 className=\"text-lg font-semibold text-gray-800\">Schools List</h2>\r\n                  <p className=\"text-sm text-gray-600\">Manage and view all registered schools</p>\r\n                </div>\r\n                \r\n                {/* Search Filter */}\r\n                <div className=\"p-4 border-b\">\r\n                  <div className=\"max-w-md\">\r\n                    <input\r\n                      type=\"text\"\r\n                      placeholder=\"Search schools by name, ID, or email...\"\r\n                      value={searchTerm}\r\n                      onChange={(e) => setSearchTerm(e.target.value)}\r\n                      className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\r\n                    />\r\n                  </div>\r\n                </div>\r\n\r\n                {isLoading ? (\r\n                  <div className=\"p-8 text-center\">\r\n                    <div className=\"inline-block animate-spin rounded-full h-8 w-8 border-4 border-yellow-400 border-t-transparent mb-4\"></div>\r\n                    <p className=\"text-gray-600\">Loading schools data...</p>\r\n                  </div>\r\n                ) : error ? (\r\n                  <div className=\"p-8 text-center\">\r\n                    <div className=\"bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4\" role=\"alert\">\r\n                      <strong className=\"font-bold\">Error!</strong>\r\n                      <span className=\"block sm:inline\"> {error}</span>\r\n                    </div>\r\n                    <button \r\n                      onClick={() => window.location.reload()}\r\n                      className=\"bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-500\"\r\n                    >\r\n                      Try Again\r\n                    </button>\r\n                  </div>\r\n                ) : filteredData.length === 0 && searchTerm === '' ? (\r\n                  <div className=\"p-8 text-center\">\r\n                    <p className=\"text-gray-600\">No schools found. Add a school using the form.</p>\r\n                  </div>\r\n                ) : (\r\n                  <DataTable\r\n                    columns={columns}\r\n                    data={filteredData}\r\n                    renderCell={(column, value, row) => {\r\n                    // Custom renderer for actions column\r\n                    if (column === 'actions') {\r\n                      const rowId = row.id as number;\r\n                      const isActive = activeDropdown === rowId;\r\n                      \r\n                      return (\r\n                        <div className=\"relative\">\r\n                          <button\r\n                            onClick={() => setActiveDropdown(isActive ? null : rowId)}\r\n                            className=\"p-1 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors\"\r\n                            title=\"More Actions\"\r\n                          >\r\n                            <MoreVertical size={18} />\r\n                          </button>\r\n                          \r\n                          {isActive && (\r\n                            <div ref={dropdownRef} className=\"absolute right-0 z-10 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200\">\r\n                              <div className=\"py-1\">\r\n                                <button\r\n                                  onClick={() => {\r\n                                    setActiveDropdown(null);\r\n                                    handleEdit(row);\r\n                                  }}\r\n                                  className=\"flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left\"\r\n                                >\r\n                                  <Edit size={16} className=\"mr-2 text-blue-600\" />\r\n                                  Edit School Info\r\n                                </button>\r\n                                <button\r\n                                  onClick={() => {\r\n                                    setActiveDropdown(null);\r\n                                    handleViewGuardians(row);\r\n                                  }}\r\n                                  className=\"flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left\"\r\n                                >\r\n                                  <Eye size={16} className=\"mr-2 text-blue-600\" />\r\n                                  View Guardians\r\n                                </button>\r\n                                <button\r\n                                  onClick={() => {\r\n                                    setActiveDropdown(null);\r\n                                    handleAddGuardian(row);\r\n                                  }}\r\n                                  className=\"flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left\"\r\n                                >\r\n                                  <Users size={16} className=\"mr-2 text-green-600\" />\r\n                                  Add Guardian\r\n                                </button>\r\n                                <button\r\n                                  onClick={() => {\r\n                                    setActiveDropdown(null);\r\n                                    handleDelete(row);\r\n                                  }}\r\n                                  className=\"flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 hover:text-red-900 w-full text-left\"\r\n                                >\r\n                                  <Trash2 size={16} className=\"mr-2 text-red-600\" />\r\n                                  Delete School\r\n                                </button>\r\n                              </div>\r\n                            </div>\r\n                          )}\r\n                        </div>\r\n                      );\r\n                    }\r\n                    \r\n                    // Default rendering\r\n                    return value;\r\n                  }}\r\n                  itemsPerPageOptions={[5, 10, 15]}\r\n                  defaultItemsPerPage={5}\r\n                />\r\n                )}\r\n              </div>\r\n            </div>\r\n          </div>\r\n      </div>\r\n  )\r\n}\r\n\r\n\r\n\r\nexport default ManageSchoolsPageContent;\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/app/admin/school/ManageSchoolsPageContent.tsx b/src/app/admin/school/ManageSchoolsPageContent.tsx
+--- a/src/app/admin/school/ManageSchoolsPageContent.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/admin/school/ManageSchoolsPageContent.tsx	(date 1757239872190)
+@@ -1,18 +1,24 @@
+ 'use client';
+ import { useState, useMemo, useEffect, useRef } from 'react';
++import { createPortal } from 'react-dom';
+ import DataTable from '@/app/dashboardComponents/CustomTable';
+-// Using backend data instead of dummy data
+-import { School as SchoolIcon, Trash2, MapPin, Users, Eye, Edit, MoreVertical } from 'lucide-react';
+-import MapLocationPicker from '@/app/components/MapLocationPicker';
++import { School as SchoolIcon, Trash2, MapPin, Users, Eye, Edit, MoreVertical, Map } from 'lucide-react';
++import GateManager from '@/app/admin/school/components/GateManager';
+ import EditSchool from './EditSchool';
++import ManageGuardiansModal from './components/ManageGuardiansModal';
+ import StatCard from '@/app/dashboardComponents/StatCard';
++import ConfirmationBox from '@/app/dashboardComponents/ConfirmationBox';
+ import { FaUser, FaUserCheck, FaUserTimes } from 'react-icons/fa';
+ import { FaUserClock } from 'react-icons/fa6';
+ 
+ // Define interfaces
+-interface Location {
+-  lat: number;
+-  lng: number;
++interface Gate {
++  id?: number;
++  gateName: string;
++  latitude: number;
++  longitude: number;
++  description?: string;
++  isActive: boolean;
+ }
+ 
+ // Define the School interface
+@@ -22,48 +28,74 @@
+   email: string;
+   contact: string;
+   address: string;
+-  location?: Location;
+-  [key: string]: string | number | boolean | null | undefined | Location | undefined;
++  gates?: Gate[];
++  [key: string]: string | number | boolean | null | undefined | Gate[] | undefined;
+ }
+-
+-
+ 
+ const columns = [
+   { key: "schoolName", label: "School Name" },
+-  { key: "email", label: "Email" },
+-  { key: "contact", label: "Contact" },
+   { key: "address", label: "Address" },
++  { key: "email", label: "Email" },
++  { key: "contact", label: "Phone" },
+   { key: "actions", label: "Actions" }
+ ];
+ 
+ const ManageSchoolsPageContent = () => {
+-  // State for viewing guardians modal
+-  const [showGuardiansModal, setShowGuardiansModal] = useState(false);
+-  const [guardians, setGuardians] = useState<any[]>([]);
+-  const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');
+   const [searchTerm, setSearchTerm] = useState('');
+   const [schools, setSchools] = useState<School[]>([]);
+   const [isLoading, setIsLoading] = useState(true);
+   const [error, setError] = useState<string | null>(null);
+   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
++  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
++  const [selectedSchoolForDropdown, setSelectedSchoolForDropdown] = useState<School | null>(null);
+   const dropdownRef = useRef<HTMLDivElement>(null);
+   const [editingSchool, setEditingSchool] = useState<number | null>(null);
+   const [selectedSchoolData, setSelectedSchoolData] = useState<School | null>(null);
++
++  // Gate management modal state
++  const [showGateModal, setShowGateModal] = useState(false);
++  const [selectedSchoolForGates, setSelectedSchoolForGates] = useState<School | null>(null);
+   
+-  // Form state
++  // Guardian management modal state
++  const [showManageGuardiansModal, setShowManageGuardiansModal] = useState(false);
++  const [selectedSchoolForGuardians, setSelectedSchoolForGuardians] = useState<School | null>(null);
++  
++  // Confirmation dialog states
++  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
++  const [schoolToDelete, setSchoolToDelete] = useState<School | null>(null);
++  const [showSuccessConfirmation, setShowSuccessConfirmation] = useState(false);
++  const [showErrorConfirmation, setShowErrorConfirmation] = useState(false);
++  const [confirmationMessage, setConfirmationMessage] = useState('');
++  
++  // Statistics state
++  const [statistics, setStatistics] = useState({
++    totalSchools: 0,
++    totalGuardians: 0,
++    totalStudents: 0,
++    totalGates: 0,
++    activeGates: 0,
++    inactiveGates: 0
++  });
++  
++
++  // Form state (removed location-related fields)
+   const [formData, setFormData] = useState({
+     schoolName: '',
+     email: '',
+     contact: '',
+-    schoolAddress: '',
+-    schoolLocation: { lat: 7.8731, lng: 80.7718 } // Default to Sri Lanka center
++    schoolAddress: ''
+   });
++
++  // Current school being added (for gate management)
++  const [currentSchoolId, setCurrentSchoolId] = useState<number | null>(null);
+ 
+   // Add click outside handler for dropdowns
+   useEffect(() => {
+     const handleClickOutside = (event: MouseEvent) => {
+       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+         setActiveDropdown(null);
++        setDropdownPosition(null);
++        setSelectedSchoolForDropdown(null);
+       }
+     };
+ 
+@@ -73,24 +105,39 @@
+     };
+   }, []);
+ 
++  // Fetch statistics data
++  const fetchStatistics = async () => {
++    try {
++      const response = await fetch('/api/admin/schools/statistics');
++      if (response.ok) {
++        const data = await response.json();
++        setStatistics(data);
++      } else {
++        console.error('Failed to fetch statistics');
++      }
++    } catch (error) {
++      console.error('Error fetching statistics:', error);
++    }
++  };
++
+   // Fetch data from API
+   useEffect(() => {
+     const fetchSchools = async () => {
+       try {
+         setIsLoading(true);
+         setError(null);
+-        const response = await fetch('http://localhost:3000/api/admin/schools/SchoolDetails');
+-        
++        const response = await fetch('/api/admin/schools');
++
+         if (!response.ok) {
+           throw new Error(`Error ${response.status}: ${response.statusText}`);
+         }
+-        
++
+         const data = await response.json();
+-        
++
+         if (!data || !Array.isArray(data)) {
+           throw new Error('Invalid data format received from server');
+         }
+-        
++
+         setSchools(data);
+       } catch (err) {
+         console.error('Failed to fetch schools:', err);
+@@ -99,94 +146,85 @@
+         setIsLoading(false);
+       }
+     };
+-    
++
+     fetchSchools();
++    fetchStatistics();
+   }, []);
+ 
+   // Filter the data based on search criteria
+   const filteredData = useMemo(() => {
+     return schools.filter((school) => {
+       // Search filter - searches in name, email, and id
+-      const matchesSearch = searchTerm === '' || 
+-        school.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+-        school.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+-        school.id.toString().includes(searchTerm.toLowerCase());
++      const matchesSearch = searchTerm === '' ||
++          school.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
++          school.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
++          school.id.toString().includes(searchTerm.toLowerCase());
+ 
+       return matchesSearch;
+     });
+   }, [schools, searchTerm]);
+ 
+-  const handleEdit = (row: Record<string, string | number | boolean | null | undefined>) => {
+-    console.log("Edit clicked:", row);
++  const handleEdit = (school: School) => {
++    console.log("Edit clicked:", school);
+     // Set the selected school for editing
+-    setEditingSchool(row.id as number);
+-    
+-      // Convert row data to School object for the edit form
+-    const schoolData: School = {
+-      id: row.id as number,
+-      schoolName: row.schoolName as string,
+-      email: row.email as string,
+-      contact: row.contact as string,
+-      address: row.address as string,
+-      // Default location if none provided
+-      location: { lat: 7.8731, lng: 80.7718 }
+-    };    setSelectedSchoolData(schoolData);
++    setEditingSchool(school.id);
++
++    // Set the school data for the edit form
++    setSelectedSchoolData(school);
++  };
++
++  const handleDelete = (school: School) => {
++    console.log("Delete clicked:", school);
++    setSchoolToDelete(school);
++    setShowDeleteConfirmation(true);
+   };
+ 
+-  const handleDelete = (row: Record<string, string | number | boolean | null | undefined>) => {
+-    console.log("Delete clicked:", row);
++  const confirmDeleteSchool = async () => {
++    if (!schoolToDelete) return;
+     
+-    if (window.confirm(`Are you sure you want to delete ${row.schoolName}?`)) {
+-      const deleteSchool = async () => {
+-        try {
+-          setIsLoading(true);
+-          const response = await fetch(`http://localhost:3000/api/admin/schools/deleteSchool?id=${row.id}`, { 
+-            method: 'DELETE' 
+-          });
+-          
+-          if (!response.ok) {
+-            const errorText = await response.text();
+-            throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
+-          }
+-          
+-          setSchools(prevSchools => prevSchools.filter(school => school.id !== row.id));
+-          alert('School deleted successfully');
+-        } catch (err) {
+-          console.error('Failed to delete school:', err);
+-          const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+-          alert(`Failed to delete school: ${errorMessage}`);
+-        } finally {
+-          setIsLoading(false);
+-        }
+-      };
+-      
+-      deleteSchool();
+-    }
+-  };
+-  
+-  const handleViewGuardians = async (row: Record<string, string | number | boolean | null | undefined>) => {
+-    setSelectedSchoolName(row.schoolName as string);
+-    setShowGuardiansModal(true);
+-    // Fetch guardians for the selected school
+-    try {
+-      const response = await fetch(`http://localhost:3000/api/admin/guardian/getGuardians?schoolId=${row.id}`);
+-      if (!response.ok) throw new Error('Failed to fetch guardians');
+-      const data = await response.json();
+-      if (Array.isArray(data)) {
+-        setGuardians(data);
+-      } else if (data.guardians && Array.isArray(data.guardians)) {
+-        setGuardians(data.guardians);
+-      } else {
+-        setGuardians([]);
+-      }
+-    } catch {
+-      setGuardians([]);
+-    }
++    try {
++      setIsLoading(true);
++      const response = await fetch(`http://localhost:3000/api/admin/schools/deleteSchool?id=${schoolToDelete.id}`, {
++        method: 'DELETE'
++      });
++
++      if (!response.ok) {
++        const errorText = await response.text();
++        throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
++      }
++
++      setSchools(prevSchools => prevSchools.filter(s => s.id !== schoolToDelete.id));
++      
++      // Refresh statistics
++      fetchStatistics();
++      
++      setShowDeleteConfirmation(false);
++      setSchoolToDelete(null);
++      setConfirmationMessage('School deleted successfully!');
++      setShowSuccessConfirmation(true);
++    } catch (err) {
++      console.error('Failed to delete school:', err);
++      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
++      setShowDeleteConfirmation(false);
++      setSchoolToDelete(null);
++      setConfirmationMessage(`Failed to delete school: ${errorMessage}`);
++      setShowErrorConfirmation(true);
++    } finally {
++      setIsLoading(false);
++    }
++  };
++
++
++  const handleManageGates = (school: School) => {
++    setSelectedSchoolForGates(school);
++    setShowGateModal(true);
+   };
+ 
+-  const handleAddGuardian = (row: Record<string, string | number | boolean | null | undefined>) => {
+-    window.location.href = '/admin/guardian';
++  const handleManageGuardians = (school: School) => {
++    setSelectedSchoolForGuardians(school);
++    setShowManageGuardiansModal(true);
+   };
++
+ 
+   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+     const { name, value } = e.target;
+@@ -202,31 +240,35 @@
+     // Email validation
+     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+     if (!emailRegex.test(formData.email)) {
+-      alert("Please enter a valid email address.");
++      setConfirmationMessage("Please enter a valid email address.");
++      setShowErrorConfirmation(true);
+       return;
+     }
+ 
+     // Phone validation with more flexibility for international formats
+     const phoneRegex = /^(\+?[0-9]{1,3}[-\s.]?)?([0-9]{3,}[-\s.]?){1,2}[0-9]{3,}$/;
+     if (!phoneRegex.test(formData.contact)) {
+-      alert("Please enter a valid contact number.");
++      setConfirmationMessage("Please enter a valid contact number.");
++      setShowErrorConfirmation(true);
+       return;
+     }
+ 
+     console.log("Form submitted:", formData);
+ 
+     try {
+-      // Prepare the data to match the API structure
++      // Prepare the data to match the API structure (removed location fields)
+       const schoolData = {
+         schoolName: formData.schoolName,
+         email: formData.email,
+         contact: formData.contact,
+-        address: formData.schoolAddress,
+-        location: formData.schoolLocation
++        address: formData.schoolAddress
+       };
++
++      console.log("Sending school data:", schoolData);
++      console.log("API endpoint:", '/api/admin/schools/addAccount');
+ 
+       // Send POST request to the API
+-      const response = await fetch('http://localhost:3000/api/admin/schools/addAccount', {
++      const response = await fetch('/api/admin/schools/addAccount', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+@@ -234,6 +276,9 @@
+         body: JSON.stringify(schoolData)
+       });
+ 
++      console.log("Response status:", response.status);
++      console.log("Response ok:", response.ok);
++
+       if (!response.ok) {
+         const errorText = await response.text();
+         throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
+@@ -241,33 +286,42 @@
+ 
+       const data = await response.json();
+       console.log("School added successfully:", data);
+-      
+-      // Add the new school to the state
++
++      // Add the new school to the state (removed location fields)
+       const newSchool: School = {
+-        id: data.id || Math.floor(Math.random() * 10000), // Use returned ID or generate one for demo
++        id: data.id || Math.floor(Math.random() * 10000),
+         schoolName: schoolData.schoolName,
+         email: schoolData.email,
+         contact: schoolData.contact,
+-        address: schoolData.address,
+-        location: schoolData.location
++        address: schoolData.address
+       };
+-      
++
+       setSchools(prevSchools => [...prevSchools, newSchool]);
+-      
+-      alert("School added successfully!");
++      setCurrentSchoolId(data.id || newSchool.id);
++
++      // Refresh statistics
++      fetchStatistics();
+ 
++      setConfirmationMessage("School added successfully! You can now add gates for this school.");
++      setShowSuccessConfirmation(true);
++
+       // Clear form after submission
+       setFormData({
+         schoolName: '',
+         email: '',
+         contact: '',
+-        schoolAddress: '',
+-        schoolLocation: { lat: 7.8731, lng: 80.7718 } // Reset to Sri Lanka center
++        schoolAddress: ''
+       });
+     } catch (err) {
+       console.error("Failed to add school:", err);
++      console.error("Error details:", {
++        message: err instanceof Error ? err.message : 'Unknown error',
++        stack: err instanceof Error ? err.stack : undefined,
++        name: err instanceof Error ? err.name : undefined
++      });
+       const errorMessage = err instanceof Error ? err.message : 'Failed to add school';
+-      alert(`Failed to add school: ${errorMessage}`);
++      setConfirmationMessage(`Failed to add school: ${errorMessage}`);
++      setShowErrorConfirmation(true);
+     }
+   };
+ 
+@@ -276,28 +330,31 @@
+       schoolName: '',
+       email: '',
+       contact: '',
+-      schoolAddress: '',
+-      schoolLocation: { lat: 7.8731, lng: 80.7718 } // Reset to Sri Lanka center
++      schoolAddress: ''
+     });
++    setCurrentSchoolId(null);
+   };
+ 
+   // Function to handle successful edit
+   const handleEditSuccess = async () => {
+     setEditingSchool(null);
+     setSelectedSchoolData(null);
+-    
++
+     // Refetch schools data
+     try {
+       setIsLoading(true);
+       setError(null);
+-      const response = await fetch('http://localhost:3000/api/admin/schools/getSchools');
+-      
++      const response = await fetch('/api/admin/schools');
++
+       if (!response.ok) {
+         throw new Error(`Error ${response.status}: ${response.statusText}`);
+       }
+-      
++
+       const data = await response.json();
+       setSchools(data);
++      
++      // Refresh statistics
++      fetchStatistics();
+     } catch (err) {
+       console.error('Failed to refresh schools:', err);
+       setError(err instanceof Error ? err.message : 'Failed to refresh schools data');
+@@ -306,323 +363,509 @@
+     }
+   };
+ 
++
++
+   return (
+       <div>
+-        {/* Guardians Modal */}
+-        {showGuardiansModal && (
+-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+-              <button
+-                onClick={() => setShowGuardiansModal(false)}
+-                className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
+-              >
+-                &times;
+-              </button>
+-              <h2 className="text-2xl font-semibold text-active-text mb-6">Guardians for {selectedSchoolName}</h2>
+-              {guardians.length === 0 ? (
+-                <div className="text-center py-4 text-gray-500">No guardians found for this school.</div>
+-              ) : (
+-                <table className="w-full border rounded-lg">
+-                  <thead>
+-                    <tr>
+-                      <th className="px-4 py-2 border-b">First Name</th>
+-                      <th className="px-4 py-2 border-b">Last Name</th>
+-                      <th className="px-4 py-2 border-b">Email</th>
+-                      <th className="px-4 py-2 border-b">Contact</th>
+-                    </tr>
+-                  </thead>
+-                  <tbody>
+-                    {guardians.map((g, idx) => (
+-                      <tr key={idx}>
+-                        <td className="px-4 py-2 border-b">{g.firstname}</td>
+-                        <td className="px-4 py-2 border-b">{g.lastname}</td>
+-                        <td className="px-4 py-2 border-b">{g.email}</td>
+-                        <td className="px-4 py-2 border-b">{g.contact}</td>
+-                      </tr>
+-                    ))}
+-                  </tbody>
+-                </table>
+-              )}
+-            </div>
+-          </div>
++
++        {/* Gate Management Modal */}
++        {showGateModal && selectedSchoolForGates && (
++            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
++              <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto">
++                <button
++                    onClick={() => {
++                      setShowGateModal(false);
++                      setSelectedSchoolForGates(null);
++                    }}
++                    className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
++                >
++                  &times;
++                </button>
++                <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
++                  <Map className="mr-2 text-blue-500" size={24} />
++                  Manage Gates for {selectedSchoolForGates.schoolName}
++                </h2>
++                <GateManager
++                    schoolId={selectedSchoolForGates.id}
++                    onGatesUpdate={(gates) => {
++                      // Update the school's gates in the local state if needed
++                      console.log('Gates updated:', gates);
++                    }}
++                />
++              </div>
++            </div>
+         )}
+-          {/* Edit School Modal */}
+-          {editingSchool !== null && (
+-            <EditSchool 
+-              schoolId={editingSchool}
+-              initialData={selectedSchoolData}
+-              onClose={() => {
+-                setEditingSchool(null);
+-                setSelectedSchoolData(null);
+-              }}
+-              onSuccess={handleEditSuccess}
++
++        {/* Manage Guardians Modal */}
++        {showManageGuardiansModal && selectedSchoolForGuardians && (
++            <ManageGuardiansModal
++                schoolId={selectedSchoolForGuardians.id}
++                schoolName={selectedSchoolForGuardians.schoolName}
++                onClose={() => {
++                    setShowManageGuardiansModal(false);
++                    setSelectedSchoolForGuardians(null);
++                }}
++            />
++        )}
++
++        {/* Edit School Modal */}
++        {editingSchool !== null && (
++            <EditSchool
++                schoolId={editingSchool}
++                initialData={selectedSchoolData}
++                onClose={() => {
++                  setEditingSchool(null);
++                  setSelectedSchoolData(null);
++                }}
++                onSuccess={handleEditSuccess}
+             />
+-          )}
++        )}
+ 
+-          {/* Statistics Cards */}
+-          {/** Dummy guardian stats for demonstration. Replace with real data as needed. */}
+-          {(() => {
+-            // Dummy data for demonstration
+-            const guardians: any[] = ["hello", "this", "is", "just", "to", "test"];
+-            const activeGuardians = 29;
+-            const pendingGuardians = 450;
+-            const inactiveGuardians = 0;
+-            return (
+-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+-                <StatCard icon={<FaUser className="text-xl" />} text="Total School" number={guardians.length} />
+-                <StatCard icon={<FaUserCheck className="text-xl" />} text="Total Guardians" number={activeGuardians} />
+-                <StatCard icon={<FaUserClock className="text-xl" />} text="Total Students" number={pendingGuardians} />
+-                <StatCard icon={<FaUserTimes className="text-xl" />} text="Inactive" number={inactiveGuardians} />
+-              </div>
+-            );
+-          })()}
++
++        {/* Statistics Cards */}
++        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
++          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
++            <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
++              <FaUser className="text-xl text-white" />
++            </div>
++            <div>
++              <p className="text-gray-500 text-sm">Total Schools</p>
++              <p className="font-semibold text-lg text-gray-800">{statistics.totalSchools}</p>
++            </div>
++          </div>
++          
++          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
++            <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
++              <FaUserCheck className="text-xl text-white" />
++            </div>
++            <div>
++              <p className="text-gray-500 text-sm">Total Guardians</p>
++              <p className="font-semibold text-lg text-gray-800">{statistics.totalGuardians}</p>
++            </div>
++          </div>
++          
++          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
++            <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
++              <FaUserClock className="text-xl text-white" />
++            </div>
++            <div>
++              <p className="text-gray-500 text-sm">Total Students</p>
++              <p className="font-semibold text-lg text-gray-800">{statistics.totalStudents}</p>
++            </div>
++          </div>
++          
++          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
++            <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
++              <FaUserTimes className="text-xl text-white" />
++            </div>
++            <div>
++              <p className="text-gray-500 text-sm">Total Gates</p>
++              <p className="font-semibold text-lg text-gray-800">{statistics.totalGates}</p>
++            </div>
++          </div>
++        </div>
+ 
+-          {/* Split Layout Container */}
+-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+-            
+-            
+-            {/* Left Side - Add School Form */}
+-            <div className="lg:col-span-1">
+-              <div className="bg-white rounded-lg shadow-md p-6">
+-                <div className="flex items-center mb-4">
+-                  <SchoolIcon className="mr-2 text-yellow-400" size={24} />
+-                  <h2 className="text-xl font-semibold text-gray-800">Add New School</h2>
+-                </div>
+-                
+-                <form onSubmit={handleSubmit} className="space-y-4">
++        {/* Split Layout Container */}
++        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
++
++          {/* Left Side - Add School Form */}
++          <div className="lg:col-span-1">
++            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
++              {/* Header */}
++              <div className="px-6 py-4" style={{ background: 'linear-gradient(90deg, #0099cc 0%, #00bcd4 60%, #00d4aa 100%)' }}>
++                <div className="flex items-center">
++                  <div className="bg-white/20 p-2 rounded-lg mr-3">
++                    <SchoolIcon className="text-white" size={24} />
++                  </div>
+                   <div>
+-                    <label htmlFor="schoolName" className="block text-sm font-medium text-gray-700 mb-1">
++                    <h2 className="text-xl font-bold text-white">Add New School</h2>
++                    <p className="text-white/80 text-sm">Register a new school</p>
++                  </div>
++                </div>
++              </div>
++
++              {/* Form Content */}
++              <div className="p-6">
++                <form onSubmit={handleSubmit} className="space-y-5">
++                  <div className="space-y-2">
++                    <label htmlFor="schoolName" className="block text-sm font-semibold text-gray-700">
+                       School Name *
+                     </label>
+                     <input
+-                      type="text"
+-                      id="schoolName"
+-                      name="schoolName"
+-                      value={formData.schoolName}
+-                      onChange={handleInputChange}
+-                      required
+-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+-                      placeholder="Enter school name"
++                        type="text"
++                        id="schoolName"
++                        name="schoolName"
++                        value={formData.schoolName}
++                        onChange={handleInputChange}
++                        required
++                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
++                        style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
++                        onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
++                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
++                        placeholder="Enter school name"
+                     />
+                   </div>
+ 
+-                  <div>
+-                    <label htmlFor="schoolAddress" className="block text-sm font-medium text-gray-700 mb-1">
++                  <div className="space-y-2">
++                    <label htmlFor="schoolAddress" className="block text-sm font-semibold text-gray-700">
+                       School Address *
+                     </label>
+                     <input
+-                      type="text"
+-                      id="schoolAddress"
+-                      name="schoolAddress"
+-                      value={formData.schoolAddress}
+-                      onChange={handleInputChange}
+-                      required
+-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+-                      placeholder="Enter school address"
++                        type="text"
++                        id="schoolAddress"
++                        name="schoolAddress"
++                        value={formData.schoolAddress}
++                        onChange={handleInputChange}
++                        required
++                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
++                        style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
++                        onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
++                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
++                        placeholder="Enter school address"
+                     />
+                   </div>
+ 
+-                  
+-
+-                  <div>
+-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
++                  <div className="space-y-2">
++                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+                       Email *
+                     </label>
+                     <input
+-                      type="email"
+-                      id="email"
+-                      name="email"
+-                      value={formData.email}
+-                      onChange={handleInputChange}
+-                      required
+-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+-                      placeholder="Enter email address"
++                        type="email"
++                        id="email"
++                        name="email"
++                        value={formData.email}
++                        onChange={handleInputChange}
++                        required
++                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
++                        style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
++                        onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
++                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
++                        placeholder="Enter email address"
+                     />
+                   </div>
+ 
+-                  <div>
+-                    <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
++                  <div className="space-y-2">
++                    <label htmlFor="contact" className="block text-sm font-semibold text-gray-700">
+                       Contact Number *
+                     </label>
+                     <input
+-                      type="tel"
+-                      id="contact"
+-                      name="contact"
+-                      value={formData.contact}
+-                      onChange={handleInputChange}
+-                      required
+-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+-                      placeholder="Enter contact number"
++                        type="tel"
++                        id="contact"
++                        name="contact"
++                        value={formData.contact}
++                        onChange={handleInputChange}
++                        required
++                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
++                        style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
++                        onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
++                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
++                        placeholder="Enter contact number"
+                     />
+                   </div>
+-
+-                  <div className="mb-4">
+-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+-                      <span className="flex items-center">
+-                        <MapPin size={16} className="mr-1 text-yellow-400" />
+-                        School Location *
+-                      </span>
+-                    </label>
+-                    <div className="border border-gray-300 rounded-md">
+-                      <MapLocationPicker 
+-                        onLocationSelect={(location) => {
+-                          setFormData(prev => ({
+-                            ...prev,
+-                            schoolLocation: location
+-                          }));
+-                        }}
+-                        initialLocation={formData.schoolLocation}
+-                      />
+-                    </div>
+-                    <p className="mt-1 text-xs text-gray-500">Search for a location or click on the map to select the exact school location</p>
+-                  </div>
+ 
+                   <div className="flex space-x-3 pt-4">
+                     <button
+-                      type="submit"
+-                      className="flex-1 bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-amber-500 transition-colors flex items-center justify-center"
++                        type="submit"
++                        className="flex-1 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center justify-center font-semibold shadow-md hover:shadow-lg"
++                        style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}
++                        onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(0.95)'}
++                        onMouseLeave={(e) => e.currentTarget.style.filter = 'brightness(1)'}
+                     >
++                      <SchoolIcon className="mr-2" size={18} />
+                       Add School
+                     </button>
+                     <button
+-                      type="button"
+-                      onClick={handleClearForm}
+-                      className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
++                        type="button"
++                        onClick={handleClearForm}
++                        className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold border border-gray-200"
+                     >
+                       Clear
+                     </button>
+                   </div>
+                 </form>
+               </div>
++
++              {/* Gate Management Section for newly added school */}
++              {currentSchoolId && (
++                  <div className="bg-gray-50 p-6 border-t border-gray-200">
++                    <div className="flex items-center mb-4">
++                      <div className="bg-blue-100 p-2 rounded-lg mr-3">
++                        <Map className="text-blue-600" size={20} />
++                      </div>
++                      <div>
++                        <h3 className="text-lg font-semibold text-gray-800">Add Gates</h3>
++                        <p className="text-sm text-gray-600">Configure school entry points</p>
++                      </div>
++                    </div>
++                    <GateManager
++                        schoolId={currentSchoolId}
++                        onGatesUpdate={(gates) => {
++                          console.log('Gates updated for new school:', gates);
++                        }}
++                    />
++                  </div>
++              )}
+             </div>
++          </div>
+ 
+-            {/* Right Side - Schools Table */}
+-            <div className="lg:col-span-2">
+-              <div className="bg-white rounded-lg">
+-                <div className="p-4 border-b">
+-                  <h2 className="text-lg font-semibold text-gray-800">Schools List</h2>
+-                  <p className="text-sm text-gray-600">Manage and view all registered schools</p>
++          {/* Right Side - Schools Table */}
++          <div className="lg:col-span-2">
++            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
++              {/* Header */}
++              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
++                <div className="flex items-center justify-between">
++                  <div>
++                    <h2 className="text-xl font-bold text-gray-800">Schools List</h2>
++                    <p className="text-sm text-gray-600 mt-1">Manage and view all registered schools</p>
++                  </div>
++                  <div className="bg-white p-2 rounded-lg shadow-sm">
++                    <SchoolIcon style={{ color: '#00d4aa' }} size={24} />
++                  </div>
+                 </div>
+-                
+-                {/* Search Filter */}
+-                <div className="p-4 border-b">
+-                  <div className="max-w-md">
++              </div>
++
++              {/* Search Filter */}
++              <div className="p-6 bg-gray-50 border-b border-gray-200">
++                <div className="max-w-md">
++                  <div className="relative">
+                     <input
+-                      type="text"
+-                      placeholder="Search schools by name, ID, or email..."
+-                      value={searchTerm}
+-                      onChange={(e) => setSearchTerm(e.target.value)}
+-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
++                        type="text"
++                        placeholder="Search schools by name, ID, or email..."
++                        value={searchTerm}
++                        onChange={(e) => setSearchTerm(e.target.value)}
++                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-white"
++                        style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
++                        onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
++                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                     />
++                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
++                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
++                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
++                      </svg>
++                    </div>
+                   </div>
+                 </div>
++              </div>
+ 
+-                {isLoading ? (
+-                  <div className="p-8 text-center">
+-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-yellow-400 border-t-transparent mb-4"></div>
+-                    <p className="text-gray-600">Loading schools data...</p>
++              {isLoading ? (
++                  <div className="p-12 text-center">
++                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ backgroundColor: 'rgba(0, 212, 170, 0.1)' }}>
++                      <div className="animate-spin rounded-full h-8 w-8 border-4 border-t-transparent" style={{ borderColor: '#00d4aa' }}></div>
++                    </div>
++                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading Schools</h3>
++                    <p className="text-gray-600">Please wait while we fetch the data...</p>
+                   </div>
+-                ) : error ? (
+-                  <div className="p-8 text-center">
+-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+-                      <strong className="font-bold">Error!</strong>
+-                      <span className="block sm:inline"> {error}</span>
++              ) : error ? (
++                  <div className="p-12 text-center">
++                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
++                      <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
++                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
++                      </svg>
+                     </div>
+-                    <button 
+-                      onClick={() => window.location.reload()}
+-                      className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-500"
++                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Error Loading Data</h3>
++                    <p className="text-gray-600 mb-6">{error}</p>
++                    <button
++                        onClick={() => window.location.reload()}
++                        className="text-white px-6 py-3 rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
++                        style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}
++                        onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(0.95)'}
++                        onMouseLeave={(e) => e.currentTarget.style.filter = 'brightness(1)'}
+                     >
+                       Try Again
+                     </button>
+                   </div>
+-                ) : filteredData.length === 0 && searchTerm === '' ? (
+-                  <div className="p-8 text-center">
+-                    <p className="text-gray-600">No schools found. Add a school using the form.</p>
++              ) : filteredData.length === 0 && searchTerm === '' ? (
++                  <div className="p-12 text-center">
++                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
++                      <SchoolIcon className="w-8 h-8 text-gray-400" />
++                    </div>
++                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Schools Found</h3>
++                    <p className="text-gray-600">Get started by adding your first school using the form on the left.</p>
+                   </div>
+-                ) : (
++              ) : (
+                   <DataTable
+-                    columns={columns}
+-                    data={filteredData}
+-                    renderCell={(column, value, row) => {
+-                    // Custom renderer for actions column
+-                    if (column === 'actions') {
+-                      const rowId = row.id as number;
+-                      const isActive = activeDropdown === rowId;
+-                      
+-                      return (
+-                        <div className="relative">
+-                          <button
+-                            onClick={() => setActiveDropdown(isActive ? null : rowId)}
+-                            className="p-1 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
+-                            title="More Actions"
+-                          >
+-                            <MoreVertical size={18} />
+-                          </button>
+-                          
+-                          {isActive && (
+-                            <div ref={dropdownRef} className="absolute right-0 z-10 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200">
+-                              <div className="py-1">
+-                                <button
+-                                  onClick={() => {
+-                                    setActiveDropdown(null);
+-                                    handleEdit(row);
+-                                  }}
+-                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+-                                >
+-                                  <Edit size={16} className="mr-2 text-blue-600" />
+-                                  Edit School Info
+-                                </button>
+-                                <button
+-                                  onClick={() => {
+-                                    setActiveDropdown(null);
+-                                    handleViewGuardians(row);
+-                                  }}
+-                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+-                                >
+-                                  <Eye size={16} className="mr-2 text-blue-600" />
+-                                  View Guardians
+-                                </button>
+-                                <button
+-                                  onClick={() => {
+-                                    setActiveDropdown(null);
+-                                    handleAddGuardian(row);
+-                                  }}
+-                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+-                                >
+-                                  <Users size={16} className="mr-2 text-green-600" />
+-                                  Add Guardian
+-                                </button>
+-                                <button
+-                                  onClick={() => {
+-                                    setActiveDropdown(null);
+-                                    handleDelete(row);
+-                                  }}
+-                                  className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 hover:text-red-900 w-full text-left"
+-                                >
+-                                  <Trash2 size={16} className="mr-2 text-red-600" />
+-                                  Delete School
+-                                </button>
+-                              </div>
+-                            </div>
+-                          )}
+-                        </div>
+-                      );
+-                    }
+-                    
+-                    // Default rendering
+-                    return value;
+-                  }}
+-                  itemsPerPageOptions={[5, 10, 15]}
+-                  defaultItemsPerPage={5}
+-                />
+-                )}
+-              </div>
++                      columns={columns}
++                      data={filteredData}
++                      renderCell={(column, value, row) => {
++                        const school = row as School;
++                        
++                        // Custom renderer for actions column
++                        if (column === 'actions') {
++                          const rowId = school.id;
++                          const isActive = activeDropdown === rowId;
++
++                          return (
++                              <div className="relative">
++                                <button
++                                    onClick={(e) => {
++                                      if (isActive) {
++                                        setActiveDropdown(null);
++                                        setDropdownPosition(null);
++                                      } else {
++                                        const rect = e.currentTarget.getBoundingClientRect();
++                                        const dropdownHeight = 300; // Approximate dropdown height
++                                        const spaceBelow = window.innerHeight - rect.bottom;
++                                        const spaceAbove = rect.top;
++                                        
++                                        let top, left;
++                                        
++                                        // If there's not enough space below, position above the button
++                                        if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
++                                          top = rect.top + window.scrollY - dropdownHeight - 8;
++                                        } else {
++                                          top = rect.bottom + window.scrollY + 8;
++                                        }
++                                        
++                                        // Calculate left position to keep dropdown in viewport
++                                        left = Math.min(window.innerWidth - 250, Math.max(20, rect.right - 200));
++                                        
++                                        setDropdownPosition({ top, left });
++                                        setActiveDropdown(rowId);
++                                        setSelectedSchoolForDropdown(school);
++                                      }
++                                    }}
++                                    className="p-1 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
++                                    title="More Actions"
++                                >
++                                  <MoreVertical size={18} />
++                                </button>
++
++                              </div>
++                          );
++                        }
++
++                        // Default rendering
++                        return value;
++                      }}
++                      itemsPerPageOptions={[5, 10, 15]}
++                      defaultItemsPerPage={5}
++                  />
++              )}
++            </div>
++          </div>
++        </div>
++
++        {/* Portal-based Dropdown Menu */}
++        {activeDropdown && dropdownPosition && createPortal(
++          <div 
++            ref={dropdownRef} 
++            className="fixed z-50 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
++            style={{ 
++              top: `${dropdownPosition.top}px`,
++              left: `${dropdownPosition.left}px`
++            }}
++          >
++            <div className="py-2">
++              <button
++                onClick={() => {
++                  setActiveDropdown(null);
++                  setDropdownPosition(null);
++                  handleEdit(selectedSchoolForDropdown!);
++                }}
++                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 w-full text-left transition-colors duration-150"
++              >
++                <div className="bg-blue-100 p-1.5 rounded-lg mr-3">
++                  <Edit size={14} className="text-blue-600" />
++                </div>
++                <div>
++                  <div className="font-medium">Edit School Info</div>
++                  <div className="text-xs text-gray-500">Update school details</div>
++                </div>
++              </button>
++              <button
++                onClick={() => {
++                  setActiveDropdown(null);
++                  setDropdownPosition(null);
++                  handleManageGates(selectedSchoolForDropdown!);
++                }}
++                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 w-full text-left transition-colors duration-150"
++              >
++                <div className="bg-green-100 p-1.5 rounded-lg mr-3">
++                  <Map size={14} className="text-green-600" />
++                </div>
++                <div>
++                  <div className="font-medium">Manage Gates</div>
++                  <div className="text-xs text-gray-500">Configure entry points</div>
++                </div>
++              </button>
++              <button
++                onClick={() => {
++                  setActiveDropdown(null);
++                  setDropdownPosition(null);
++                  handleManageGuardians(selectedSchoolForDropdown!);
++                }}
++                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 w-full text-left transition-colors duration-150"
++              >
++                <div className="bg-blue-100 p-1.5 rounded-lg mr-3">
++                  <Users size={14} className="text-blue-600" />
++                </div>
++                <div>
++                  <div className="font-medium">Manage Guardians</div>
++                  <div className="text-xs text-gray-500">Add and manage guardians</div>
++                </div>
++              </button>
++              <div className="border-t border-gray-100 my-1"></div>
++              <button
++                onClick={() => {
++                  setActiveDropdown(null);
++                  setDropdownPosition(null);
++                  handleDelete(selectedSchoolForDropdown!);
++                }}
++                className="flex items-center px-4 py-3 text-sm text-red-700 hover:bg-red-50 hover:text-red-900 w-full text-left transition-colors duration-150"
++              >
++                <div className="bg-red-100 p-1.5 rounded-lg mr-3">
++                  <Trash2 size={14} className="text-red-600" />
++                </div>
++                <div>
++                  <div className="font-medium">Delete School</div>
++                  <div className="text-xs text-red-500">Remove permanently</div>
++                </div>
++              </button>
+             </div>
+-          </div>
++          </div>,
++          document.body
++        )}
++
++        {/* Delete Confirmation Dialog */}
++        <ConfirmationBox
++          isOpen={showDeleteConfirmation}
++          title="Confirm Deletion"
++          variant='warning'
++          confirmationMessage="Are you sure you want to delete this school? This action cannot be undone."
++          objectName={schoolToDelete ? schoolToDelete.schoolName : ''}
++          onConfirm={confirmDeleteSchool}
++          onCancel={() => setShowDeleteConfirmation(false)}
++          confirmText="Delete"
++          cancelText="Cancel"
++        />
++
++        {/* Success Confirmation Dialog */}
++        <ConfirmationBox
++          isOpen={showSuccessConfirmation}
++          variant='success'
++          title="Success"
++          confirmationMessage={confirmationMessage}
++          objectName=""
++          onConfirm={() => setShowSuccessConfirmation(false)}
++          onCancel={() => setShowSuccessConfirmation(false)}
++          confirmText="OK"
++          cancelText="Close"
++        />
++
++        {/* Error Confirmation Dialog */}
++        <ConfirmationBox
++          isOpen={showErrorConfirmation}
++          title="Error"
++          variant='error'
++          confirmationMessage={confirmationMessage}
++          objectName=""
++          onConfirm={() => setShowErrorConfirmation(false)}
++          onCancel={() => setShowErrorConfirmation(false)}
++          confirmText="OK"
++          cancelText="Close"
++        />
+       </div>
+-  )
+-}
+-
+-
+-
+-export default ManageSchoolsPageContent;
++    )
++  }
++  
++  export default ManageSchoolsPageContent;
+\ No newline at end of file
+Index: src/app/components/Navbar.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>'use client';\r\n\r\nimport Link from 'next/link';\r\nimport { useSession,signOut } from 'next-auth/react';\r\nimport Image from 'next/image';\r\n\r\n\r\nexport default function Navbar() {\r\n  const {status, data: session} = useSession();\r\n\r\n  const scrollToSection = (sectionId: string) => {\r\n    const element = document.getElementById(sectionId);\r\n    if (element) {\r\n      element.scrollIntoView({ \r\n        behavior: 'smooth',\r\n        block: 'start'\r\n      });\r\n    }\r\n  };\r\n\r\n  return (\r\n    <nav className=\"w-full bg-white relative z-10 sticky top-0\">\r\n      <div className=\"max-w-7xl mx-auto px-8 py-6\">\r\n        <div className=\"flex items-center justify-between\">\r\n          {/* Logo */}\r\n          <div className=\"flex items-center\">\r\n            <Link href=\"/\" className=\"text-xl no-underline text-inherit\"> SchoolWay\r\n            {/* <img src=\"/logo/Logo_light.svg\" height={100} width={100} alt=\"\" /> */}\r\n            </Link>\r\n          </div>\r\n          <ul className=\"hidden md:flex items-center space-x-12 text-sm font-medium text-active-text \">\r\n            <li><Link href=\"/\" className='no-underline hover:text-primary'>Home</Link></li>\r\n            <li>\r\n              <button \r\n                onClick={() => scrollToSection('services')} \r\n                className='no-underline hover:text-primary bg-transparent border-none cursor-pointer text-sm font-semibold text-active-text'\r\n              >\r\n                Service\r\n              </button>\r\n            </li>\r\n            <li>\r\n              <button \r\n                onClick={() => scrollToSection('features')} \r\n                className='no-underline hover:text-primary bg-transparent border-none cursor-pointer text-sm font-semibold text-active-text'\r\n              >\r\n                Features\r\n              </button>\r\n            </li>\r\n            <li><Link href=\"/contactus\" className='no-underline hover:text-primary'>Contact us</Link></li>\r\n            <li>\r\n              <button \r\n                onClick={() => scrollToSection('testimonials')} \r\n                className='no-underline hover:text-primary bg-transparent border-none cursor-pointer text-sm font-semibold text-active-text'\r\n              >\r\n                Testimonial\r\n              </button>\r\n            </li>\r\n            {/* <li><Link href=\"#faq\" className='no-underline hover:text-primary'>FAQ</Link></li> */}\r\n          </ul>\r\n          {/* {\r\n            JSON.parse(localStorage.getItem('user') || '{}').email\r\n            }\r\n           */}\r\n          <div className=\"flex items-center space-x-3\">\r\n            <div className=\"space-x-2 flex items-center\">\r\n              {status===\"unauthenticated\" && <>\r\n                {\r\n                  JSON.parse(localStorage.getItem('user') || '{}').serviceName\r\n                }\r\n                <Link href=\"/login\">\r\n                  <button className=\"cursor-pointer text-white px-7 h-9 rounded-full font-semibold text-sm shadow-md transition-all duration-200\" style={{background: \"linear-gradient(90deg, var(--color-cyan-400, #22d3ee) 0%, var(--color-blue-500, #2563eb) 100%)\"}}>Login</button>\r\n                </Link>\r\n                <Link href=\"/signup\">\r\n                  <button className=\"btn-small-primary px-7 h-9 rounded-full font-semibold text-white text-sm shadow-md transition-all duration-200\" style={{background: \"#111\"}}>Sign up</button>\r\n                </Link>\r\n              </>}\r\n              {/* <div>\r\n                <pre>{JSON.stringify(session, null, 2)}</pre>\r\n              </div> */}\r\n              {status === \"authenticated\" && <>\r\n                <div className=\"flex justify-center align-middle\">\r\n                  {(session.user?.role === \"SERVICE\" || session.user?.role === \"ADMIN\") ? (\r\n                    <Link href={session.user?.role === \"SERVICE\" ? \"/vanowner\" : \"/admin\"}>\r\n                      <div tabIndex={0} role=\"button\" className=\"btn-ghost rounded-full mr-5\"> \r\n                        <Image\r\n                          src={session.user?.image || \"/Images/male_pro_pic_placeholder.png\"}\r\n                          width={40}\r\n                          height={40}\r\n                          alt=\"User image\"\r\n                          className=\"rounded-full\"\r\n                        />\r\n                      </div>\r\n                    </Link>\r\n                  ) : (\r\n                    <div tabIndex={0} role=\"button\" className=\"btn-ghost rounded-full\">\r\n                      <Image\r\n                        src={session.user?.image || \"/Images/male_pro_pic_placeholder.png\"}\r\n                        width={40}\r\n                        height={40}\r\n                        alt=\"User image\"\r\n                        className=\"rounded-full\"\r\n                      />\r\n                    </div>\r\n                  )}\r\n                  <ul tabIndex={0} className=\"flex gap-2 \">\r\n                    <li>\r\n                      <div className=\"flex items-center h-full\">\r\n                        <button\r\n                          className=\"btn-small-primary px-7 h-9 rounded-full font-semibold text-white text-sm shadow-md transition-all duration-200\"\r\n                          style={{background: \"#111\"}}\r\n                          onClick={() => signOut({ callbackUrl: \"/\" })}\r\n                        >\r\n                          Log Out\r\n                        </button>\r\n                      </div>\r\n                    </li>\r\n                  </ul>\r\n                </div>\r\n              </>}\r\n            </div>\r\n            \r\n          </div>\r\n        </div>\r\n      </div>\r\n    </nav>\r\n  );\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/app/components/Navbar.tsx b/src/app/components/Navbar.tsx
+--- a/src/app/components/Navbar.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/components/Navbar.tsx	(date 1757229539451)
+@@ -83,7 +83,7 @@
+                     <Link href={session.user?.role === "SERVICE" ? "/vanowner" : "/admin"}>
+                       <div tabIndex={0} role="button" className="btn-ghost rounded-full mr-5"> 
+                         <Image
+-                          src={session.user?.image || "/Images/male_pro_pic_placeholder.png"}
++                          src={session.user?.dp || "/Images/male_pro_pic_placeholder.png"}
+                           width={40}
+                           height={40}
+                           alt="User image"
+@@ -94,7 +94,7 @@
+                   ) : (
+                     <div tabIndex={0} role="button" className="btn-ghost rounded-full">
+                       <Image
+-                        src={session.user?.image || "/Images/male_pro_pic_placeholder.png"}
++                        src={session.user?.dp || "/Images/male_pro_pic_placeholder.png"}
+                         width={40}
+                         height={40}
+                         alt="User image"
+Index: src/app/vanowner/revenue/revenueTable.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import TablePagination from '@/app/components/TablePagination';\r\nimport { FaSearch } from 'react-icons/fa';\r\n\r\nconst payrolls = [\r\n  {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 1',\r\n    amountPaid: 'Rs. 45,000',\r\n    datePaid: 'June 15, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n  {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 2',\r\n    amountPaid: 'Rs. 40,000',\r\n    datePaid: 'June 10, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n  {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 3',\r\n    amountPaid: 'Rs. 38,000',\r\n    datePaid: 'June 5, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n   {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 1',\r\n    amountPaid: 'Rs. 45,000',\r\n    datePaid: 'June 15, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n  {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 2',\r\n    amountPaid: 'Rs. 40,000',\r\n    datePaid: 'June 10, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n  {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 3',\r\n    amountPaid: 'Rs. 38,000',\r\n    datePaid: 'June 5, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n   {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 1',\r\n    amountPaid: 'Rs. 45,000',\r\n    datePaid: 'June 15, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n  {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 2',\r\n    amountPaid: 'Rs. 40,000',\r\n    datePaid: 'June 10, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n  {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 3',\r\n    amountPaid: 'Rs. 38,000',\r\n    datePaid: 'June 5, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n   {\r\n    makeAndModel: 'Toyota Hiace',\r\n    vanNumber: 'Van 1',\r\n    amountPaid: 'Rs. 45,000',\r\n    datePaid: 'June 15, 2025',\r\n    status: 'Recieved',\r\n    avatar: '/Images/male_pro_pic_placeholder.png',\r\n  },\r\n];\r\n\r\nexport default function RevenueTable() {\r\n  return (\r\n    <div className=\"\">\r\n      <div className=\"flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4\">\r\n        <div className=\"relative w-full md:w-1/3\">\r\n          <FaSearch className=\"absolute left-3 top-3 text-gray-400\" />\r\n          <input\r\n            type=\"text\"\r\n            placeholder=\"Search payroll..\"\r\n            className=\"w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg\"\r\n          />\r\n        </div>\r\n        <TablePagination totalPages={5} />\r\n      </div>\r\n\r\n      {/* Table */}\r\n      <div className=\"overflow-x-auto\">\r\n        <table className=\"w-full border-collapse rounded-md overflow-hidden\">\r\n          <thead>\r\n            <tr className=\"bg-primary text-white text-left text-sm\">\r\n              <th className=\"p-3\">Van ID Number</th>\r\n              <th className=\"p-3\">Make and Model</th>\r\n              <th className=\"p-3\">Amount Recieved</th>\r\n              <th className=\"p-3\">Date Recieved</th>\r\n              <th className=\"p-3\">Status</th>\r\n            </tr>\r\n          </thead>\r\n          <tbody className=\"text-sm\">\r\n            {payrolls.map((p, index) => (\r\n              <tr\r\n                key={index}\r\n                className={`${\r\n                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50'\r\n                } border-b border-border-light-shade`}\r\n              >\r\n                <td className=\"p-3 text-gray-700\">{p.vanNumber}</td>\r\n                <td className=\"p-3 text-gray-700\">\r\n                  <span className=\"text-gray-800 font-medium\">{p.makeAndModel}</span>\r\n                </td>\r\n                <td className=\"p-3 text-gray-700\">{p.amountPaid}</td>\r\n                <td className=\"p-3 text-gray-500\">{p.datePaid}</td>\r\n                <td className=\"p-3\">\r\n                  <span className=\"text-xs px-3 py-1 rounded-full border bg-green-100 text-green-600 border-green-500\">\r\n                    {p.status}\r\n                  </span>\r\n                </td>\r\n              </tr>\r\n            ))}\r\n          </tbody>\r\n        </table>\r\n      </div>\r\n    </div>\r\n  );\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/app/vanowner/revenue/revenueTable.tsx b/src/app/vanowner/revenue/revenueTable.tsx
+--- a/src/app/vanowner/revenue/revenueTable.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/vanowner/revenue/revenueTable.tsx	(date 1757229539451)
+@@ -96,7 +96,11 @@
+             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg"
+           />
+         </div>
+-        <TablePagination totalPages={5} />
++        <TablePagination 
++            totalPages={5} 
++            currentPage={1} 
++            onPageChange={(page) => console.log('Page changed to:', page)} 
++        />
+       </div>
+ 
+       {/* Table */}
+Index: src/app/vanowner/vehicles/DriverTable.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { FaSearch, FaChevronDown } from 'react-icons/fa';\r\nimport TablePagination from '@/app/components/TablePagination';\r\nimport { useEffect, useState } from 'react';\r\nimport { MdLogout } from 'react-icons/md';\r\nimport { FaTrash } from 'react-icons/fa';\r\n\r\n\r\nconst statusColors = {\r\n  ACCEPTED: 'bg-green-100 text-green-600 border-green-500',\r\n  PENDING: 'bg-yellow-100 text-yellow-600 border-yellow-500',\r\n  REJECTED: 'bg-red-100 text-red-600 border-red-500',\r\n};\r\n\r\nexport default function DriverTable() {\r\n  const [driverRequests, setDriverRequests] = useState([]);\r\n\r\n  useEffect(() => {\r\n    const fetchDriverRequests = async () => {\r\n      try {\r\n        const res = await fetch('/api/driver-requests');\r\n        const data = await res.json();\r\n        setDriverRequests(data);\r\n      } catch (err) {\r\n        console.error('Failed to fetch driver requests:', err);\r\n      }\r\n    };\r\n\r\n    fetchDriverRequests();\r\n  }, []);\r\n\r\n  return (\r\n    <div className=\"\">\r\n      <div className=\"flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start  mb-4 gap-4\">\r\n        <div className=\"relative w-full md:w-1/3\">\r\n          <FaSearch className=\"absolute left-3 top-3 text-gray-400\" />\r\n          <input\r\n            type=\"text\"\r\n            placeholder=\"Search Driver Name..\"\r\n            className=\"\r\n            w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md  bg-search-bar-bg\"\r\n          />\r\n        </div>\r\n        <div className=\"relative w-full md:w-48\">\r\n          <select\r\n            className=\"w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none\"\r\n            defaultValue=\"Van 1\"\r\n          >\r\n            <option disabled>Select Van</option>\r\n            <option>Van 1</option>\r\n            <option>Van 2</option>\r\n            <option>Van 3</option>\r\n          </select>\r\n          <FaChevronDown className=\"ml-2 absolute top-3.5 left-40 cursor-pointer\" />\r\n        </div>\r\n        <div className=\"relative w-full md:w-48\">\r\n          <select\r\n            className=\"w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none\"\r\n            defaultValue=\"Van 1\"\r\n          >\r\n            <option disabled>Student Status</option>\r\n            <option>All</option>\r\n            <option>Accepted</option>\r\n            <option>Pending</option>\r\n          </select>\r\n          <FaChevronDown className=\"ml-2 absolute top-3.5 left-40 cursor-pointer\" />\r\n        </div>\r\n\r\n        {/* <TablePagination totalPages={5} /> */}\r\n\r\n      </div>\r\n\r\n      {/* Table */}\r\n      <div className=\"overflow-x-auto\">\r\n        <table className=\"w-full border-collapse rounded-md overflow-hidden\">\r\n          <thead>\r\n            <tr className=\"bg-primary text-white text-left text-sm\">\r\n              <th className=\"p-3\">Driver Name</th>\r\n              <th className=\"p-3\">Van</th>\r\n              <th className=\"p-3\">Status</th>\r\n              <th className=\"p-3\">Action</th>\r\n            </tr>\r\n          </thead>\r\n          <tbody className=\"text-sm\">\r\n              {driverRequests.map((d, index) => (\r\n                <tr\r\n                  key={index}\r\n                  className={`${\r\n                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'\r\n                  } border-b border-border-light-shade`}\r\n                >\r\n                  <td className=\"p-3 gap-2\">\r\n                    <span className=\"text-gray-800 font-medium\">{d.name}</span>\r\n                  </td>\r\n                  <td className=\"p-3 gap-2\">\r\n                    <span className=\"text-gray-800 font-medium\">{d.van}</span>\r\n                  </td>\r\n                  <td className=\"p-3\">\r\n                    <span\r\n                      className={`text-xs px-3 py-1 rounded-full border ${\r\n                        statusColors[d.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-600 border-gray-400'\r\n                      }`}\r\n                    >\r\n                      {d.status}\r\n                    </span>\r\n                  </td>\r\n                  \r\n                  <td className=\"p-3 gap-2\">\r\n                    <div className=\"flex items-center justify-start\">\r\n                      {d.status === 'ACCEPTED' ? (\r\n                        <button\r\n                          className=\"text-red-600 hover:text-red-800 text-lg cursor-pointer\"\r\n                          title=\"Resign\"\r\n                        >\r\n                          <MdLogout />\r\n                        </button>\r\n                      ) : d.status === 'REJECTED' ? (\r\n                        <button\r\n                          className=\"text-gray-600 hover:text-gry-800 text-lg cursor-pointer\"\r\n                          title=\"Delete\"\r\n                        >\r\n                          <FaTrash />\r\n                        </button>\r\n                      ) : \r\n                        <div className='flex items-center justify-center'>\r\n                            <span className=\"text-gray-600 text-sm\">\r\n                              N/A\r\n                            </span>\r\n                        </div>\r\n                      }\r\n                    </div>\r\n                  </td>\r\n                </tr>\r\n              ))}\r\n            </tbody>\r\n        </table>\r\n      </div>\r\n    </div>\r\n  );\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/app/vanowner/vehicles/DriverTable.tsx b/src/app/vanowner/vehicles/DriverTable.tsx
+--- a/src/app/vanowner/vehicles/DriverTable.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/vanowner/vehicles/DriverTable.tsx	(date 1757229539451)
+@@ -11,8 +11,16 @@
+   REJECTED: 'bg-red-100 text-red-600 border-red-500',
+ };
+ 
++interface DriverRequest {
++  id: string;
++  name: string;
++  van: string;
++  status: string;
++  date: string;
++}
++
+ export default function DriverTable() {
+-  const [driverRequests, setDriverRequests] = useState([]);
++  const [driverRequests, setDriverRequests] = useState<DriverRequest[]>([]);
+ 
+   useEffect(() => {
+     const fetchDriverRequests = async () => {
+Index: src/app/admin/awareness/page.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\r\nimport TopBar from '@/app/dashboardComponents/TopBar';\r\nimport PostForm from '@/app/dashboardComponents/PostAwrSessionForm';\r\nimport AwarenessPost from './AwarenessPost';\r\nimport sessiomImg from '../../../../public/Images/session_img.jpg';\r\n\r\nconst AdminDashboard = () => {\r\n\r\n  return (\r\n\r\n      <section className=\"p-4 md:p-8 min-h-screen w-full\">\r\n        {/*Top bar with profile icon and the heading*/}\r\n        <TopBar heading= \"Awareness Sessions\" />     \r\n\r\n        {/* <UserFilterBar />   */}\r\n\r\n\r\n        <div className=\"p-5\">\r\n          <h1 className=\"text-xl font-semibold mb-4\">Create a new Post</h1>\r\n          <PostForm />\r\n        </div>\r\n\r\n              <h1 className=\"text-xl font-semibold mb-4\">Latest Awareness Post</h1>\r\n\r\n        {/* Awareness Post Card Example */}\r\n        <div className=\"p-5 grid grid-cols-3 gap-5\">\r\n          <AwarenessPost\r\n            title=\"School Safety Awareness\"\r\n            content=\"Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!\"\r\n            imageUrl={sessiomImg}\r\n          />\r\n          <AwarenessPost\r\n            title=\"School Safety Awareness\"\r\n            content=\"Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!\"\r\n            imageUrl={sessiomImg}\r\n          />\r\n          <AwarenessPost\r\n            title=\"School Safety Awareness\"\r\n            content=\"Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!\"\r\n            imageUrl={sessiomImg}\r\n          />\r\n        </div>\r\n\r\n      \r\n    </section>\r\n  )\r\n}\r\n\r\nexport default AdminDashboard\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/app/admin/awareness/page.tsx b/src/app/admin/awareness/page.tsx
+--- a/src/app/admin/awareness/page.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/admin/awareness/page.tsx	(date 1757229539450)
+@@ -27,17 +27,17 @@
+           <AwarenessPost
+             title="School Safety Awareness"
+             content="Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!"
+-            imageUrl={sessiomImg}
++            imageUrl={sessiomImg.src}
+           />
+           <AwarenessPost
+             title="School Safety Awareness"
+             content="Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!"
+-            imageUrl={sessiomImg}
++            imageUrl={sessiomImg.src}
+           />
+           <AwarenessPost
+             title="School Safety Awareness"
+             content="Join us for a session on school safety, emergency procedures, and best practices to keep our students safe. All parents and staff are welcome!"
+-            imageUrl={sessiomImg}
++            imageUrl={sessiomImg.src}
+           />
+         </div>
+ 
+Index: src/app/admin/signup/page.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>'use client';\r\nimport React, { useState } from 'react';\r\nimport { FaSearch, FaEye, FaEyeSlash, FaUser, FaEnvelope, FaPhone, FaLock, FaIdCard, FaUpload } from 'react-icons/fa';\r\nimport { IoMdAddCircle } from 'react-icons/io';\r\nimport { MdOutlineClose } from \"react-icons/md\";\r\nimport TopBar from '@/app/dashboardComponents/TopBar';\r\nimport FormInput from '@/app/components/FormInput';\r\nimport TablePagination from '@/app/components/TablePagination';\r\n\r\n// Admin Card Component\r\nconst AdminCard = ({ admin, setEditAdmin, setViewAdmin }: { admin: any; setEditAdmin: (admin: any) => void; setViewAdmin: (admin: any) => void }) => (\r\n    <div className=\"bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow\">\r\n        <div className=\"flex items-center space-x-4 mb-4\">\r\n            <div className=\"w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden\">\r\n                {admin.profileImage ? (\r\n                    <img src={admin.profileImage} alt={admin.name} className=\"w-full h-full object-cover\" />\r\n                ) : (\r\n                    <FaUser className=\"text-gray-500 text-2xl\" />\r\n                )}\r\n            </div>\r\n            <div>\r\n                <h3 className=\"font-semibold text-lg text-gray-900\">{admin.name}</h3>\r\n                <p className=\"text-gray-600\">{admin.email}</p>\r\n            </div>\r\n        </div>\r\n\r\n        <div className=\"space-y-2 text-sm\">\r\n            <div className=\"flex justify-between\">\r\n                <span className=\"text-gray-600\">Department:</span>\r\n                <span className=\"font-medium\">{admin.department}</span>\r\n            </div>\r\n            <div className=\"flex justify-between\">\r\n                <span className=\"text-gray-600\">Role:</span>\r\n                <span className=\"font-medium\">{admin.role}</span>\r\n            </div>\r\n            <div className=\"flex justify-between\">\r\n                <span className=\"text-gray-600\">Phone:</span>\r\n                <span className=\"font-medium\">{admin.phone}</span>\r\n            </div>\r\n            <div className=\"flex justify-between\">\r\n                <span className=\"text-gray-600\">Status:</span>\r\n                <span className={`px-2 py-1 rounded-full text-xs ${\r\n                    admin.status === 'Active'\r\n                        ? 'bg-green-100 text-green-800'\r\n                        : 'bg-red-100 text-red-800'\r\n                }`}>\r\n          {admin.status}\r\n        </span>\r\n            </div>\r\n        </div>\r\n\r\n        <div className=\"mt-4 flex space-x-2\">\r\n            <button\r\n                onClick={() => setEditAdmin(admin)}\r\n                className=\"flex-1 btn-secondary py-2 px-3 text-sm\"\r\n            >\r\n                Edit\r\n            </button>\r\n            <button\r\n                onClick={() => setViewAdmin(admin)}\r\n                className=\"btn-small-primary ml-3 text-sm py-2 px-43\"\r\n            >\r\n                View\r\n            </button>\r\n        </div>\r\n    </div>\r\n);\r\n\r\nconst AdminsPage = () => {\r\n    const [showForm, setShowForm] = useState(false);\r\n    const [editAdmin, setEditAdmin] = useState<any>(null);\r\n    const [viewAdmin, setViewAdmin] = useState<any>(null);\r\n    const [formData, setFormData] = useState({\r\n        firstName: '',\r\n        lastName: '',\r\n        email: '',\r\n        phone: '',\r\n        nic: '',\r\n        address: '',\r\n        department: '',\r\n        role: '',\r\n        password: '',\r\n        confirmPassword: '',\r\n        profileImage: null as File | null,\r\n        documents: null as File | null\r\n    });\r\n\r\n    const [errors, setErrors] = useState<Record<string, string>>({});\r\n    const [showPassword, setShowPassword] = useState(false);\r\n    const [showConfirmPassword, setShowConfirmPassword] = useState(false);\r\n    const [isSubmitting, setIsSubmitting] = useState(false);\r\n\r\n    // Sample admin data\r\n    const admins = [\r\n        {\r\n            id: 1,\r\n            name: \"John Doe\",\r\n            email: \"john.doe@company.com\",\r\n            department: \"Operations\",\r\n            role: \"Admin\",\r\n            phone: \"+94 77 123 4567\",\r\n            status: \"Active\",\r\n            profileImage: null\r\n        },\r\n        {\r\n            id: 2,\r\n            name: \"Jane Smith\",\r\n            email: \"jane.smith@company.com\",\r\n            department: \"Customer Service\",\r\n            role: \"Senior Admin\",\r\n            phone: \"+94 77 234 5678\",\r\n            status: \"Active\",\r\n            profileImage: null\r\n        },\r\n        {\r\n            id: 3,\r\n            name: \"Mike Johnson\",\r\n            email: \"mike.johnson@company.com\",\r\n            department: \"IT\",\r\n            role: \"System Administrator\",\r\n            phone: \"+94 77 345 6789\",\r\n            status: \"Inactive\",\r\n            profileImage: null\r\n        },\r\n    ];\r\n\r\n    const handleAddAdminClick = () => setShowForm(true);\r\n    const handleCloseForm = () => {\r\n        setShowForm(false);\r\n        // Reset form data\r\n        setFormData({\r\n            firstName: '',\r\n            lastName: '',\r\n            email: '',\r\n            phone: '',\r\n            nic: '',\r\n            address: '',\r\n            department: '',\r\n            role: '',\r\n            password: '',\r\n            confirmPassword: '',\r\n            profileImage: null,\r\n            documents: null\r\n        });\r\n        setErrors({});\r\n    };\r\n\r\n    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {\r\n        const { name, value } = e.target;\r\n        setFormData(prev => ({\r\n            ...prev,\r\n            [name]: value\r\n        }));\r\n\r\n        // Clear error when user starts typing\r\n        if (errors[name]) {\r\n            setErrors(prev => ({ ...prev, [name]: '' }));\r\n        }\r\n    };\r\n\r\n    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {\r\n        const { name } = e.target;\r\n        const file = e.target.files?.[0] || null;\r\n        setFormData(prev => ({\r\n            ...prev,\r\n            [name]: file\r\n        }));\r\n\r\n        if (errors[name]) {\r\n            setErrors(prev => ({ ...prev, [name]: '' }));\r\n        }\r\n    };\r\n\r\n    const validateForm = () => {\r\n        const newErrors: Record<string, string> = {};\r\n\r\n        // Required field validations\r\n        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';\r\n        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';\r\n        if (!formData.email.trim()) newErrors.email = 'Email is required';\r\n        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';\r\n        if (!formData.nic.trim()) newErrors.nic = 'NIC number is required';\r\n        if (!formData.address.trim()) newErrors.address = 'Address is required';\r\n        if (!formData.department.trim()) newErrors.department = 'Department is required';\r\n        if (!formData.role.trim()) newErrors.role = 'Role is required';\r\n        if (!formData.password.trim()) newErrors.password = 'Password is required';\r\n        if (!formData.confirmPassword.trim()) newErrors.confirmPassword = 'Confirm password is required';\r\n\r\n        // Email validation\r\n        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\r\n        if (formData.email && !emailRegex.test(formData.email)) {\r\n            newErrors.email = 'Please enter a valid email address';\r\n        }\r\n\r\n        // Phone validation (Sri Lankan format)\r\n        const phoneRegex = /^(\\+94|0)[0-9]{9}$/;\r\n        if (formData.phone && !phoneRegex.test(formData.phone.replace(/\\s/g, ''))) {\r\n            newErrors.phone = 'Please enter a valid Sri Lankan phone number';\r\n        }\r\n\r\n        // NIC validation (Sri Lankan format)\r\n        const nicRegex = /^([0-9]{9}[vVxX]|[0-9]{12})$/;\r\n        if (formData.nic && !nicRegex.test(formData.nic)) {\r\n            newErrors.nic = 'Please enter a valid NIC number (9 digits + V/X or 12 digits)';\r\n        }\r\n\r\n        // Password validation\r\n        if (formData.password && formData.password.length < 8) {\r\n            newErrors.password = 'Password must be at least 8 characters long';\r\n        }\r\n\r\n        // Password complexity validation\r\n        if (formData.password) {\r\n            const hasUpperCase = /[A-Z]/.test(formData.password);\r\n            const hasLowerCase = /[a-z]/.test(formData.password);\r\n            const hasNumbers = /\\d/.test(formData.password);\r\n            const hasSpecialChar = /[!@#$%^&*(),.?\":{}|<>]/.test(formData.password);\r\n\r\n            if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {\r\n                newErrors.password = 'Password must contain uppercase, lowercase, number, and special character';\r\n            }\r\n        }\r\n\r\n        // Confirm password validation\r\n        if (formData.password !== formData.confirmPassword) {\r\n            newErrors.confirmPassword = 'Passwords do not match';\r\n        }\r\n\r\n        setErrors(newErrors);\r\n        return Object.keys(newErrors).length === 0;\r\n    };\r\n\r\n    const handleSubmit = async (e: React.FormEvent) => {\r\n        e.preventDefault();\r\n\r\n        if (!validateForm()) return;\r\n\r\n        setIsSubmitting(true);\r\n\r\n        try {\r\n            // Simulate API call\r\n            await new Promise(resolve => setTimeout(resolve, 2000));\r\n\r\n            console.log('Admin registration data:', formData);\r\n\r\n            // Show success message\r\n            alert('Admin registered successfully!');\r\n\r\n            // Close form and reset\r\n            handleCloseForm();\r\n\r\n        } catch (error) {\r\n            console.error('Registration error:', error);\r\n            alert('Registration failed. Please try again.');\r\n        } finally {\r\n            setIsSubmitting(false);\r\n        }\r\n    };\r\n\r\n    const togglePasswordVisibility = () => {\r\n        setShowPassword(!showPassword);\r\n    };\r\n\r\n    const toggleConfirmPasswordVisibility = () => {\r\n        setShowConfirmPassword(!showConfirmPassword);\r\n    };\r\n\r\n    return (\r\n        <section className=\"p-6 md:p-10 min-h-screen w-full\">\r\n            <TopBar heading=\"My Admins\" />\r\n\r\n            <div className=\"flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start mb-4 gap-4\">\r\n                <div className=\"relative w-full md:w-1/3\">\r\n                    <FaSearch className=\"absolute left-3 top-3 text-gray-400\" />\r\n                    <input\r\n                        type=\"text\"\r\n                        placeholder=\"Search admin\"\r\n                        className=\"w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-search-bar-bg\"\r\n                    />\r\n                </div>\r\n\r\n                <button onClick={handleAddAdminClick} className=\"btn-secondary flex items-center gap-2\">\r\n                    <span>Add Admin</span>\r\n                    <IoMdAddCircle className=\"size-5\" />\r\n                </button>\r\n                <TablePagination totalPages={5}/>\r\n            </div>\r\n\r\n            <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8\">\r\n                {admins.map((admin) => (\r\n                    <AdminCard key={admin.id} admin={admin} setEditAdmin={setEditAdmin} setViewAdmin={setViewAdmin} />\r\n                ))}\r\n            </div>\r\n\r\n            {/* Form Modal */}\r\n            {showForm && (\r\n                <div className=\"fixed inset-0 bg-black/40 flex items-center justify-center z-50 overflow-y-auto\">\r\n                    <div className=\"bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative my-8 mx-4 max-h-[90vh] overflow-y-auto\">\r\n                        {/* Close Button */}\r\n                        <button\r\n                            onClick={handleCloseForm}\r\n                            className=\"absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer z-10\"\r\n                        >\r\n                            <MdOutlineClose className='hover:text-error-color'/>\r\n                        </button>\r\n\r\n                        {/* Header */}\r\n                        <div className=\"text-center mb-8\">\r\n                            <h1 className=\"text-3xl font-bold text-gray-900 mb-2\">Create New Admin Account</h1>\r\n                            <p className=\"text-gray-600\">Register a new administrator for the system</p>\r\n                        </div>\r\n\r\n                        {/* Form */}\r\n                        <form onSubmit={handleSubmit} className=\"space-y-6\">\r\n                            {/* Personal Information Section */}\r\n                            <div className=\"border-b border-gray-200 pb-6\">\r\n                                <h2 className=\"text-xl font-semibold text-gray-900 mb-4 flex items-center\">\r\n                                    <FaUser className=\"mr-2\" />\r\n                                    Personal Information\r\n                                </h2>\r\n\r\n                                <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\r\n                                    <FormInput\r\n                                        label=\"First Name\"\r\n                                        name=\"firstName\"\r\n                                        placeholder=\"Enter first name\"\r\n                                        value={formData.firstName}\r\n                                        onChange={handleInputChange}\r\n                                        error={errors.firstName}\r\n                                    />\r\n\r\n                                    <FormInput\r\n                                        label=\"Last Name\"\r\n                                        name=\"lastName\"\r\n                                        placeholder=\"Enter last name\"\r\n                                        value={formData.lastName}\r\n                                        onChange={handleInputChange}\r\n                                        error={errors.lastName}\r\n                                    />\r\n\r\n                                    <FormInput\r\n                                        label=\"NIC Number\"\r\n                                        name=\"nic\"\r\n                                        placeholder=\"e.g. 123456789V or 123456789012\"\r\n                                        value={formData.nic}\r\n                                        onChange={handleInputChange}\r\n                                        error={errors.nic}\r\n                                    />\r\n\r\n                                    <FormInput\r\n                                        label=\"Phone Number\"\r\n                                        name=\"phone\"\r\n                                        placeholder=\"+94 77 123 4567\"\r\n                                        value={formData.phone}\r\n                                        onChange={handleInputChange}\r\n                                        error={errors.phone}\r\n                                    />\r\n\r\n                                    <div className=\"md:col-span-2\">\r\n                                        <FormInput\r\n                                            label=\"Address\"\r\n                                            name=\"address\"\r\n                                            placeholder=\"Enter complete address\"\r\n                                            value={formData.address}\r\n                                            onChange={handleInputChange}\r\n                                            error={errors.address}\r\n                                        />\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            {/* Professional Information Section */}\r\n                            <div className=\"border-b border-gray-200 pb-6\">\r\n                                <h2 className=\"text-xl font-semibold text-gray-900 mb-4 flex items-center\">\r\n                                    <FaIdCard className=\"mr-2\" />\r\n                                    Professional Information\r\n                                </h2>\r\n\r\n                                <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\r\n                                    <FormInput\r\n                                        label=\"Email Address\"\r\n                                        name=\"email\"\r\n                                        type=\"email\"\r\n                                        placeholder=\"admin@company.com\"\r\n                                        value={formData.email}\r\n                                        onChange={handleInputChange}\r\n                                        error={errors.email}\r\n                                    />\r\n\r\n                                    <div>\r\n                                        <label className=\"block mb-1 font-medium text-gray-700\">Department</label>\r\n                                        <select\r\n                                            name=\"department\"\r\n                                            value={formData.department}\r\n                                            onChange={handleInputChange}\r\n                                            className=\"w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500\"\r\n                                        >\r\n                                            <option value=\"\">Select Department</option>\r\n                                            <option value=\"Operations\">Operations</option>\r\n                                            <option value=\"Customer Service\">Customer Service</option>\r\n                                            <option value=\"Finance\">Finance</option>\r\n                                            <option value=\"Human Resources\">Human Resources</option>\r\n                                            <option value=\"Marketing\">Marketing</option>\r\n                                            <option value=\"IT\">IT</option>\r\n                                            <option value=\"Legal\">Legal</option>\r\n                                            <option value=\"Safety & Compliance\">Safety & Compliance</option>\r\n                                        </select>\r\n                                        {errors.department && (\r\n                                            <p className=\"text-red-500 text-sm mt-1\">{errors.department}</p>\r\n                                        )}\r\n                                    </div>\r\n\r\n                                    <div>\r\n                                        <label className=\"block mb-1 font-medium text-gray-700\">Role</label>\r\n                                        <select\r\n                                            name=\"role\"\r\n                                            value={formData.role}\r\n                                            onChange={handleInputChange}\r\n                                            className=\"w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500\"\r\n                                        >\r\n                                            <option value=\"\">Select Role</option>\r\n                                            <option value=\"Admin\">Admin</option>\r\n                                            <option value=\"Senior Admin\">Senior Admin</option>\r\n                                            <option value=\"Department Head\">Department Head</option>\r\n                                            <option value=\"System Administrator\">System Administrator</option>\r\n                                            <option value=\"Content Moderator\">Content Moderator</option>\r\n                                            <option value=\"Support Agent\">Support Agent</option>\r\n                                        </select>\r\n                                        {errors.role && (\r\n                                            <p className=\"text-red-500 text-sm mt-1\">{errors.role}</p>\r\n                                        )}\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            {/* Security Information Section */}\r\n                            <div className=\"border-b border-gray-200 pb-6\">\r\n                                <h2 className=\"text-xl font-semibold text-gray-900 mb-4 flex items-center\">\r\n                                    <FaLock className=\"mr-2\" />\r\n                                    Security Information\r\n                                </h2>\r\n\r\n                                <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\r\n                                    <div>\r\n                                        <label className=\"block mb-1 font-medium text-gray-700\">Password</label>\r\n                                        <div className=\"relative\">\r\n                                            <input\r\n                                                type={showPassword ? 'text' : 'password'}\r\n                                                name=\"password\"\r\n                                                placeholder=\"Enter password\"\r\n                                                value={formData.password}\r\n                                                onChange={handleInputChange}\r\n                                                className=\"w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500\"\r\n                                            />\r\n                                            <button\r\n                                                type=\"button\"\r\n                                                onClick={togglePasswordVisibility}\r\n                                                className=\"absolute right-3 top-2.5 text-gray-500 hover:text-gray-700\"\r\n                                            >\r\n                                                {showPassword ? <FaEyeSlash /> : <FaEye />}\r\n                                            </button>\r\n                                        </div>\r\n                                        {errors.password && (\r\n                                            <p className=\"text-red-500 text-sm mt-1\">{errors.password}</p>\r\n                                        )}\r\n                                        <p className=\"text-sm text-gray-500 mt-1\">\r\n                                            Password must be at least 8 characters with uppercase, lowercase, number, and special character\r\n                                        </p>\r\n                                    </div>\r\n\r\n                                    <div>\r\n                                        <label className=\"block mb-1 font-medium text-gray-700\">Confirm Password</label>\r\n                                        <div className=\"relative\">\r\n                                            <input\r\n                                                type={showConfirmPassword ? 'text' : 'password'}\r\n                                                name=\"confirmPassword\"\r\n                                                placeholder=\"Confirm password\"\r\n                                                value={formData.confirmPassword}\r\n                                                onChange={handleInputChange}\r\n                                                className=\"w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500\"\r\n                                            />\r\n                                            <button\r\n                                                type=\"button\"\r\n                                                onClick={toggleConfirmPasswordVisibility}\r\n                                                className=\"absolute right-3 top-2.5 text-gray-500 hover:text-gray-700\"\r\n                                            >\r\n                                                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}\r\n                                            </button>\r\n                                        </div>\r\n                                        {errors.confirmPassword && (\r\n                                            <p className=\"text-red-500 text-sm mt-1\">{errors.confirmPassword}</p>\r\n                                        )}\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            {/* File Uploads Section */}\r\n                            <div className=\"pb-6\">\r\n                                <h2 className=\"text-xl font-semibold text-gray-900 mb-4 flex items-center\">\r\n                                    <FaUpload className=\"mr-2\" />\r\n                                    Documents & Profile\r\n                                </h2>\r\n\r\n                                <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\r\n                                    <div>\r\n                                        <label className=\"block mb-1 font-medium text-gray-700\">Profile Image</label>\r\n                                        <input\r\n                                            type=\"file\"\r\n                                            name=\"profileImage\"\r\n                                            accept=\"image/*\"\r\n                                            onChange={handleFileChange}\r\n                                            className=\"w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500\"\r\n                                        />\r\n                                        <p className=\"text-sm text-gray-500 mt-1\">\r\n                                            Upload a profile picture (JPG, PNG, max 2MB)\r\n                                        </p>\r\n                                        {errors.profileImage && (\r\n                                            <p className=\"text-red-500 text-sm mt-1\">{errors.profileImage}</p>\r\n                                        )}\r\n                                    </div>\r\n\r\n                                    <div>\r\n                                        <label className=\"block mb-1 font-medium text-gray-700\">Supporting Documents</label>\r\n                                        <input\r\n                                            type=\"file\"\r\n                                            name=\"documents\"\r\n                                            accept=\".pdf,.doc,.docx,.jpg,.jpeg,.png\"\r\n                                            onChange={handleFileChange}\r\n                                            className=\"w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500\"\r\n                                        />\r\n                                        <p className=\"text-sm text-gray-500 mt-1\">\r\n                                            Upload CV, certificates, or other relevant documents\r\n                                        </p>\r\n                                        {errors.documents && (\r\n                                            <p className=\"text-red-500 text-sm mt-1\">{errors.documents}</p>\r\n                                        )}\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            {/* Submit Buttons */}\r\n                            <div className=\"flex justify-center space-x-4 pt-4\">\r\n                                <button\r\n                                    type=\"button\"\r\n                                    onClick={handleCloseForm}\r\n                                    className=\"px-8 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors\"\r\n                                    disabled={isSubmitting}\r\n                                >\r\n                                    Cancel\r\n                                </button>\r\n                                <button\r\n                                    type=\"submit\"\r\n                                    className=\"btn-secondary px-8 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center\"\r\n                                    disabled={isSubmitting}\r\n                                >\r\n                                    {isSubmitting ? (\r\n                                        <>\r\n                                            <svg className=\"animate-spin -ml-1 mr-3 h-5 w-5 text-white\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\">\r\n                                                <circle className=\"opacity-25\" cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" strokeWidth=\"4\"></circle>\r\n                                                <path className=\"opacity-75\" fill=\"currentColor\" d=\"M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z\"></path>\r\n                                            </svg>\r\n                                            Registering...\r\n                                        </>\r\n                                    ) : (\r\n                                        'Register Admin'\r\n                                    )}\r\n                                </button>\r\n                            </div>\r\n                        </form>\r\n                    </div>\r\n                </div>\r\n            )}\r\n\r\n\r\n            {/* Edit Admin Modal */}\r\n            {editAdmin && (\r\n                <div className=\"fixed inset-0 bg-black/40 flex items-center justify-center z-50\">\r\n                    <div className=\"bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative mx-4\">\r\n                        <button\r\n                            onClick={() => setEditAdmin(null)}\r\n                            className=\"absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl cursor-pointer\"\r\n                        >\r\n                            <MdOutlineClose className='hover:text-error-color'/>\r\n                        </button>\r\n\r\n                        <h2 className=\"text-xl font-semibold text-active-text mb-6\">Edit Admin</h2>\r\n\r\n                        <div className=\"space-y-4\">\r\n                            <div className=\"flex items-center space-x-4 mb-4\">\r\n                                <div className=\"w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center\">\r\n                                    <FaUser className=\"text-gray-500 text-2xl\" />\r\n                                </div>\r\n                                <div>\r\n                                    <h3 className=\"font-semibold text-lg\">{editAdmin.name}</h3>\r\n                                    <p className=\"text-gray-600\">{editAdmin.email}</p>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div className=\"space-y-3\">\r\n                                <div className=\"flex justify-between\">\r\n                                    <span className=\"font-medium\">Department:</span>\r\n                                    <span>{editAdmin.department}</span>\r\n                                </div>\r\n                                <div className=\"flex justify-between\">\r\n                                    <span className=\"font-medium\">Role:</span>\r\n                                    <span>{editAdmin.role}</span>\r\n                                </div>\r\n                                <div className=\"flex justify-between\">\r\n                                    <span className=\"font-medium\">Phone:</span>\r\n                                    <span>{editAdmin.phone}</span>\r\n                                </div>\r\n                                <div className=\"flex justify-between\">\r\n                                    <span className=\"font-medium\">Status:</span>\r\n                                    <span className={`px-2 py-1 rounded-full text-xs ${\r\n                                        editAdmin.status === 'Active'\r\n                                            ? 'bg-green-100 text-green-800'\r\n                                            : 'bg-red-100 text-red-800'\r\n                                    }`}>\r\n                    {editAdmin.status}\r\n                  </span>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div className=\"flex space-x-3 mt-6\">\r\n                                <button\r\n                                    onClick={() => setEditAdmin(null)}\r\n                                    className=\"flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors\"\r\n                                >\r\n                                    Cancel\r\n                                </button>\r\n                                <button className=\"flex-1 btn-secondary px-4 py-2\">\r\n                                    Save Changes\r\n                                </button>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            )}\r\n\r\n            {/* View Admin Modal */}\r\n            {viewAdmin && (\r\n                <div className=\"fixed inset-0 bg-black/40 flex items-center justify-center z-50\">\r\n                    <div className=\"bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative mx-4\">\r\n                        <button\r\n                            onClick={() => setViewAdmin(null)}\r\n                            className=\"absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl cursor-pointer\"\r\n                        >\r\n                            <MdOutlineClose className='hover:text-error-color'/>\r\n                        </button>\r\n\r\n                        <h2 className=\"text-xl font-semibold text-active-text mb-6\">Admin Details</h2>\r\n\r\n                        <div className=\"space-y-4\">\r\n                            <div className=\"flex items-center space-x-4 mb-6\">\r\n                                <div className=\"w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center\">\r\n                                    <FaUser className=\"text-gray-500 text-2xl\" />\r\n                                </div>\r\n                                <div>\r\n                                    <h3 className=\"font-semibold text-lg\">{viewAdmin.name}</h3>\r\n                                    <p className=\"text-gray-600\">{viewAdmin.email}</p>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div className=\"space-y-4\">\r\n                                <div>\r\n                                    <span className=\"font-medium text-gray-700 block\">Department</span>\r\n                                    <span className=\"text-gray-900\">{viewAdmin.department}</span>\r\n                                </div>\r\n                                <div>\r\n                                    <span className=\"font-medium text-gray-700 block\">Role</span>\r\n                                    <span className=\"text-gray-900\">{viewAdmin.role}</span>\r\n                                </div>\r\n                                <div>\r\n                                    <span className=\"font-medium text-gray-700 block\">Phone Number</span>\r\n                                    <span className=\"text-gray-900\">{viewAdmin.phone}</span>\r\n                                </div>\r\n                                <div>\r\n                                    <span className=\"font-medium text-gray-700 block\">Status</span>\r\n                                    <span className={`inline-block px-3 py-1 rounded-full text-sm ${\r\n                                        viewAdmin.status === 'Active'\r\n                                            ? 'bg-green-100 text-green-800'\r\n                                            : 'bg-red-100 text-red-800'\r\n                                    }`}>\r\n                    {viewAdmin.status}\r\n                  </span>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div className=\"flex justify-center mt-6\">\r\n                                <button\r\n                                    onClick={() => setViewAdmin(null)}\r\n                                    className=\"btn-secondary px-8 py-2\"\r\n                                >\r\n                                    Close\r\n                                </button>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            )}\r\n\r\n        </section>\r\n    );\r\n};\r\n\r\nexport default AdminsPage;
+===================================================================
+diff --git a/src/app/admin/signup/page.tsx b/src/app/admin/signup/page.tsx
+--- a/src/app/admin/signup/page.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/admin/signup/page.tsx	(date 1757229539451)
+@@ -283,7 +283,11 @@
+                     <span>Add Admin</span>
+                     <IoMdAddCircle className="size-5" />
+                 </button>
+-                <TablePagination totalPages={5}/>
++                <TablePagination 
++                    totalPages={5} 
++                    currentPage={1} 
++                    onPageChange={(page) => console.log('Page changed to:', page)} 
++                />
+             </div>
+ 
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+Index: src/app/api/admin/admins/route.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { NextRequest, NextResponse } from \"next/server\";\r\nimport prisma from \"@/lib/prisma\";\r\nimport * as bcryptjs from \"bcryptjs\";\r\n\r\ninterface AdminRequestBody {\r\n  firstname: string;\r\n  lastname: string;\r\n  email: string;\r\n  contact?: string;\r\n  password : string;\r\n}\r\n\r\nexport async function POST(req: NextRequest, \r\n  ) {\r\n  try {\r\n    const body: AdminRequestBody = await req.json();\r\n    const { firstname, lastname, email, contact, password } = body;\r\n    if (!firstname || !lastname || !email || !password) {\r\n      return NextResponse.json({ error: \"Missing required fields\" }, { status: 400 });\r\n    }\r\n\r\n    // Check if admin already exists in UserProfile\r\n    const existingAdmin = await prisma.userProfile.findUnique({ where: { email } });\r\n    if (existingAdmin) {\r\n      return NextResponse.json({ error: \"Admin with this email already exists\" }, { status: 409 });\r\n    }\r\n\r\n    // Hash password\r\n    const hashedPassword = await bcryptjs.hash('admin', 10);\r\n\r\n    // Create admin in UserProfile\r\n    const newAdmin = await prisma.userProfile.create({\r\n      data: {\r\n        email,\r\n        firstname,\r\n        lastname,\r\n        password: hashedPassword,\r\n        role: 'ADMIN',\r\n        mobile: contact,\r\n        \r\n      },\r\n    });\r\n\r\n    // Return created admin (omit password)\r\n    const { password: _pw, ...adminData } = newAdmin;\r\n    return NextResponse.json(adminData, { status: 201 });\r\n  } catch (error) {\r\n    return NextResponse.json({ error: \"Failed to create admin\", details: error?.message }, { status: 500 });\r\n  }\r\n}\r\n\r\n\r\nexport async function GET() {\r\n  try {\r\n    const admins = await prisma.userProfile.findMany({\r\n      where: { role: 'ADMIN' },\r\n      select: {\r\n        email: true,\r\n        firstname: true,\r\n        lastname: true,\r\n      },\r\n    });\r\n    return NextResponse.json(admins);\r\n  } catch (error) {\r\n    return NextResponse.json({ error: 'Failed to fetch admins', details: error?.message }, { status: 500 });\r\n  }\r\n}
+===================================================================
+diff --git a/src/app/api/admin/admins/route.tsx b/src/app/api/admin/admins/route.tsx
+--- a/src/app/api/admin/admins/route.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/api/admin/admins/route.tsx	(date 1757229539451)
+@@ -45,7 +45,7 @@
+     const { password: _pw, ...adminData } = newAdmin;
+     return NextResponse.json(adminData, { status: 201 });
+   } catch (error) {
+-    return NextResponse.json({ error: "Failed to create admin", details: error?.message }, { status: 500 });
++    return NextResponse.json({ error: "Failed to create admin", details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
+   }
+ }
+ 
+@@ -62,6 +62,6 @@
+     });
+     return NextResponse.json(admins);
+   } catch (error) {
+-    return NextResponse.json({ error: 'Failed to fetch admins', details: error?.message }, { status: 500 });
++    return NextResponse.json({ error: 'Failed to fetch admins', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
+   }
+ }
+\ No newline at end of file
+Index: src/app/api/driver-requests/route.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { getServerSession } from 'next-auth';\r\nimport { authOptions } from '@/app/api/auth/[...nextauth]/route';\r\nimport { NextResponse } from 'next/server';\r\nimport prisma from '@/lib/prisma'; \r\nexport async function GET() {\r\n  const session = await getServerSession(authOptions);\r\n\r\n  if (!session || !session.user?.id) {\r\n    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });\r\n  }\r\n\r\n  const vanOwnerId = session.user.id;\r\n\r\n  try {\r\n    const requests = await prisma.driverVanJobRequest.findMany({\r\n      where: {\r\n        vanOwnerId,\r\n      },\r\n      include: {\r\n        UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,\r\n        Van: true,\r\n      },\r\n    });\r\n\r\n    const formatted = requests.map((req) => ({\r\n      name: `${req.UserProfile_DriverVanJobRequest_driverIdToUserProfile.firstname ?? ''} ${req.UserProfile_DriverVanJobRequest_driverIdToUserProfile.lastname ?? ''}`,\r\n      van: req.Van?.makeAndModel ?? 'Unnamed Van',\r\n      status: req.status,\r\n      avatar: req.UserProfile_DriverVanJobRequest_driverIdToUserProfile.dp ?? '/Images/male_pro_pic_placeholder.png',\r\n    }));\r\n\r\n    return NextResponse.json(formatted);\r\n  } catch (err) {\r\n    console.error(err);\r\n    return NextResponse.json({ error: 'Failed to fetch requests' }, { status: 500 });\r\n  }\r\n}\r\n
+===================================================================
+diff --git a/src/app/api/driver-requests/route.ts b/src/app/api/driver-requests/route.ts
+--- a/src/app/api/driver-requests/route.ts	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/api/driver-requests/route.ts	(date 1757229539427)
+@@ -1,5 +1,5 @@
+ import { getServerSession } from 'next-auth';
+-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
++import { authOptions } from '@/lib/auth';
+ import { NextResponse } from 'next/server';
+ import prisma from '@/lib/prisma'; 
+ export async function GET() {
+Index: src/app/api/admin/schools/SchoolGuardians/[schoolId]/route.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { NextResponse } from 'next/server';\r\nimport prisma from '@/app/lib/prisma';\r\n\r\nexport async function GET(req: Request, { params }: { params: { schoolId: string } }) {\r\n  try {\r\n    const schoolId = params.schoolId;\r\n    if (!schoolId) {\r\n      return NextResponse.json({ error: 'Missing schoolId parameter' }, { status: 400 });\r\n    }\r\n\r\n    const guardians = await prisma.guardian.findMany({\r\n      where: { schoolId: Number(schoolId) },\r\n      select: {\r\n        guardianId: true,\r\n        firstname: true,\r\n        lastname: true,\r\n        email: true,\r\n        contact: true,\r\n      },\r\n    });\r\n\r\n    return NextResponse.json({ guardians });\r\n  } catch (error) {\r\n    return NextResponse.json({ error: 'Failed to fetch guardians', details: String(error) }, { status: 500 });\r\n  }\r\n}\r\n
+===================================================================
+diff --git a/src/app/api/admin/schools/SchoolGuardians/[schoolId]/route.tsx b/src/app/api/admin/schools/SchoolGuardians/[schoolId]/route.tsx
+--- a/src/app/api/admin/schools/SchoolGuardians/[schoolId]/route.tsx	(revision 0e8ca539040e2067840fa88a2392352ea0b7a400)
++++ b/src/app/api/admin/schools/SchoolGuardians/[schoolId]/route.tsx	(date 1757235693525)
+@@ -1,25 +1,52 @@
+ import { NextResponse } from 'next/server';
+-import prisma from '@/app/lib/prisma';
++import prisma from '@/lib/prisma';
+ 
+-export async function GET(req: Request, { params }: { params: { schoolId: string } }) {
++export async function GET(req: Request, { params }: { params: Promise<{ schoolId: string }> }) {
+   try {
+-    const schoolId = params.schoolId;
++    const resolvedParams = await params;
++    const schoolId = resolvedParams.schoolId;
+     if (!schoolId) {
+       return NextResponse.json({ error: 'Missing schoolId parameter' }, { status: 400 });
+     }
+ 
+-    const guardians = await prisma.guardian.findMany({
++    const guardians = await prisma.schoolGuardian.findMany({
+       where: { schoolId: Number(schoolId) },
+-      select: {
+-        guardianId: true,
+-        firstname: true,
+-        lastname: true,
+-        email: true,
+-        contact: true,
++      include: {
++        school: {
++          select: {
++            id: true,
++            schoolName: true,
++          },
++        },
++        userProfile: {
++          select: {
++            id: true,
++            email: true,
++            firstname: true,
++            lastname: true,
++            role: true,
++            activeStatus: true,
++          },
++        },
++      },
++      orderBy: {
++        createdAt: 'desc',
+       },
+     });
+ 
+-    return NextResponse.json({ guardians });
++    const formattedGuardians = guardians.map((guardian) => ({
++      id: guardian.id,
++      firstName: guardian.firstName,
++      lastName: guardian.lastName,
++      email: guardian.email,
++      phone: guardian.phone,
++      schoolName: guardian.school.schoolName,
++      schoolId: guardian.school.id,
++      createdAt: guardian.createdAt,
++      updatedAt: guardian.updatedAt,
++    }));
++
++    return NextResponse.json({ guardians: formattedGuardians });
+   } catch (error) {
+     return NextResponse.json({ error: 'Failed to fetch guardians', details: String(error) }, { status: 500 });
+   }

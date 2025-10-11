@@ -3,10 +3,11 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const driverId = params.id;
+    const resolvedParams = await params;
+    const driverId = resolvedParams.id;
 
     // Validate that driver ID is provided
     if (!driverId) {
@@ -52,8 +53,6 @@ export async function GET(
           select: {
             id: true,
             makeAndModel: true,
-            routeStart: true,
-            routeEnd: true,
             photoUrl: true,
             salaryPercentage: true,
             shiftDetails: true,
@@ -97,7 +96,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: driverId } = await params;
