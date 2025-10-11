@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schlway QR Attendance Demo</title>
+    <!-- Multiple CDN sources for QRCode library -->
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+        
+        .student-form {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #qrcode {
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        
+        .scanner-container {
+            text-align: center;
+        }
+        
+        #video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+        
+        .public-info {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        
+        .secure-info {
+            background: #f3e5f5;
+            border-left-color: #9c27b0;
+        }
+        
+        .student-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+            border: 3px solid #667eea;
+        }
+        
+        .auth-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 30px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        
+        .token-display {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        
+        .attendance-section {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .attendance-btn {
+            background: #4caf50;
+            margin: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- QR Generator Section -->
+        <div class="card">
+            <h2>🎓 Generate Student QR Code</h2>
+            
+            <div class="student-form">
+                <div class="form-group">
+                    <label for="studentName">Student Name</label>
+                    <input type="text" id="studentName" value="Ayesha Fernando" placeholder="Enter student name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="photoUrl">Photo URL</label>
+                    <input type="url" id="photoUrl" value="https://images.unsplash.com/photo-1494790108755-2616b612b1ab?w=150&h=150&fit=crop&crop=face" placeholder="Photo URL">
+                </div>
+                
+                <div class="form-group">
+                    <label for="emergencyContact">Emergency Contact</label>
+                    <input type="tel" id="emergencyContact" value="+94-77-123-4567" placeholder="Contact number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="studentId">Student ID (Secure)</label>
+                    <input type="text" id="studentId" value="stu_123" placeholder="Internal student ID">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vanId">Van ID (Secure)</label>
+                    <input type="text" id="vanId" value="van_45" placeholder="Assigned van ID">
+                </div>
+                
+                <div class="form-group">
+                    <label for="routeId">Route ID (Secure)</label>
+                    <input type="text" id="routeId" value="route_12" placeholder="Route ID">
+                </div>
+            </div>
+            
+            <button class="btn" onclick="generateQR()">Generate QR Code</button>
+            
+            <div class="qr-container">
+                <div id="qrcode"></div>
+                <div id="qrData" class="token-display" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <!-- QR Scanner Section -->
+        <div class="card">
+            <h2>📱 QR Code Scanner</h2>
+            
+            <div class="auth-toggle">
+                <span>👤 Regular User</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="authToggle" onchange="toggleAuth()">
+                    <span class="slider"></span>
+                </label>
+                <span>🚌 Van Attendant (Authorized)</span>
+            </div>
+            
+            <div class="scanner-container">
+                <button class="btn" onclick="startScanner()">Start Camera Scanner</button>
+                <video id="video" style="display: none;"></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <p>OR</p>
+                <button class="btn" onclick="simulateQRScan()">Simulate QR Scan (Demo)</button>
+            </div>
+            
+            <div id="scanResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let isAuthorized = false;
+        let qrData = null;
+        let scanning = false;
+        let qrLibraryLoaded = false;
+        
+        // Function to load QRCode library with fallbacks
+        function loadQRCodeLibrary() {
+            return new Promise((resolve, reject) => {
+                // Check if already loaded
+                if (typeof QRCode !== 'undefined') {
+                    qrLibraryLoaded = true;
+                    resolve();
+                    return;
+                }
+                
+                // Try loading from different CDNs
+                const cdnUrls = [
+                    'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js',
+                    'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js'
+                ];
+                
+                let currentIndex = 0;
+                
+                function tryNextCDN() {
+                    if (currentIndex >= cdnUrls.length) {
+                        reject('All CDN sources failed');
+                        return;
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = cdnUrls[currentIndex];
+                    script.onload = () => {
+                        if (typeof QRCode !== 'undefined') {
+                            qrLibraryLoaded = true;
+                            resolve();
+                        } else {
+                            currentIndex++;
+                            tryNextCDN();
+                        }
+                    };
+                    script.onerror = () => {
+                        currentIndex++;
+                        tryNextCDN();
+                    };
+                    document.head.appendChild(script);
+                }
+                
+                tryNextCDN();
+            });
+        }
+        
+        // Fallback QR generation using Google Charts API
+        function generateQRFallback(data) {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            const encodedData = encodeURIComponent(data);
+            const img = document.createElement('img');
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodedData}`;
+            img.alt = 'QR Code';
+            img.style.border = '10px solid white';
+            img.style.borderRadius = '15px';
+            
+            qrContainer.appendChild(img);
+            console.log('QR code generated using fallback API');
+        }
+        
+        // Simple JWT-like token generation (for demo purposes)
+        function generateSecureToken(payload) {
+            const header = { alg: "HS256", typ: "JWT" };
+            const encodedHeader = btoa(JSON.stringify(header));
+            const encodedPayload = btoa(JSON.stringify(payload));
+            const signature = btoa(Math.random().toString(36)); // Fake signature for demo
+            return `${encodedHeader}.${encodedPayload}.${signature}`;
+        }
+        
+        function generateQR() {
+            const studentName = document.getElementById('studentName').value;
+            const photoUrl = document.getElementById('photoUrl').value;
+            const emergencyContact = document.getElementById('emergencyContact').value;
+            const studentId = document.getElementById('studentId').value;
+            const vanId = document.getElementById('vanId').value;
+            const routeId = document.getElementById('routeId').value;
+            
+            // Public layer (visible to anyone)
+            const visibleData = {
+                studentName,
+                photoUrl,
+                emergencyContact,
+                profileLink: `https://schlway.com/student/lookup/${studentName.toLowerCase().replace(' ', '-')}`
+            };
+            
+            // Secure layer (JWT token)
+            const securePayload = {
+                studentId,
+                vanId,
+                routeId,
+                exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
+                iat: Math.floor(Date.now() / 1000)
+            };
+            
+            const secureToken = generateSecureToken(securePayload);
+            
+            // Complete QR payload
+            qrData = {
+                visible: visibleData,
+                secure: secureToken
+            };
+            
+            const qrString = JSON.stringify(qrData);
+            
+            // Try to use QRCode library first, fallback to API
+            if (qrLibraryLoaded && typeof QRCode !== 'undefined') {
+                // Clear previous QR code
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = '';
+                
+                // Create canvas element
+                const canvas = document.createElement('canvas');
+                qrContainer.appendChild(canvas);
+                
+                // Generate QR code
+                QRCode.toCanvas(canvas, qrString, {
+                    width: 256,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, function (error) {
+                    if (error) {
+                        console.error('QR generation error:', error);
+                        generateQRFallback(qrString);
+                    } else {
+                        console.log('QR code generated successfully with QRCode library');
+                    }
+                });
+            } else {
+                // Use fallback API
+                generateQRFallback(qrString);
+            }
+            
+            // Show QR data
+            document.getElementById('qrData').style.display = 'block';
+            document.getElementById('qrData').textContent = qrString;
+        }
+        
+        function toggleAuth() {
+            isAuthorized = document.getElementById('authToggle').checked;
+            console.log('Authorization status:', isAuthorized ? 'Van Attendant' : 'Regular User');
+        }
+        
+        function processQRData(scannedData) {
+            try {
+                const data = JSON.parse(scannedData);
+                const resultDiv = document.getElementById('scanResult');
+                
+                let html = '<div class="result-card public-info">';
+                html += '<h3>📋 Public Information (Always Visible)</h3>';
+                
+                if (data.visible.photoUrl) {
+                    html += `<img src="${data.visible.photoUrl}" alt="Student Photo" class="student-photo">`;
+                }
+                
+                html += `
+                    <p><strong>Student:</strong> ${data.visible.studentName}</p>
+                    <p><strong>Emergency Contact:</strong> ${data.visible.emergencyContact}</p>
+                    <p><strong>Profile Link:</strong> <a href="${data.visible.profileLink}" target="_blank">${data.visible.profileLink}</a></p>
+                </div>`;
+                
+                if (isAuthorized && data.secure) {
+                    // Simulate backend verification
+                    html += '<div class="result-card secure-info">';
+                    html += '<h3>🔐 Secure Information (Authorized Access Only)</h3>';
+                    
+                    try {
+                        // Decode JWT payload (in real app, this would be verified by backend)
+                        const payload = JSON.parse(atob(data.secure.split('.')[1]));
+                        
+                        html += `
+                            <p><strong>Student ID:</strong> ${payload.studentId}</p>
+                            <p><strong>Van ID:</strong> ${payload.vanId}</p>
+                            <p><strong>Route ID:</strong> ${payload.routeId}</p>
+                            <p><strong>Token Expires:</strong> ${new Date(payload.exp * 1000).toLocaleString()}</p>
+                        `;
+                        
+                        html += '</div>';
+                        
+                        // Attendance marking section
+                        html += `
+                            <div class="attendance-section">
+                                <h3>✅ Attendance Marking</h3>
+                                <p>Student verified for Van ${payload.vanId}, Route ${payload.routeId}</p>
+                                <button class="btn attendance-btn" onclick="markAttendance('${payload.studentId}', 'pickup')">Mark Pickup</button>
+                                <button class="btn attendance-btn" onclick="markAttendance('${payload.studentId}', 'dropoff')">Mark Drop-off</button>
+                            </div>
+                        `;
+                        
+                    } catch (e) {
+                        html += '<p style="color: red;">❌ Invalid or expired secure token</p></div>';
+                    }
+                } else if (!isAuthorized && data.secure) {
+                    html += `
+                        <div class="result-card">
+                            <h3>🔒 Secure Information</h3>
+                            <p style="color: #666;">Additional information available for authorized personnel only.</p>
+                            <p>Please contact van attendant for attendance marking.</p>
+                        </div>
+                    `;
+                }
+                
+                resultDiv.innerHTML = html;
+                
+            } catch (error) {
+                document.getElementById('scanResult').innerHTML = `
+                    <div class="result-card" style="border-left-color: #f44336; background: #ffebee;">
+                        <h3>❌ Invalid QR Code</h3>
+                        <p>The scanned QR code is not a valid Schlway student code.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function simulateQRScan() {
+            if (!qrData) {
+                alert('Please generate a QR code first!');
+                return;
+            }
+            
+            const qrString = JSON.stringify(qrData);
+            processQRData(qrString);
+        }
+        
+        function markAttendance(studentId, type) {
+            // Simulate attendance marking
+            const timestamp = new Date().toLocaleString();
+            alert(`✅ Attendance marked successfully!\n\nStudent: ${studentId}\nType: ${type}\nTime: ${timestamp}`);
+            
+            // In real app, this would send data to backend
+            console.log('Attendance marked:', { studentId, type, timestamp });
+        }
+        
+        function startScanner() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            
+            if (scanning) {
+                // Stop scanning
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                }
+                video.style.display = 'none';
+                scanning = false;
+                document.querySelector('button[onclick="startScanner()"]').textContent = 'Start Camera Scanner';
+                return;
+            }
+            
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    video.setAttribute('playsinline', true);
+                    video.play();
+                    scanning = true;
+                    document.querySelector('button[onclick="startScanner()"]').textContent = 'Stop Scanner';
+                    requestAnimationFrame(tick);
+                })
+                .catch(function(err) {
+                    console.log('Camera access denied or not available:', err);
+                    alert('Camera access is required for QR scanning. Please use the simulate button for demo.');
+                });
+        }
+        
+        function tick() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            
+            if (!scanning || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                if (scanning) requestAnimationFrame(tick);
+                return;
+            }
+            
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+            
+            if (code) {
+                processQRData(code.data);
+                // Stop scanning after successful scan
+                startScanner();
+            }
+            
+            if (scanning) requestAnimationFrame(tick);
+        }
+        
+        // Initialize the application
+        window.onload = function() {
+            // Try to load QRCode library
+            loadQRCodeLibrary()
+                .then(() => {
+                    console.log('QRCode library loaded successfully');
+                    generateQR(); // Generate initial QR code
+                })
+                .catch((error) => {
+                    console.warn('QRCode library failed to load, using fallback:', error);
+                    generateQR(); // Generate using fallback
+                });
+        };
+    </script>
+</body>
+</html>
