@@ -42,35 +42,45 @@ export async function GET(
   }
 }
 
+// Function to get location name from coordinates using Google Maps API
+async function getLocationName(lat: number, lng: number): Promise<string> {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.status === 'OK' && data.results.length > 0) {
+    return data.results[0].formatted_address;
+  }
+  return 'Unknown Location';
+}
+
 // Function to get basic vehicle info (always loaded)
 async function getDriverVehicleInfo(driverId: string) {
   try {
-    // Find the van assigned to this driver
     const van = await prisma.van.findFirst({
-      where: {
-        assignedDriverId: driverId
-      },
+      where: { assignedDriverId: driverId },
       include: {
         owner: true,
-        children: {
-          include: {
-            School: true
-          }
-        },
-        path: {
-          include: {
-            waypoints: {
-              orderBy: {
-                order: 'asc'
-              }
-            }
-          }
-        }
+        children: { include: { School: true } },
+        path: { include: { waypoints: { orderBy: { order: 'asc' } } } }
       }
     });
 
     if (!van) {
       return NextResponse.json({ error: 'No van assigned to this driver' }, { status: 404 });
+    }
+
+    // --- Get routeStart and routeEnd coordinates from geometry columns ---
+    let startLocation = 'Unknown Start';
+    let endLocation = 'Unknown End';
+    if (van.path?.id) {
+      const coords = await getRouteStartEndCoords(van.path.id);
+      if (coords?.start_lat && coords?.start_lng) {
+        startLocation = await getLocationName(coords.start_lat, coords.start_lng);
+      }
+      if (coords?.end_lat && coords?.end_lng) {
+        endLocation = await getLocationName(coords.end_lat, coords.end_lng);
+      }
     }
 
     // Get unique schools from children
@@ -82,21 +92,6 @@ async function getDriverVehicleInfo(driverId: string) {
       return acc;
     }, [] as any[]);
 
-    // Calculate route info
-    // const routeStart = van.path?.waypoints.find(wp => wp.order === 0);
-    const routeStart = van.path?.routeStart;
-    const routeEnd = van.path?.routeEnd;
-    // const routeEnd = van.path?.waypoints.find(wp => wp.order === Math.max(...van.path.waypoints.map(w => w.order)));
-
-//     if (van.path?.waypoints?.length) {
-//   van.path.waypoints.forEach((wp) => {
-//     console.log(`Order: ${wp.order}, Name: ${wp.name}`);
-//     console.log(`Location:`, wp.location);
-//   });
-// } else {
-//   console.log('No waypoints found for this van.');
-// }
-
     return {
       id: van.registrationNumber,
       model: van.makeAndModel,
@@ -105,11 +100,11 @@ async function getDriverVehicleInfo(driverId: string) {
       image: van.photoUrl || null,
       ownerName: `${van.owner.firstname || ''} ${van.owner.lastname || ''}`.trim() || 'Unknown Owner',
       capacity: van.seatingCapacity,
-      year: new Date(van.createdAt).getFullYear(), // Using creation year as van year for now
-      fuelType: 'Diesel', // Default value, can be added to schema later
+      year: new Date(van.createdAt).getFullYear(),
+      fuelType: 'Diesel',
       route: {
-        startLocation: routeStart?.name || 'Unknown Start',
-        endLocation: routeEnd?.name || 'Unknown End'
+        startLocation,
+        endLocation
       },
       stats: {
         studentCount: van.children.length,
@@ -226,4 +221,24 @@ async function getRouteAndSchools(driverId: string) {
       }
     ]
   };
+}
+
+// This query assumes your DB is PostgreSQL with PostGIS enabled
+async function getRouteStartEndCoords(pathId: string) {
+  const result = await prisma.$queryRawUnsafe<
+    Array<{ start_lat: number, start_lng: number, end_lat: number, end_lng: number }>
+  >
+  (
+    `
+    SELECT
+      ST_Y("routeStart") as start_lat,
+      ST_X("routeStart") as start_lng,
+      ST_Y("routeEnd") as end_lat,
+      ST_X("routeEnd") as end_lng
+    FROM "Path"
+    WHERE id = $1
+    `,
+    pathId
+  );
+  return result[0];
 }
