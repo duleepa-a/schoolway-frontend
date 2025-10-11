@@ -83,7 +83,7 @@ export default function Navbar() {
                     <Link href={session.user?.role === "SERVICE" ? "/vanowner" : "/admin"}>
                       <div tabIndex={0} role="button" className="btn-ghost rounded-full mr-5"> 
                         <Image
-                          src={session.user?.image || "/Images/male_pro_pic_placeholder.png"}
+                          src={session.user?.dp || "/Images/male_pro_pic_placeholder.png"}
                           width={40}
                           height={40}
                           alt="User image"
@@ -94,7 +94,7 @@ export default function Navbar() {
                   ) : (
                     <div tabIndex={0} role="button" className="btn-ghost rounded-full">
                       <Image
-                        src={session.user?.image || "/Images/male_pro_pic_placeholder.png"}
+                        src={session.user?.dp || "/Images/male_pro_pic_placeholder.png"}
                         width={40}
                         height={40}
                         alt="User image"
