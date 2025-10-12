@@ -1,0 +1,237 @@
+Index: prisma/schema.prisma
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>generator client {\r\n  provider = \"prisma-client-js\"\r\n  output   = \"../src/generated/prisma\"\r\n}\r\n\r\ndatasource db {\r\n  provider = \"postgresql\"\r\n  url      = env(\"DATABASE_URL\")\r\n}\r\n\r\nmodel UserProfile {\r\n  id                                                              String                @id @default(cuid())\r\n  email                                                           String                @unique\r\n  firstname                                                       String?\r\n  createdAt                                                       DateTime              @default(now())\r\n  updatedAt                                                       DateTime              @updatedAt\r\n  lastname                                                        String?\r\n  role                                                            UserRole?\r\n  password                                                        String\r\n  activeStatus                                                    Boolean               @default(true)\r\n  address                                                         String?\r\n  birthDate                                                       DateTime?\r\n  mobile                                                          String?\r\n  nic                                                             String?\r\n  nic_pic                                                         String?\r\n  district                                                        String?\r\n  dp                                                              String?               @default(\"/Images/male_pro_pic_placeholder.png\")\r\n  Child                                                           Child[]\r\n  driverProfile                                                   DriverProfile?\r\n  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation(\"DriverVanJobRequest_driverIdToUserProfile\")\r\n  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation(\"DriverVanJobRequest_vanOwnerIdToUserProfile\")\r\n  Payment                                                         Payment[]\r\n  PrivateHire                                                     PrivateHire[]\r\n  SchoolGuardian                                                  SchoolGuardian?\r\n  Van                                                             Van[]\r\n  vanService                                                      VanService?\r\n}\r\n\r\nmodel VanService {\r\n  id               String      @id @default(cuid())\r\n  serviceName      String\r\n  contactNo        String\r\n  serviceRegNumber String\r\n  businessDocument String?\r\n  userId           String      @unique\r\n  user             UserProfile @relation(fields: [userId], references: [id])\r\n}\r\n\r\nmodel DriverProfile {\r\n  id             String      @id @default(cuid())\r\n  licenseId      String\r\n  licenseExpiry  DateTime\r\n  licenseFront   String?\r\n  licenseBack    String?\r\n  policeReport   String?\r\n  userId         String      @unique\r\n  rating         Float       @default(0)\r\n  ratingCount    Int         @default(0)\r\n  startedDriving DateTime?   @default(now())\r\n  status         Int         @default(2)\r\n  bio            String?\r\n  languages      String[]\r\n  licenseType    String[]\r\n  medicalReport  String?\r\n  relocate       Boolean     @default(false)\r\n  hasVan         Int         @default(0)\r\n  user           UserProfile @relation(fields: [userId], references: [id])\r\n}\r\n\r\nmodel Child {\r\n  id              Int                       @id @default(autoincrement())\r\n  name            String\r\n  age             Int\r\n  profilePicture  String\r\n  vanID           Int?\r\n  schoolStartTime String\r\n  schoolEndTime   String\r\n  qrCode          String                    @unique\r\n  pickupLat       Decimal\r\n  pickupLng       Decimal\r\n  createdAt       DateTime                  @default(now())\r\n  updatedAt       DateTime                  @updatedAt\r\n  schoolID        Int\r\n  grade           Int\r\n  pickupLocation  Unsupported(\"geography\")?\r\n  specialNotes    String?\r\n  parentId        String?\r\n  pickupAddress   String                    @default(\"Not Specified\")\r\n  status          ChildStatus               @default(NOT_ASSIGNED)\r\n  feeAmount       Float                     @default(0)\r\n  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])\r\n  School          School                    @relation(fields: [schoolID], references: [id])\r\n  Van             Van?                      @relation(fields: [vanID], references: [id])\r\n  Payment         Payment[]\r\n  VanRequest      VanRequest?\r\n}\r\n\r\nmodel Van {\r\n  id                      Int                   @id @default(autoincrement())\r\n  registrationNumber      String                @unique\r\n  licensePlateNumber      String\r\n  makeAndModel            String\r\n  seatingCapacity         Int\r\n  acCondition             Boolean\r\n  rBookUrl                String\r\n  revenueLicenseUrl       String\r\n  fitnessCertificateUrl   String\r\n  insuranceCertificateUrl String\r\n  photoUrl                String\r\n  createdAt               DateTime              @default(now())\r\n  ownerId                 String\r\n  hasDriver               Boolean               @default(false)\r\n  assignedDriverId        String?\r\n  salaryPercentage        Float?                @default(25.0)\r\n  shiftDetails            String?\r\n  privateRating           Float                 @default(0)\r\n  studentRating           Float                 @default(0)\r\n  hasAssistant            Boolean               @default(false)\r\n  status                  Int                   @default(2)\r\n  pathId                  String?\r\n  endTime                 DateTime?\r\n  startTime               DateTime?\r\n  assistant               Assistant?\r\n  Child                   Child[]\r\n  DriverVanJobRequest     DriverVanJobRequest[]\r\n  Payment                 Payment[]\r\n  PrivateHire             PrivateHire[]\r\n  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])\r\n  Path                    Path?                 @relation(fields: [pathId], references: [id])\r\n  VanRequest              VanRequest[]\r\n}\r\n\r\nmodel Assistant {\r\n  id         String  @id @default(uuid())\r\n  name       String\r\n  contact    String\r\n  nic        String\r\n  vanId      Int?    @unique\r\n  profilePic String?\r\n  van        Van?    @relation(fields: [vanId], references: [id])\r\n}\r\n\r\nmodel School {\r\n  id             Int              @id @default(autoincrement())\r\n  schoolName     String\r\n  email          String           @unique\r\n  contact        String\r\n  address        String\r\n  createdAt      DateTime         @default(now())\r\n  Child          Child[]\r\n  Gate           Gate[]\r\n  SchoolGuardian SchoolGuardian[]\r\n}\r\n\r\nmodel ContactUs {\r\n  id        Int      @id @default(autoincrement())\r\n  name      String\r\n  email     String\r\n  subject   String\r\n  message   String\r\n  userType  String\r\n  status    String   @default(\"Pending\")\r\n  createdAt DateTime @default(now())\r\n}\r\n\r\nmodel DriverVanJobRequest {\r\n  id                                                      String           @id @default(cuid())\r\n  driverId                                                String\r\n  vanId                                                   Int\r\n  vanOwnerId                                              String\r\n  status                                                  JobRequestStatus @default(PENDING)\r\n  message                                                 String?\r\n  proposedSalary                                          Float?\r\n  turn                                                    String?\r\n  responseMessage                                         String?\r\n  respondedAt                                             DateTime?\r\n  createdAt                                               DateTime         @default(now())\r\n  updatedAt                                               DateTime         @default(now())\r\n  expiresAt                                               DateTime?        @default(dbgenerated(\"(now() + '21 days'::interval)\"))\r\n  UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation(\"DriverVanJobRequest_driverIdToUserProfile\", fields: [driverId], references: [id])\r\n  Van                                                     Van              @relation(fields: [vanId], references: [id])\r\n  UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation(\"DriverVanJobRequest_vanOwnerIdToUserProfile\", fields: [vanOwnerId], references: [id])\r\n\r\n  @@unique([driverId, vanOwnerId, vanId])\r\n}\r\n\r\nmodel SchoolGuardian {\r\n  id          Int         @id @default(autoincrement())\r\n  schoolId    Int\r\n  guardianId  String      @unique\r\n  createdAt   DateTime    @default(now())\r\n  email       String      @unique\r\n  firstName   String\r\n  lastName    String\r\n  phone       String?\r\n  updatedAt   DateTime?   @updatedAt\r\n  UserProfile UserProfile @relation(fields: [guardianId], references: [id])\r\n  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)\r\n\r\n  @@index([schoolId])\r\n  @@index([email])\r\n}\r\n\r\n/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.\r\nmodel spatial_ref_sys {\r\n  srid      Int     @id\r\n  auth_name String? @db.VarChar(256)\r\n  auth_srid Int?\r\n  srtext    String? @db.VarChar(2048)\r\n  proj4text String? @db.VarChar(2048)\r\n}\r\n\r\nmodel Gate {\r\n  id          Int                      @id @default(autoincrement())\r\n  gateName    String\r\n  description String?\r\n  location    Unsupported(\"geometry\")?\r\n  placeName   String?\r\n  address     String?\r\n  isActive    Boolean                  @default(true)\r\n  schoolId    Int\r\n  createdAt   DateTime                 @default(now())\r\n  School      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)\r\n\r\n  @@index([isActive])\r\n  @@index([schoolId])\r\n}\r\n\r\nmodel Path {\r\n  id                String                  @id\r\n  routeStart        Unsupported(\"geometry\")\r\n  routeEnd          Unsupported(\"geometry\")\r\n  routeGeometry     Unsupported(\"geometry\")\r\n  boundingBox       Unsupported(\"geometry\")\r\n  totalDistance     Float\r\n  estimatedDuration Int\r\n  Van               Van[]\r\n  WayPoint          WayPoint[]\r\n}\r\n\r\nmodel WayPoint {\r\n  id        Int                     @id @default(autoincrement())\r\n  pathId    String\r\n  name      String\r\n  placeId   String?\r\n  latitude  Float\r\n  longitude Float\r\n  location  Unsupported(\"geometry\")\r\n  order     Int\r\n  isStop    Boolean\r\n  createdAt DateTime                @default(now())\r\n  Path      Path                    @relation(fields: [pathId], references: [id])\r\n}\r\n\r\nmodel VanRequest {\r\n  id            String        @id @default(cuid())\r\n  vanId         Int\r\n  childId       Int           @unique\r\n  status        RequestStatus @default(PENDING)\r\n  createdAt     DateTime      @default(now())\r\n  updatedAt     DateTime      @updatedAt\r\n  estimatedFare Float         @default(0)\r\n  child         Child         @relation(fields: [childId], references: [id])\r\n  van           Van           @relation(fields: [vanId], references: [id])\r\n}\r\n\r\nmodel PrivateHire {\r\n  id             String      @id\r\n  userId         String\r\n  vanId          Int?\r\n  pickupLat      Float\r\n  pickupLng      Float\r\n  destinationLat Float\r\n  destinationLng Float\r\n  departureDate  DateTime\r\n  returnDate     DateTime?\r\n  noOfPassengers Int\r\n  fare           Float\r\n  notes          String?\r\n  status         HireStatus  @default(PENDING)\r\n  createdAt      DateTime    @default(now())\r\n  updatedAt      DateTime\r\n  UserProfile    UserProfile @relation(fields: [userId], references: [id])\r\n  Van            Van?        @relation(fields: [vanId], references: [id])\r\n}\r\n\r\nmodel Payment {\r\n  id          Int           @id @default(autoincrement())\r\n  childId     Int\r\n  parentId    String\r\n  vanId       Int\r\n  amount      Float\r\n  month       String\r\n  status      PaymentStatus @default(PENDING)\r\n  paidAt      DateTime?\r\n  createdAt   DateTime      @default(now())\r\n  updatedAt   DateTime\r\n  paymentType PaymentType   @default(SCHOOL_VAN)\r\n  Child       Child         @relation(fields: [childId], references: [id])\r\n  UserProfile UserProfile   @relation(fields: [parentId], references: [id])\r\n  Van         Van           @relation(fields: [vanId], references: [id])\r\n\r\n  @@unique([childId, month])\r\n}\r\n\r\nenum RequestStatus {\r\n  PENDING\r\n  ACCEPTED\r\n  REJECTED\r\n  CANCELLED\r\n}\r\n\r\nenum UserRole {\r\n  ADMIN\r\n  PARENT\r\n  SERVICE\r\n  DRIVER\r\n  TEACHER\r\n}\r\n\r\nenum JobRequestStatus {\r\n  PENDING\r\n  ACCEPTED\r\n  REJECTED\r\n  CANCELLED\r\n  EXPIRED\r\n}\r\n\r\nenum JobRequestType {\r\n  VAN_OWNER_TO_DRIVER\r\n}\r\n\r\nenum HireStatus {\r\n  PENDING\r\n  ACCEPTED\r\n  REJECTED\r\n  CANCELLED\r\n  COMPLETED\r\n}\r\n\r\nenum ChildStatus {\r\n  NOT_ASSIGNED\r\n  INACTIVE\r\n  AT_HOME\r\n  AT_SCHOOL\r\n  ON_VAN\r\n}\r\n\r\nenum PaymentStatus {\r\n  PENDING\r\n  FAILED\r\n  PAID\r\n}\r\n\r\nenum PaymentType {\r\n  SCHOOL_VAN\r\n  PRIVATE_HIRE\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+--- a/prisma/schema.prisma	(revision e1e739c9dc1794d936277e34404c054c1634efba)
++++ b/prisma/schema.prisma	(date 1760260884459)
+@@ -31,7 +31,9 @@
+   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+   Payment                                                         Payment[]
+   PrivateHire                                                     PrivateHire[]
++  Review                                                          Review[]
+   SchoolGuardian                                                  SchoolGuardian?
++  Van_Van_assignedDriverIdToUserProfile                           Van[]                 @relation("Van_assignedDriverIdToUserProfile")
+   Van                                                             Van[]
+   vanService                                                      VanService?
+ }
+@@ -43,6 +45,8 @@
+   serviceRegNumber String
+   businessDocument String?
+   userId           String      @unique
++  averageRating    Float       @default(0)
++  totalReviews     Int         @default(0)
+   user             UserProfile @relation(fields: [userId], references: [id])
+ }
+ 
+@@ -54,8 +58,6 @@
+   licenseBack    String?
+   policeReport   String?
+   userId         String      @unique
+-  rating         Float       @default(0)
+-  ratingCount    Int         @default(0)
+   startedDriving DateTime?   @default(now())
+   status         Int         @default(2)
+   bio            String?
+@@ -64,6 +66,8 @@
+   medicalReport  String?
+   relocate       Boolean     @default(false)
+   hasVan         Int         @default(0)
++  averageRating  Float       @default(0)
++  totalReviews   Int         @default(0)
+   user           UserProfile @relation(fields: [userId], references: [id])
+ }
+ 
+@@ -92,42 +96,45 @@
+   School          School                    @relation(fields: [schoolID], references: [id])
+   Van             Van?                      @relation(fields: [vanID], references: [id])
+   Payment         Payment[]
++  Review          Review[]
+   VanRequest      VanRequest?
+ }
+ 
+ model Van {
+-  id                      Int                   @id @default(autoincrement())
+-  registrationNumber      String                @unique
+-  licensePlateNumber      String
+-  makeAndModel            String
+-  seatingCapacity         Int
+-  acCondition             Boolean
+-  rBookUrl                String
+-  revenueLicenseUrl       String
+-  fitnessCertificateUrl   String
+-  insuranceCertificateUrl String
+-  photoUrl                String
+-  createdAt               DateTime              @default(now())
+-  ownerId                 String
+-  hasDriver               Boolean               @default(false)
+-  assignedDriverId        String?
+-  salaryPercentage        Float?                @default(25.0)
+-  shiftDetails            String?
+-  privateRating           Float                 @default(0)
+-  studentRating           Float                 @default(0)
+-  hasAssistant            Boolean               @default(false)
+-  status                  Int                   @default(2)
+-  pathId                  String?
+-  endTime                 DateTime?
+-  startTime               DateTime?
+-  assistant               Assistant?
+-  Child                   Child[]
+-  DriverVanJobRequest     DriverVanJobRequest[]
+-  Payment                 Payment[]
+-  PrivateHire             PrivateHire[]
+-  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
+-  Path                    Path?                 @relation(fields: [pathId], references: [id])
+-  VanRequest              VanRequest[]
++  id                                            Int                   @id @default(autoincrement())
++  registrationNumber                            String                @unique
++  licensePlateNumber                            String
++  makeAndModel                                  String
++  seatingCapacity                               Int
++  acCondition                                   Boolean
++  rBookUrl                                      String
++  revenueLicenseUrl                             String
++  fitnessCertificateUrl                         String
++  insuranceCertificateUrl                       String
++  photoUrl                                      String
++  createdAt                                     DateTime              @default(now())
++  ownerId                                       String
++  hasDriver                                     Boolean               @default(false)
++  assignedDriverId                              String?
++  salaryPercentage                              Float?                @default(25.0)
++  shiftDetails                                  String?
++  privateRating                                 Float                 @default(0)
++  studentRating                                 Float                 @default(0)
++  hasAssistant                                  Boolean               @default(false)
++  status                                        Int                   @default(2)
++  pathId                                        String?
++  endTime                                       DateTime?
++  startTime                                     DateTime?
++  assistant                                     Assistant?
++  Child                                         Child[]
++  DriverVanJobRequest                           DriverVanJobRequest[]
++  Payment                                       Payment[]
++  PrivateHire                                   PrivateHire[]
++  Review                                        Review[]
++  UserProfile_Van_assignedDriverIdToUserProfile UserProfile?          @relation("Van_assignedDriverIdToUserProfile", fields: [assignedDriverId], references: [id])
++  UserProfile                                   UserProfile           @relation(fields: [ownerId], references: [id])
++  Path                                          Path?                 @relation(fields: [pathId], references: [id])
++  VanRequest                                    VanRequest[]
+ }
+ 
+ model Assistant {
+@@ -303,6 +310,24 @@
+   @@unique([childId, month])
+ }
+ 
++model Review {
++  id          String      @id
++  childId     Int
++  reviewType  ReviewType
++  targetId    String
++  rating      Int
++  comment     String?
++  createdAt   DateTime    @default(now())
++  updatedAt   DateTime
++  vanId       Int
++  Child       Child       @relation(fields: [childId], references: [id])
++  UserProfile UserProfile @relation(fields: [targetId], references: [id])
++  Van         Van         @relation(fields: [vanId], references: [id])
++
++  @@index([childId])
++  @@index([reviewType, targetId])
++}
++
+ enum RequestStatus {
+   PENDING
+   ACCEPTED
+@@ -356,3 +381,8 @@
+   SCHOOL_VAN
+   PRIVATE_HIRE
+ }
++
++enum ReviewType {
++  DRIVER
++  VAN_SERVICE
++}
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"28afdde8-4660-4fa9-975e-fa7a083ac9d3\" name=\"Changes\" comment=\"add admin page\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/prisma/schema.prisma\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/prisma/schema.prisma\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/src/app/admin/awareness/page.tsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/src/app/admin/awareness/page.tsx\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/src/app/admin/school/ManageSchoolsPageContent.tsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/src/app/admin/school/ManageSchoolsPageContent.tsx\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/src/app/api/vans/[id]/route.ts\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/src/app/api/vans/[id]/route.ts\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"dineth\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;dineththeekshana&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">{\r\n  &quot;selectedUrlAndAccountId&quot;: {\r\n    &quot;url&quot;: &quot;https://github.com/duleepa-a/schoolway-frontend.git&quot;,\r\n    &quot;accountId&quot;: &quot;87208401-7604-4e50-9470-80073ae21791&quot;\r\n  },\r\n  &quot;recentNewPullRequestHead&quot;: {\r\n    &quot;server&quot;: {\r\n      &quot;useHttp&quot;: false,\r\n      &quot;host&quot;: &quot;github.com&quot;,\r\n      &quot;port&quot;: null,\r\n      &quot;suffix&quot;: null\r\n    },\r\n    &quot;owner&quot;: &quot;duleepa-a&quot;,\r\n    &quot;repository&quot;: &quot;schoolway-frontend&quot;\r\n  }\r\n}</component>\r\n  <component name=\"ProblemsViewState\">\r\n    <option name=\"selectedTabId\" value=\"CurrentFile\" />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 7\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"2yqelcQUhIYmc2gdOiWOhT3BwZH\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"RunOnceActivity.git.unshallow\": \"true\",\r\n    \"git-widget-placeholder\": \"Dev__Stage\",\r\n    \"ignore.virus.scanning.warn.message\": \"true\",\r\n    \"kotlin-language-version-configured\": \"true\",\r\n    \"last_opened_file_path\": \"C:/Users/Dineth/Desktop/schoolway-mobile\",\r\n    \"node.js.detected.package.eslint\": \"true\",\r\n    \"node.js.detected.package.tslint\": \"true\",\r\n    \"node.js.selected.package.eslint\": \"(autodetect)\",\r\n    \"node.js.selected.package.tslint\": \"(autodetect)\",\r\n    \"nodejs_package_manager_path\": \"npm\",\r\n    \"ts.external.directory.path\": \"C:\\\\Program Files\\\\JetBrains\\\\IntelliJ IDEA 2024.3\\\\plugins\\\\javascript-plugin\\\\jsLanguageServicesImpl\\\\external\",\r\n    \"vue.rearranger.settings.migration\": \"true\"\r\n  }\r\n}]]></component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\Dineth\\Desktop\\schoolway-frontend\\src\\app\\vanowner\\vehicles\\driver\" />\r\n    </key>\r\n    <key name=\"MoveFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\Dineth\\Desktop\\schoolway-frontend\\src\\app\\vanowner\\vehicles\\driver\\details\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"RunManager\">\r\n    <configuration default=\"true\" type=\"JetRunConfigurationType\">\r\n      <module name=\"schoolway-frontend\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration default=\"true\" type=\"JetRunConfigurationType\">\r\n      <module name=\"schoolway-frontend\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration default=\"true\" type=\"KotlinStandaloneScriptRunConfigurationType\">\r\n      <module name=\"schoolway-frontend\" />\r\n      <option name=\"filePath\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n    <configuration default=\"true\" type=\"KotlinStandaloneScriptRunConfigurationType\">\r\n      <module name=\"schoolway-frontend\" />\r\n      <option name=\"filePath\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n    <configuration default=\"true\" type=\"JetRunConfigurationType\">\r\n      <module name=\"schoolway-frontend\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration default=\"true\" type=\"KotlinStandaloneScriptRunConfigurationType\">\r\n      <module name=\"schoolway-frontend\" />\r\n      <option name=\"filePath\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.117\" />\r\n        <option value=\"bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.117\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"28afdde8-4660-4fa9-975e-fa7a083ac9d3\" name=\"Changes\" comment=\"\" />\r\n      <created>1750566682959</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1750566682959</updated>\r\n      <workItem from=\"1750566684078\" duration=\"2082000\" />\r\n      <workItem from=\"1751870444842\" duration=\"17614000\" />\r\n      <workItem from=\"1752083542324\" duration=\"1210000\" />\r\n      <workItem from=\"1752466014647\" duration=\"1610000\" />\r\n      <workItem from=\"1752571774278\" duration=\"1224000\" />\r\n      <workItem from=\"1752640569668\" duration=\"32000\" />\r\n      <workItem from=\"1752640609754\" duration=\"1174000\" />\r\n      <workItem from=\"1753127029499\" duration=\"58000\" />\r\n      <workItem from=\"1753127102436\" duration=\"106000\" />\r\n      <workItem from=\"1753127218296\" duration=\"72000\" />\r\n      <workItem from=\"1753127303949\" duration=\"33000\" />\r\n      <workItem from=\"1753127348760\" duration=\"4781000\" />\r\n      <workItem from=\"1753285661804\" duration=\"634000\" />\r\n      <workItem from=\"1753351234348\" duration=\"2124000\" />\r\n      <workItem from=\"1753378887435\" duration=\"1979000\" />\r\n      <workItem from=\"1753380904288\" duration=\"617000\" />\r\n      <workItem from=\"1753463149710\" duration=\"1675000\" />\r\n      <workItem from=\"1753500050239\" duration=\"621000\" />\r\n      <workItem from=\"1753726107576\" duration=\"306000\" />\r\n      <workItem from=\"1753726432676\" duration=\"263000\" />\r\n      <workItem from=\"1753726710728\" duration=\"280000\" />\r\n      <workItem from=\"1753727014361\" duration=\"145000\" />\r\n      <workItem from=\"1753727297742\" duration=\"1332000\" />\r\n      <workItem from=\"1753732369396\" duration=\"86000\" />\r\n      <workItem from=\"1753732463439\" duration=\"3593000\" />\r\n      <workItem from=\"1753861948318\" duration=\"5000\" />\r\n      <workItem from=\"1754798925286\" duration=\"4600000\" />\r\n      <workItem from=\"1754803889345\" duration=\"4332000\" />\r\n      <workItem from=\"1754814604283\" duration=\"6227000\" />\r\n      <workItem from=\"1755838427184\" duration=\"362000\" />\r\n      <workItem from=\"1757220309873\" duration=\"7315000\" />\r\n      <workItem from=\"1759726699282\" duration=\"32000\" />\r\n      <workItem from=\"1759729556911\" duration=\"263000\" />\r\n      <workItem from=\"1759730535216\" duration=\"1632000\" />\r\n      <workItem from=\"1760116571952\" duration=\"331000\" />\r\n      <workItem from=\"1760116923682\" duration=\"139000\" />\r\n      <workItem from=\"1760117085379\" duration=\"395000\" />\r\n      <workItem from=\"1760156027572\" duration=\"808000\" />\r\n      <workItem from=\"1760157556213\" duration=\"592000\" />\r\n      <workItem from=\"1760195460792\" duration=\"3722000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"van driver assign &amp; driver details pages\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1751893144835</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1751893144835</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"guardian registration\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1752466409356</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1752466409356</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"notifications page added\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1753127771301</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1753127771301</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"add admin page\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1753130212958</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1753130212958</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"5\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"van driver assign &amp; driver details pages\" />\r\n    <MESSAGE value=\"guardian registration\" />\r\n    <MESSAGE value=\"notifications page added\" />\r\n    <MESSAGE value=\"add admin page\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"add admin page\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision e1e739c9dc1794d936277e34404c054c1634efba)
++++ b/.idea/workspace.xml	(date 1760261800034)
+@@ -9,9 +9,6 @@
+       <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/src/app/admin/school/ManageSchoolsPageContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/school/ManageSchoolsPageContent.tsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+@@ -22,7 +19,7 @@
+   <component name="Git.Settings">
+     <option name="RECENT_BRANCH_BY_REPOSITORY">
+       <map>
+-        <entry key="$PROJECT_DIR$" value="dineth" />
++        <entry key="$PROJECT_DIR$" value="Dev_Stage" />
+       </map>
+     </option>
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+@@ -60,23 +57,23 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "RunOnceActivity.git.unshallow": "true",
+-    "git-widget-placeholder": "Dev__Stage",
+-    "ignore.virus.scanning.warn.message": "true",
+-    "kotlin-language-version-configured": "true",
+-    "last_opened_file_path": "C:/Users/Dineth/Desktop/schoolway-mobile",
+-    "node.js.detected.package.eslint": "true",
+-    "node.js.detected.package.tslint": "true",
+-    "node.js.selected.package.eslint": "(autodetect)",
+-    "node.js.selected.package.tslint": "(autodetect)",
+-    "nodejs_package_manager_path": "npm",
+-    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
+-    "vue.rearranger.settings.migration": "true"
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
++    &quot;git-widget-placeholder&quot;: &quot;dineth&quot;,
++    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
++    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
++    &quot;last_opened_file_path&quot;: &quot;C:/Users/Dineth/Desktop/schoolway-mobile&quot;,
++    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
++    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
++    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
++    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
++    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
++    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
++    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+   }
+-}]]></component>
++}</component>
+   <component name="RecentsManager">
+     <key name="CopyFile.RECENT_KEYS">
+       <recent name="C:\Users\Dineth\Desktop\schoolway-frontend\src\app\vanowner\vehicles\driver" />
+@@ -176,6 +173,8 @@
+       <workItem from="1760156027572" duration="808000" />
+       <workItem from="1760157556213" duration="592000" />
+       <workItem from="1760195460792" duration="3722000" />
++      <workItem from="1760247164373" duration="2998000" />
++      <workItem from="1760250509082" duration="5167000" />
+     </task>
+     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
+       <option name="closed" value="true" />
