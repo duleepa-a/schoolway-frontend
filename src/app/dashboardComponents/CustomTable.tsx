@@ -1,6 +1,13 @@
 "use client";
 
-import { Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft, // Added for "First Page"
+  ChevronsRight, // Added for "Last Page"
+} from "lucide-react";
 import { useState, useMemo, ReactNode } from "react";
 
 interface Column {
@@ -45,6 +52,7 @@ export default function DataTable({
   }, [data, currentPage, itemsPerPage]);
 
   const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
 
@@ -62,10 +70,29 @@ export default function DataTable({
         pages.push(i);
       }
     } else {
+      let startPage, endPage;
       if (currentPage <= 3) {
-        pages.push(1, 2, 3, "...", totalPages);
+        startPage = 1;
+        endPage = 4;
+        pages.push(
+          ...Array.from(
+            { length: endPage - startPage + 1 },
+            (_, i) => startPage + i
+          ),
+          "...",
+          totalPages
+        );
       } else if (currentPage >= totalPages - 2) {
-        pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
+        startPage = totalPages - 3;
+        endPage = totalPages;
+        pages.push(
+          1,
+          "...",
+          ...Array.from(
+            { length: endPage - startPage + 1 },
+            (_, i) => startPage + i
+          )
+        );
       } else {
         pages.push(
           1,
@@ -78,141 +105,184 @@ export default function DataTable({
         );
       }
     }
-
     return pages;
   };
 
   return (
-    <div className="shadow-card rounded-xl bg-white p-0 overflow-x-auto">
-      <table className="w-full text-sm text-left">
-        <thead className="bg-[var(--blue-shade-dark)] text-white">
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                className="px-4 py-3 font-semibold whitespace-nowrap"
-              >
-                {col.label}
-              </th>
-            ))}
-            {actions.length > 0 && (
-              <th className="px-4 py-3 font-semibold whitespace-nowrap">Actions</th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-  {paginatedData.length === 0 ? (
-    <tr>
-      <td colSpan={columns.length + (actions.length > 0 ? 1 : 0)} className="text-center py-8 text-gray-400">
-        No data available
-      </td>
-    </tr>
-  ) : (
-    paginatedData.map((row, rowIndex) => (
-      <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-[var(--blue-shade-light)]/10' : 'bg-white'}>
-        {columns.map((col) => (
-          <td key={col.key} className="px-4 py-3 align-middle">
-            {renderCell ? renderCell(col.key, row[col.key], row) : String(row[col.key] ?? '')}
-          </td>
-        ))}
-        {actions.length > 0 && (
-          <td className="px-4 py-3 flex gap-2 items-center">
-            {actions.map((action, index) => {
-              const icon = action.icon ?? (action.type === 'edit' ? <Pencil size={16} className="text-[var(--blue-shade-dark)]" /> : <Trash2 size={16} className="text-red-500" />);
-              const buttonClass = action.className ?? (action.type === 'edit'
-                ? 'hover:bg-[var(--blue-shade-light)]/30 text-[var(--blue-shade-dark)]'
-                : 'hover:bg-red-100 text-red-500');
+    <>
+      <div className="shadow-card rounded-xl bg-white p-0 overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-[var(--blue-shade-dark)] text-white">
+            <tr>
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className="px-4 py-3 font-semibold whitespace-nowrap"
+                >
+                  {col.label}
+                </th>
+              ))}
+              {actions.length > 0 && (
+                <th className="px-4 py-3 font-semibold whitespace-nowrap text-center">
+                  Actions
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={columns.length + (actions.length > 0 ? 1 : 0)}
+                  className="text-center py-8 text-gray-400"
+                >
+                  No data available
+                </td>
+              </tr>
+            ) : (
+              paginatedData.map((row, rowIndex) => (
+                <tr
+                  key={row.id || rowIndex} // Use a unique row ID if available
+                  className={
+                    rowIndex % 2 === 0
+                      ? "bg-[var(--blue-shade-light)]/10"
+                      : "bg-white"
+                  }
+                >
+                  {columns.map((col) => (
+                    <td key={col.key} className="px-4 py-3 align-middle">
+                      {renderCell
+                        ? renderCell(col.key, row[col.key], row)
+                        : String(row[col.key] ?? "")}
+                    </td>
+                  ))}
+                  {actions.length > 0 && (
+                    <td className="px-4 py-3 align-middle">
+                      {/* FIX: Wrapped buttons in a div for robust flex layout */}
+                      <div className="flex gap-2 items-center justify-center">
+                        {actions.map((action, index) => {
+                          const icon =
+                            action.icon ??
+                            (action.type === "edit" ? (
+                              <Pencil
+                                size={16}
+                                className="text-[var(--blue-shade-dark)]"
+                              />
+                            ) : (
+                              <Trash2 size={16} className="text-red-500" />
+                            ));
+                          const buttonClass =
+                            action.className ??
+                            (action.type === "edit"
+                              ? "hover:bg-[var(--blue-shade-light)]/30 text-[var(--blue-shade-dark)]"
+                              : "hover:bg-red-100 text-red-500");
 
-              return (
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => action.onClick(row)}
+                              title={action.label || action.type}
+                              className={`rounded-full p-2 transition ${buttonClass}`}
+                            >
+                              {icon}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {/* Pagination Controls */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 py-3 border-t border-gray-100 bg-white rounded-b-xl">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <span>Rows per page</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+              className="border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--blue-shade-light)] bg-white"
+            >
+              {itemsPerPageOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <span>
+              of <strong>{data.length}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {/* FIX: Used ChevronsLeft for "First page" */}
+            <button
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
+              title="First page"
+            >
+              <ChevronsLeft size={16} />
+            </button>
+
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
+              title="Previous page"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <div className="flex items-center gap-1">
+              {getPageNumbers().map((page, index) => (
                 <button
                   key={index}
-                  onClick={() => action.onClick(row)}
-                  title={action.label || action.type}
-                  className={`rounded-full p-2 transition ${buttonClass}`}
+                  onClick={() =>
+                    typeof page === "number"
+                      ? handlePageChange(page)
+                      : undefined
+                  }
+                  disabled={typeof page !== "number"}
+                  className={`rounded px-2 py-1 text-xs font-medium transition
+                  ${
+                    page === currentPage
+                      ? "bg-[var(--blue-shade-dark)] text-white shadow"
+                      : "hover:bg-[var(--blue-shade-light)]/30 text-[var(--blue-shade-dark)]"
+                  }
+                  ${
+                    typeof page !== "number"
+                      ? "cursor-default text-gray-400 bg-transparent"
+                      : ""
+                  }`}
                 >
-                  {icon}
+                  {page}
                 </button>
-              );
-            })}
-          </td>
-        )}
-      </tr>
-    ))
-  )}
-</tbody>
+              ))}
+            </div>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
+              title="Next page"
+            >
+              <ChevronRight size={16} />
+            </button>
 
-      </table>
-
-      {/* Pagination Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 px-4 py-3 border-t border-gray-100 bg-white rounded-b-xl">
-        <div className="flex items-center gap-2 text-xs text-gray-600">
-          <span>Rows per page</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-            className="border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--blue-shade-light)] bg-white"
-          >
-            {itemsPerPageOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          <span>of {data.length} rows</span>
-        </div>
-
-        <div className="pagination-controls">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-            className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
-            title="First page"
-          >
-            <ChevronLeft size={16} className="-ml-2" />
-          </button>
-
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
-            title="Previous page"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <div className="flex items-center gap-1">
-            {getPageNumbers().map((page, index) => (
-              <button
-                key={index}
-                onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
-                disabled={typeof page !== 'number'}
-                className={`rounded px-2 py-1 text-xs font-medium transition
-                  ${page === currentPage ? 'bg-[var(--blue-shade-dark)] text-white shadow' : 'hover:bg-[var(--blue-shade-light)]/30 text-[var(--blue-shade-dark)]'}
-                  ${typeof page !== 'number' ? 'cursor-default text-gray-400 bg-transparent' : ''}`}
-              >
-                {page}
-              </button>
-            ))}
+            {/* FIX: Used ChevronsRight for "Last page" and removed bad margin */}
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
+              title="Last page"
+            >
+              <ChevronsRight size={16} />
+            </button>
           </div>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
-            title="Next page"
-          >
-            <ChevronRight size={16} />
-          </button>
-
-          <button
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
-            className="rounded p-1 disabled:opacity-40 hover:bg-[var(--blue-shade-light)]/30 transition"
-            title="Last page"
-          >
-            <ChevronRight size={16} className="-ml-2" />
-          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
