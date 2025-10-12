@@ -1,6 +1,4 @@
 import React from 'react'
-import {FaBell, FaMoon } from 'react-icons/fa';
-import Image from 'next/image';
 import StudentDetailTab from './StudentDetailTab';
 import TopBar from '@/app/dashboardComponents/TopBar';
 
