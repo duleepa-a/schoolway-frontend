@@ -6,10 +6,11 @@ import bcrypt from 'bcryptjs';
 
 
 export async function POST( req: NextRequest,
-  { params }: { params: { id: string[] } } 
+  { params }: { params: Promise<{ id: string[] }> } 
 ) 
 {
-  const id = params.id?.[0]; 
+  const resolvedParams = await params;
+  const id = resolvedParams.id?.[0]; 
   if (!id) {
     return NextResponse.json({ error: 'Invalid or missing ID' }, { status: 400 });
   }

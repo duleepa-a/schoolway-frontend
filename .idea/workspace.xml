@@ -6,12 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/school/ManageSchoolsPageContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/school/ManageSchoolsPageContent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -64,7 +60,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Dev__Stage",
+    "git-widget-placeholder": "dineth",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Dineth/Desktop/schoolway-mobile",
