@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { FileText } from "lucide-react";
 
 type PaymentItem = {
@@ -29,11 +29,8 @@ export default function ViewPaymentModal({
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
+    function handleClickOutside(e: MouseEvent) {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
         onClose();
       }
     }
@@ -41,17 +38,12 @@ export default function ViewPaymentModal({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  // Parent and Van details as separate full width rows
   const parentDetail = {
     label: "Parent",
     value: `${payment.FullName} (${payment.ParentID})`,
   };
-  const vanDetail = {
-    label: "Van ID",
-    value: payment.VanID,
-  };
+  const vanDetail = { label: "Van ID", value: payment.VanID };
 
-  // Other details in two columns
   const otherDetails = [
     { label: "Payment ID", value: payment.PaymentID },
     { label: "Status", value: payment.Status },
@@ -67,54 +59,52 @@ export default function ViewPaymentModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fadeIn">
+      {/* Backdrop also closes via click-outside handler */}
+      <div className="absolute inset-0" onClick={onClose} />
+
       <div
         ref={modalRef}
-        className="relative bg-white rounded-lg shadow-lg w-full max-w-3xl p-10 animate-slideUp"
+        className="relative z-10 w-full max-w-3xl bg-white rounded-lg shadow-xl p-8 animate-slideUp"
       >
-        {/* Close Button */}
+        {/* Close */}
         <button
           onClick={onClose}
-          aria-label="Close modal"
-          className="absolute top-5 right-5 text-gray-400 hover:text-[#0099cc] text-3xl font-semibold"
+          aria-label="Close"
+          className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-[#0099cc] font-bold"
         >
           &times;
         </button>
 
         {/* Header */}
-        <h2 className="text-3xl font-semibold text-[#6a6c6c] mb-8 flex items-center gap-3">
-          <FileText size={28} />
-          Payment Details
-        </h2>
+        <h3 className="text-2xl font-semibold text-[#6a6c6c] mb-6 flex items-center gap-2">
+          <FileText size={22} /> Payment Details
+        </h3>
 
-        {/* Parent & Van - Full width rows */}
-        <div className="space-y-6 border-b border-gray-200 pb-6 mb-8">
+        {/* Parent & Van */}
+        <div className="space-y-4 border-b border-gray-200 pb-6 mb-6 text-sm">
           {[parentDetail, vanDetail].map(({ label, value }) => (
             <div key={label} className="flex justify-between">
-              <span className="text-[#0099cc] semi-bold uppercase tracking-wide font-medium">
-                {label}
-              </span>
-              <span className="font-semibold text-gray-900">{value}</span>
+              <span className="text-[#0099cc] font-medium">{label}</span>
+              <span className="text-gray-900 font-semibold">{value}</span>
             </div>
           ))}
         </div>
 
-        {/* Other details in two columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
+        {/* Other Details */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm">
           {otherDetails.map(({ label, value }) => (
             <div key={label} className="flex justify-between">
-              <span className="text-[#0099cc] semi-bold font-medium tracking-wide">
-                {label}
-              </span>
-              <span className="font-semibold text-gray-900">{value}</span>
+              <span className="text-[#0099cc] font-medium">{label}</span>
+              <span className="text-gray-900 font-semibold">{value}</span>
             </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="mt-12 flex justify-end">
+        <div className="mt-8 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-[#0099cc] hover:bg-[#007aaf] text-white font-semibold rounded-md transition"
+            className="px-5 py-2 bg-[#0099cc] hover:bg-[#007aaf] text-white rounded-md font-semibold transition"
           >
             Close
           </button>
