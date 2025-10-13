@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -25,7 +26,7 @@
     "cors": "^2.8.5",
     "dayjs": "^1.11.18",
     "decimal.js": "^10.6.0",
-    "dotenv": "^16.5.0",
+    "firebase-admin": "^13.5.0",
     "formidable": "^3.5.4",
     "framer-motion": "^12.23.0",
     "jsonwebtoken": "^9.0.2",
@@ -58,10 +59,12 @@
     "@types/react-dom": "^19",
     "@types/react-slick": "^0.23.13",
     "daisyui": "^5.0.43",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "prisma": "^6.10.1",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

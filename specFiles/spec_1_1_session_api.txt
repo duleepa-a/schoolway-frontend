@@ -1,0 +1,257 @@
+# Spec 1.1: Session Start API (Backend)
+
+## Objective
+Create API endpoint for drivers to start a transport session, which will:
+1. Create session record in PostgreSQL
+2. Fetch assigned children (excluding absent ones)
+3. Initialize Firebase session
+4. Return student list with pickup order
+
+## Context
+- Driver clicks "Start Transport" button in mobile app
+- Need to determine morning or evening route based on current time
+- Filter out children marked absent for today
+- Create both PostgreSQL and Firebase records
+
+## Implementation
+
+### File: `backend/app/api/mobile/driver/session/start/route.ts` (NEW)
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { createFirebaseSession } from '@/lib/firebase-admin';
+import { RouteType, SessionStatus } from '@prisma/client';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { driverId } = await request.json();
+
+    // Validate driver
+    if (!driverId) {
+      return NextResponse.json(
+        { success: false, error: 'Driver ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get driver's van
+    const driver = await prisma.userProfile.findUnique({
+      where: { id: driverId },
+      include: {
+        Van: {
+          where: { assignedDriverId: driverId },
+        },
+      },
+    });
+
+    if (!driver || driver.Van.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Driver has no assigned van' },
+        { status: 404 }
+      );
+    }
+
+    const van = driver.Van[0];
+
+    // Determine route type based on current time
+    const now = new Date();
+    const currentHour = now.getHours();
+    const routeType: RouteType = currentHour < 12 ? 'MORNING_PICKUP' : 'EVENING_DROPOFF';
+
+    // Check if session already exists for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const existingSession = await prisma.transportSession.findFirst({
+      where: {
+        vanId: van.id,
+        routeType,
+        sessionDate: {
+          gte: today,
+          lt: tomorrow,
+        },
+        status: {
+          in: ['PENDING', 'ACTIVE'],
+        },
+      },
+    });
+
+    if (existingSession) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `${routeType === 'MORNING_PICKUP' ? 'Morning' : 'Evening'} session already exists for today`,
+          sessionId: existingSession.id,
+        },
+        { status: 409 }
+      );
+    }
+
+    // Get assigned children, excluding absent ones
+    const todayDate = today.toISOString().split('T')[0];
+    
+    const children = await prisma.child.findMany({
+      where: {
+        vanID: van.id,
+        status: 'ON_VAN', // Or whatever status indicates active enrollment
+        NOT: {
+          attendance: {
+            some: {
+              absenceDate: new Date(todayDate),
+              routeType: {
+                in: [routeType, 'BOTH'],
+              },
+            },
+          },
+        },
+      },
+      include: {
+        School: {
+          select: {
+            schoolName: true,
+            address: true,
+          },
+        },
+        UserProfile: {
+          select: {
+            firstname: true,
+            lastname: true,
+            mobile: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc', // Simple ordering for now, will optimize with Google Maps later
+      },
+    });
+
+    if (children.length === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'No children assigned or all marked absent for today',
+          children: [],
+        },
+        { status: 200 }
+      );
+    }
+
+    // Create transport session in PostgreSQL
+    const session = await prisma.transportSession.create({
+      data: {
+        vanId: van.id,
+        driverId: driver.id,
+        routeType,
+        sessionDate: today,
+        status: 'PENDING', // Will change to ACTIVE when driver confirms
+        startedAt: now,
+      },
+    });
+
+    // Create session_students records
+    const sessionStudents = await Promise.all(
+      children.map((child, index) =>
+        prisma.sessionStudent.create({
+          data: {
+            sessionId: session.id,
+            childId: child.id,
+            isPresent: true,
+            pickupOrder: index + 1,
+            pickupStatus: 'PENDING',
+          },
+        })
+      )
+    );
+
+    // Prepare data for Firebase
+    const firebaseStudents: Record<string, any> = {};
+    children.forEach((child, index) => {
+      firebaseStudents[child.id.toString()] = {
+        name: child.name,
+        pickupOrder: index + 1,
+        status: 'pending',
+        pickedUpAt: null,
+        droppedOffAt: null,
+        homeLocation: {
+          latitude: parseFloat(child.pickupLat.toString()),
+          longitude: parseFloat(child.pickupLng.toString()),
+          address: child.pickupAddress,
+        },
+        schoolLocation: {
+          name: child.School.schoolName,
+          address: child.School.address,
+        },
+        parentName: child.UserProfile 
+          ? `${child.UserProfile.firstname} ${child.UserProfile.lastname}` 
+          : 'Unknown',
+        parentMobile: child.UserProfile?.mobile || '',
+      };
+    });
+
+    // Initialize Firebase session
+    await createFirebaseSession(session.id, {
+      vanId: van.id,
+      driverId: driver.id,
+      driverName: `${driver.firstname} ${driver.lastname}`,
+      routeType,
+      status: 'pending',
+      startedAt: now.getTime(),
+      currentLocation: null, // Will be updated when tracking starts
+      students: firebaseStudents,
+      vanDetails: {
+        registrationNumber: van.registrationNumber,
+        licensePlateNumber: van.licensePlateNumber,
+        makeAndModel: van.makeAndModel,
+      },
+    });
+
+    // Update session with Firebase ID
+    await prisma.transportSession.update({
+      where: { id: session.id },
+      data: { firebaseSessionId: session.id },
+    });
+
+    // Format response
+    const studentList = children.map((child, index) => ({
+      id: child.id,
+      name: child.name,
+      age: child.age,
+      grade: child.grade,
+      profilePicture: child.profilePicture,
+      pickupOrder: index + 1,
+      pickupLocation: {
+        latitude: parseFloat(child.pickupLat.toString()),
+        longitude: parseFloat(child.pickupLng.toString()),
+        address: child.pickupAddress,
+      },
+      school: {
+        name: child.School.schoolName,
+        address: child.School.address,
+      },
+      schoolStartTime: child.schoolStartTime,
+      schoolEndTime: child.schoolEndTime,
+      specialNotes: child.specialNotes,
+      parentName: child.UserProfile 
+        ? `${child.UserProfile.firstname} ${child.UserProfile.lastname}` 
+        : 'Unknown',
+      parentMobile: child.UserProfile?.mobile || '',
+      status: 'pending',
+    }));
+
+    return NextResponse.json({
+      success: true,
+      session: {
+        id: session.id,
+        routeType,
+        startedAt: session.startedAt,
+        status: session.status,
+      },
+      students: studentList,
+      message: `${routeType === 'MORNING_PICKUP' ? 'Morning pickup' : 'Evening dropoff'} session started with ${studentList.length} student(s)`,
+    });
+
+  } catch (error) {
+    console.error('Session start error:', error);
