@@ -5,6 +5,7 @@ import SearchFilter from "@/app/dashboardComponents/SearchFilter";
 import DataTable from "@/app/dashboardComponents/CustomTable";
 import { inquiriesData as dummyData } from "../../../../public/dummy_data/inquiriesData";
 import { FileText, FileCheck } from "lucide-react";
+import Swal from "sweetalert2";
 
 const columns = [
   { key: "FullName", label: "Full Name" },
@@ -71,7 +72,7 @@ const InquiriesPageContent = () => {
       } catch (err) {
         console.error(err);
         // fallback to dummy
-        setInquiriesData(dummyData);
+        // setInquiriesData(dummyData);
       } finally {
         setLoading(false);
       }
@@ -109,6 +110,7 @@ const InquiriesPageContent = () => {
 
   const sendReply = async () => {
     if (!selectedInquiry) return;
+
     try {
       const res = await fetch("/api/admin/Inquiries/emails", {
         method: "POST",
@@ -119,28 +121,41 @@ const InquiriesPageContent = () => {
           body: replyBody,
         }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      // update local status
+
+      // Update local status
       setInquiriesData((prev) =>
         prev.map((i) =>
           i.id === selectedInquiry.id ? { ...i, Status: "Reviewed" } : i
         )
       );
+
+      // Reset modal and fields
       setModalType(null);
       setSelectedInquiry(null);
       setReplySubject("");
       setReplyBody("");
 
-      alert("Reply sent and inquiry marked as Reviewed");
+      // ✅ SweetAlert2 success popup
+      Swal.fire({
+        icon: "success",
+        title: "Reply Sent",
+        text: "Your reply was sent and the inquiry has been marked as reviewed.",
+        confirmButtonColor: "#0099cc",
+      });
     } catch (err) {
       console.error(err);
-      alert("Failed to send reply");
+
+      // ❌ SweetAlert2 error popup
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: "Something went wrong while sending the reply. Please try again.",
+        confirmButtonColor: "#dc3545",
+      });
     }
-    setModalType(null);
-    setSelectedInquiry(null);
-    setReplySubject("");
-    setReplyBody("");
   };
 
   const handleClearFilters = () => {
