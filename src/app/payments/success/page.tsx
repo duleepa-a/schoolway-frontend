@@ -19,7 +19,6 @@ export default function SuccessPage() {
       }
 
       try {
-        console.log("Stripe key exists:", !!process.env.STRIPE_SECRET_KEY);
         const res = await fetch(`/api/payments/verify?session_id=${sessionId}`);
         const data = await res.json();
 
