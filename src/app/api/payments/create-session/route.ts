@@ -34,8 +34,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXTAUTH_URL}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/payments/cancel`,
+      success_url: `https://schoolway-frontend.vercel.app/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://schoolway-frontend.vercel.app/payments/cancel`,
       metadata: { paymentId: payment.id.toString() },
     });
 

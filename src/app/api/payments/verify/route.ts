@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-09-30.clover" });
   const sessionId = req.nextUrl.searchParams.get("session_id");
+  console.log("Stripe key exists:", !!process.env.STRIPE_SECRET_KEY);
 
   if (!sessionId) {
     return NextResponse.json({ error: "Missing session ID" }, { status: 400 });
