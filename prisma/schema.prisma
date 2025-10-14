@@ -29,10 +29,12 @@ model UserProfile {
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  Van_assignedDriverIdToUserProfile                               Van[]                  @relation("Van_assignedDriverIdToUserProfile")
   payments                                                        Payment[]
   PrivateHire                                                     PrivateHire[]
   SchoolGuardian                                                  SchoolGuardian?
   Van                                                             Van[]
+  Review                                                          Review[]
   vanService                                                      VanService?
 }
 
@@ -43,6 +45,8 @@ model VanService {
   serviceRegNumber String
   businessDocument String?
   userId           String      @unique
+  averageRating    Float       @default(0)
+  totalReviews     Int           @default(0)
   user             UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -54,8 +58,8 @@ model DriverProfile {
   licenseBack    String?
   policeReport   String?
   userId         String      @unique
-  rating         Float       @default(0)
-  ratingCount    Int         @default(0)
+  averageRating    Float       @default(0)
+  totalReviews     Int           @default(0)
   startedDriving DateTime?   @default(now())
   status         Int         @default(2)
   bio            String?
@@ -91,6 +95,7 @@ model Child {
   UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
+  Review          Review[]
   payments        Payment[]
   VanRequest      VanRequest?
 }
@@ -110,7 +115,7 @@ model Van {
   createdAt               DateTime              @default(now())
   ownerId                 String
   hasDriver               Boolean               @default(false)
-  assignedDriverId        String?
+  assignedDriverId        String?                
   salaryPercentage        Float?                @default(25.0)
   shiftDetails            String?
   privateRating           Float                 @default(0)
@@ -126,9 +131,13 @@ model Van {
   payments                Payment[]
   PrivateHire             PrivateHire[]
   UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
+  UserProfile_assignedDriverIdToUserProfile UserProfile?          @relation("Van_assignedDriverIdToUserProfile", fields: [assignedDriverId], references: [id])
   Path                    Path?                 @relation(fields: [pathId], references: [id])
   VanRequest              VanRequest[]
+  Review                  Review[]
 }
+
+
 
 model Assistant {
   id         String  @id @default(uuid())
@@ -284,25 +293,42 @@ model VanRequest {
 }
 
 model PrivateHire {
-  id                 String      @id
-  userId             String
-  vanId              Int
-  pickupLat          Float
-  pickupLng          Float
-  pickupAddress      String
-  destinationLat     Float
-  destinationLng     Float
-  destinationAddress String
-  departureDate      DateTime
-  returnDate         DateTime?
-  noOfPassengers     Int
-  fare               Float
-  notes              String?
-  status             HireStatus  @default(PENDING)
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime
-  UserProfile        UserProfile @relation(fields: [userId], references: [id])
-  Van                Van         @relation(fields: [vanId], references: [id])
+  id             String      @id
+  userId         String
+  vanId          Int?
+  pickupLat      Float
+  pickupLng      Float
+  destinationLat Float
+  destinationLng Float
+  departureDate  DateTime
+  returnDate     DateTime?
+  noOfPassengers Int
+  fare           Float
+  notes          String?
+  status         HireStatus  @default(PENDING)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime
+  UserProfile    UserProfile @relation(fields: [userId], references: [id])
+  Van            Van?        @relation(fields: [vanId], references: [id])
+}
+
+model Review {
+  id          String     @id @default(cuid())
+  childId     Int
+  reviewType  ReviewType
+  vanId       Int
+  targetId    String
+  rating      Int
+  comment     String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  Van           Van         @relation(fields: [vanId], references: [id])
+  Child         Child       @relation(fields: [childId], references: [id])
+  UserProfile    UserProfile @relation(fields: [targetId], references: [id])
+  
+  @@index([reviewType, targetId])
+  @@index([childId])
 }
 
 enum RequestStatus {
@@ -357,4 +383,9 @@ enum ChildStatus {
 enum PaymentType {
   SCHOOL_VAN
   PRIVATE_HIRE
+}
+
+enum ReviewType {
+  DRIVER
+  VAN_SERVICE
 }
