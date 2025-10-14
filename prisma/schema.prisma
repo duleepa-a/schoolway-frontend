@@ -36,6 +36,10 @@ model UserProfile {
   Van_assignedDriverIdToUserProfile                               Van[]                 @relation("Van_assignedDriverIdToUserProfile")
   Van                                                             Van[]
   vanService                                                      VanService?
+  Payment_driverIdToUserProfile                                   Payment[]             @relation("Payment_driverIdToUserProfile")
+  Payment_vanserviceToUserProfile                                 Payment[]             @relation("Paymeny_vanserviceToUserProfile")
+  Payroll                                                         Payroll[]
+
 }
 
 model VanService {
@@ -152,6 +156,9 @@ model Payment {
   childId     Int
   parentId    String
   vanId       Int
+  driverId    String?       // New field
+  vanServiceId String?      // New field
+  salaryPercentageForDriver Float @default(0)
   amount      Float
   month       String
   status      PaymentStatus @default(PENDING)
@@ -159,12 +166,32 @@ model Payment {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   paymentType PaymentType   @default(SCHOOL_VAN)
+  
   child       Child         @relation(fields: [childId], references: [id])
   UserProfile UserProfile   @relation(fields: [parentId], references: [id])
   van         Van           @relation(fields: [vanId], references: [id])
+  driver      UserProfile?  @relation("Payment_driverIdToUserProfile", fields: [driverId], references: [id])
+  vanService  UserProfile?  @relation("Paymeny_vanserviceToUserProfile",fields: [vanServiceId], references: [id])
+  payrolls    Payroll[]
 
   @@unique([childId, month])
 }
+
+model Payroll {
+  id          Int       @id @default(autoincrement())
+  paymentId   Int
+  recipientId String    // driverId or vanServiceId
+  recipientRole UserRole  // "DRIVER" or "VAN_SERVICE"
+  payrollStatus  PayrollStatus @default(PENDING) 
+  amount      Float
+  createdAt   DateTime  @default(now())
+  UserProfile UserProfile @relation(fields: [recipientId], references: [id])
+  payment     Payment   @relation(fields: [paymentId], references: [id])
+
+  @@index([recipientId])
+}
+
+
 
 model School {
   id             Int              @id @default(autoincrement())
@@ -367,6 +394,11 @@ enum PaymentStatus {
   PENDING
   FAILED
   PAID
+}
+
+enum PayrollStatus {
+  PENDING
+  COMPLETED
 }
 
 enum ChildStatus {

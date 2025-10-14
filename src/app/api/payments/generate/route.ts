@@ -23,6 +23,11 @@ export async function GET() {
         throw new Error(`Child ${child.id} does not have a van assigned.`);
     }
 
+    const van = await prisma.van.findUnique({
+        where: { id: child.vanID },
+    });
+
+
     if (!existing) {
       await prisma.payment.create({
         data: {
@@ -30,6 +35,9 @@ export async function GET() {
           parentId: child.parentId || '',
           vanId: child.vanID,
           amount: child.feeAmount, 
+          driverId: van?.assignedDriverId || null,
+          vanServiceId: van?.ownerId || null,
+          salaryPercentageForDriver: van?.salaryPercentage || 0,
           month,
         },
       });
@@ -48,6 +56,10 @@ After deployed, In your vercel.json, add the following under the "crons" section
     {
       "path": "/api/payments/generate",
       "schedule": "0 0 1 * *"
+    },
+    {
+      "path": "/api/payments/generate/payroll",
+      "schedule": "0 0 8 * *"  // 2nd week of month (8th) for processing
     }
   ]
 }
