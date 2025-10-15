@@ -15,7 +15,53 @@ export async function GET(
   const child = await prisma.child.findUnique({
     where: { id },
     include: {
-      Van: true,
+      Van: {
+        include: {
+          UserProfile: {
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+              mobile: true,
+              dp: true,
+              vanService: {
+                select: {
+                  id: true,
+                  serviceName: true,
+                  contactNo: true,
+                  serviceRegNumber: true,
+                  averageRating: true,
+                  totalReviews: true
+                }
+              }
+            }
+          },
+          UserProfile_assignedDriverIdToUserProfile: {
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+              mobile: true,
+              dp: true,
+              driverProfile: {
+                select: {
+                  id: true,
+                  licenseId: true,
+                  licenseExpiry: true,
+                  startedDriving: true,
+                  bio: true,
+                  languages: true,
+                  licenseType: true,
+                  averageRating: true,
+                  totalReviews: true
+                }
+              }
+            }
+          }
+        }
+      },
       School: true,
       UserProfile: true,
     },

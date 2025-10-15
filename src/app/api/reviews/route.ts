@@ -122,13 +122,26 @@ export async function POST(request: NextRequest) {
         );
       }
     } else if (reviewType === 'VAN_SERVICE') {
+      // For VAN_SERVICE, targetId is the van service owner's user ID
       const vanService = await prisma.vanService.findUnique({
-        where: { id: targetId }
+        where: { userId: targetId }
       });
 
       if (!vanService) {
+        // Get some sample van services to help debug
+        const sampleVanServices = await prisma.vanService.findMany({
+          select: { id: true, serviceName: true, userId: true },
+          take: 5
+        });
+        
         return NextResponse.json(
-          { error: 'Van service not found' },
+          { 
+            error: 'Van service not found',
+            debug: {
+              requestedTargetId: targetId,
+              sampleVanServices: sampleVanServices
+            }
+          },
           { status: 404 }
         );
       }
@@ -213,6 +226,7 @@ async function updateAverageRatings(reviewType: string, targetId: string) {
       });
     } else if (reviewType === 'VAN_SERVICE') {
       // Update van service ratings
+      // For VAN_SERVICE, targetId is the van service owner's user ID
       const vanServiceReviews = await prisma.review.findMany({
         where: {
           reviewType: 'VAN_SERVICE',
@@ -223,8 +237,9 @@ async function updateAverageRatings(reviewType: string, targetId: string) {
       const totalRating = vanServiceReviews.reduce((sum, review) => sum + review.rating, 0);
       const averageRating = vanServiceReviews.length > 0 ? totalRating / vanServiceReviews.length : 0;
 
+      // Update van service using the user ID (targetId is the van service owner's user ID)
       await prisma.vanService.updateMany({
-        where: { id: targetId },
+        where: { userId: targetId },
         data: {
           averageRating: averageRating,
           totalReviews: vanServiceReviews.length
@@ -295,6 +310,158 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching reviews:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT endpoint to update a review
+export async function PUT(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    
+    const reviewId = formData.get('reviewId') as string;
+    const rating = parseInt(formData.get('rating') as string);
+    const comment = formData.get('comment') as string;
+    const reviewerId = formData.get('reviewerId') as string;
+
+    // Validate required fields
+    if (!reviewId || !rating || !reviewerId) {
+      return NextResponse.json(
+        { error: 'Missing required fields: reviewId, rating, and reviewerId are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate rating
+    if (rating < 1 || rating > 5) {
+      return NextResponse.json(
+        { error: 'Rating must be between 1 and 5' },
+        { status: 400 }
+      );
+    }
+
+    // Check if review exists
+    const existingReview = await prisma.review.findUnique({
+      where: { id: reviewId },
+      include: {
+        Child: {
+          select: { parentId: true }
+        }
+      }
+    });
+
+    if (!existingReview) {
+      return NextResponse.json(
+        { error: 'Review not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify the reviewer is the parent of the child
+    if (existingReview.Child.parentId !== reviewerId) {
+      return NextResponse.json(
+        { error: 'Unauthorized: You can only update reviews for your own child' },
+        { status: 403 }
+      );
+    }
+
+    // Update the review
+    const updatedReview = await prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        rating: rating,
+        comment: comment || null,
+        updatedAt: new Date()
+      }
+    });
+
+    // Update average ratings for the target
+    await updateAverageRatings(existingReview.reviewType, existingReview.targetId);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Review updated successfully',
+      review: {
+        id: updatedReview.id,
+        rating: updatedReview.rating,
+        comment: updatedReview.comment,
+        reviewType: updatedReview.reviewType,
+        updatedAt: updatedReview.updatedAt
+      }
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error updating review:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE endpoint to delete a review
+export async function DELETE(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    
+    const reviewId = formData.get('reviewId') as string;
+    const reviewerId = formData.get('reviewerId') as string;
+
+    // Validate required fields
+    if (!reviewId || !reviewerId) {
+      return NextResponse.json(
+        { error: 'Missing required fields: reviewId and reviewerId are required' },
+        { status: 400 }
+      );
+    }
+
+    // Check if review exists
+    const existingReview = await prisma.review.findUnique({
+      where: { id: reviewId },
+      include: {
+        Child: {
+          select: { parentId: true }
+        }
+      }
+    });
+
+    if (!existingReview) {
+      return NextResponse.json(
+        { error: 'Review not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify the reviewer is the parent of the child
+    if (existingReview.Child.parentId !== reviewerId) {
+      return NextResponse.json(
+        { error: 'Unauthorized: You can only delete reviews for your own child' },
+        { status: 403 }
+      );
+    }
+
+    // Store review info before deletion for rating update
+    const reviewType = existingReview.reviewType;
+    const targetId = existingReview.targetId;
+
+    // Delete the review
+    await prisma.review.delete({
+      where: { id: reviewId }
+    });
+
+    // Update average ratings for the target after deletion
+    await updateAverageRatings(reviewType, targetId);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Review deleted successfully'
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error deleting review:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
