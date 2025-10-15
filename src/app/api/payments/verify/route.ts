@@ -3,10 +3,8 @@ import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
-console.log("Stripe key exists:", !!process.env.STRIPE_SECRET_KEY);
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-09-30.clover" });
   const sessionId = req.nextUrl.searchParams.get("session_id");
-  console.log("Stripe key exists:", !!process.env.STRIPE_SECRET_KEY);
 
   if (!sessionId) {
     return NextResponse.json({ error: "Missing session ID" }, { status: 400 });
@@ -19,7 +17,10 @@ console.log("Stripe key exists:", !!process.env.STRIPE_SECRET_KEY);
       const paymentId = session.metadata?.paymentId;
       await prisma.payment.update({
         where: { id: Number(paymentId) },
-        data: { status: "PAID" },
+        data: { 
+                status: "PAID",
+                paidAt: new Date(), 
+            },
       });
       return NextResponse.json({ success: true });
     }
