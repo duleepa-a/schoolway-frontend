@@ -43,9 +43,10 @@ model Child {
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
   Payment         Payment[]
-  VanRequest      VanRequest?
+  Review          Review[]
   sessionStudents SessionStudent[]
   attendance      ChildAttendance[]
+  VanRequest      VanRequest?
 }
 
 model ContactUs {
@@ -67,8 +68,6 @@ model DriverProfile {
   licenseBack    String?
   policeReport   String?
   userId         String      @unique
-  rating         Float       @default(0)
-  ratingCount    Int         @default(0)
   startedDriving DateTime?   @default(now())
   status         Int         @default(2)
   bio            String?
@@ -77,6 +76,8 @@ model DriverProfile {
   medicalReport  String?
   relocate       Boolean     @default(false)
   hasVan         Int         @default(0)
+  averageRating  Float       @default(0)
+  totalReviews   Int         @default(0)
   UserProfile    UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -130,20 +131,26 @@ model Path {
 }
 
 model Payment {
-  id          Int           @id @default(autoincrement())
-  childId     Int
-  parentId    String
-  vanId       Int
-  amount      Float
-  month       String
-  status      PaymentStatus @default(PENDING)
-  paidAt      DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime
-  paymentType PaymentType   @default(SCHOOL_VAN)
-  Child       Child         @relation(fields: [childId], references: [id])
-  UserProfile UserProfile   @relation(fields: [parentId], references: [id])
-  Van         Van           @relation(fields: [vanId], references: [id])
+  id                                            Int           @id @default(autoincrement())
+  childId                                       Int
+  parentId                                      String
+  vanId                                         Int
+  amount                                        Float
+  month                                         String
+  status                                        PaymentStatus @default(PENDING)
+  paidAt                                        DateTime?
+  createdAt                                     DateTime      @default(now())
+  updatedAt                                     DateTime
+  paymentType                                   PaymentType   @default(SCHOOL_VAN)
+  driverId                                      String?
+  vanServiceId                                  String?
+  salaryPercentageForDriver                     Float         @default(0)
+  Child                                         Child         @relation(fields: [childId], references: [id])
+  UserProfile_Payment_driverIdToUserProfile     UserProfile?  @relation("Payment_driverIdToUserProfile", fields: [driverId], references: [id])
+  UserProfile                                   UserProfile   @relation(fields: [parentId], references: [id])
+  Van                                           Van           @relation(fields: [vanId], references: [id])
+  UserProfile_Payment_vanServiceIdToUserProfile UserProfile?  @relation("Payment_vanServiceIdToUserProfile", fields: [vanServiceId], references: [id])
+  Payroll                                       Payroll[]
 
   @@unique([childId, month])
 }
@@ -218,49 +225,56 @@ model UserProfile {
   DriverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  Payment_Payment_driverIdToUserProfile                           Payment[]             @relation("Payment_driverIdToUserProfile")
   Payment                                                         Payment[]
+  Payment_Payment_vanServiceIdToUserProfile                       Payment[]             @relation("Payment_vanServiceIdToUserProfile")
+  Payroll                                                         Payroll[]
   PrivateHire                                                     PrivateHire[]
+  Review                                                          Review[]
   SchoolGuardian                                                  SchoolGuardian?
+  Van_Van_assignedDriverIdToUserProfile                           Van[]                 @relation("Van_assignedDriverIdToUserProfile")
   Van                                                             Van[]
   VanService                                                      VanService?
-  driverSessions                                                 TransportSession[]
-  markedAttendances                                              ChildAttendance[]
+  TransportSession                                                TransportSession[]
+  ChildAttendance                                                 ChildAttendance[]
 }
 
 model Van {
-  id                      Int                   @id @default(autoincrement())
-  registrationNumber      String                @unique
-  licensePlateNumber      String
-  makeAndModel            String
-  seatingCapacity         Int
-  acCondition             Boolean
-  rBookUrl                String
-  revenueLicenseUrl       String
-  fitnessCertificateUrl   String
-  insuranceCertificateUrl String
-  photoUrl                String
-  createdAt               DateTime              @default(now())
-  ownerId                 String
-  hasDriver               Boolean               @default(false)
-  assignedDriverId        String?
-  salaryPercentage        Float?                @default(25.0)
-  shiftDetails            String?
-  privateRating           Float                 @default(0)
-  studentRating           Float                 @default(0)
-  hasAssistant            Boolean               @default(false)
-  status                  Int                   @default(2)
-  pathId                  String?
-  endTime                 DateTime?
-  startTime               DateTime?
-  Assistant               Assistant?
-  Child                   Child[]
-  DriverVanJobRequest     DriverVanJobRequest[]
-  Payment                 Payment[]
-  PrivateHire             PrivateHire[]
-  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
-  Path                    Path?                 @relation(fields: [pathId], references: [id])
-  VanRequest              VanRequest[]
-  transportSessions       TransportSession[]
+  id                                            Int                   @id @default(autoincrement())
+  registrationNumber                            String                @unique
+  licensePlateNumber                            String
+  makeAndModel                                  String
+  seatingCapacity                               Int
+  acCondition                                   Boolean
+  rBookUrl                                      String
+  revenueLicenseUrl                             String
+  fitnessCertificateUrl                         String
+  insuranceCertificateUrl                       String
+  photoUrl                                      String
+  createdAt                                     DateTime              @default(now())
+  ownerId                                       String
+  hasDriver                                     Boolean               @default(false)
+  assignedDriverId                              String?
+  salaryPercentage                              Float?                @default(25.0)
+  shiftDetails                                  String?
+  privateRating                                 Float                 @default(0)
+  studentRating                                 Float                 @default(0)
+  hasAssistant                                  Boolean               @default(false)
+  status                                        Int                   @default(2)
+  pathId                                        String?
+  endTime                                       DateTime?
+  startTime                                     DateTime?
+  Assistant                                     Assistant?
+  Child                                         Child[]
+  DriverVanJobRequest                           DriverVanJobRequest[]
+  Payment                                       Payment[]
+  PrivateHire                                   PrivateHire[]
+  Review                                        Review[]
+  UserProfile_Van_assignedDriverIdToUserProfile UserProfile?          @relation("Van_assignedDriverIdToUserProfile", fields: [assignedDriverId], references: [id])
+  UserProfile                                   UserProfile           @relation(fields: [ownerId], references: [id])
+  Path                                          Path?                 @relation(fields: [pathId], references: [id])
+  VanRequest                                    VanRequest[]
+  TransportSession                              TransportSession[]
 }
 
 model VanRequest {
@@ -282,6 +296,8 @@ model VanService {
   serviceRegNumber String
   businessDocument String?
   userId           String      @unique
+  averageRating    Float       @default(0)
+  totalReviews     Int         @default(0)
   UserProfile      UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -306,6 +322,143 @@ model spatial_ref_sys {
   auth_srid Int?
   srtext    String? @db.VarChar(2048)
   proj4text String? @db.VarChar(2048)
+}
+
+model Payroll {
+  id            Int           @id @default(autoincrement())
+  paymentId     Int
+  recipientId   String
+  recipientRole UserRole
+  payrollStatus PayrollStatus @default(PENDING)
+  amount        Float
+  createdAt     DateTime      @default(now())
+  Payment       Payment       @relation(fields: [paymentId], references: [id])
+  UserProfile   UserProfile   @relation(fields: [recipientId], references: [id])
+
+  @@index([recipientId])
+}
+
+model Review {
+  id          String      @id
+  childId     Int
+  reviewType  ReviewType
+  targetId    String
+  rating      Int
+  comment     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  vanId       Int
+  Child       Child       @relation(fields: [childId], references: [id])
+  UserProfile UserProfile @relation(fields: [targetId], references: [id])
+  Van         Van         @relation(fields: [vanId], references: [id])
+
+  @@index([childId])
+  @@index([reviewType, targetId])
+}
+
+// Transport Session - represents a single trip (morning or evening)
+model TransportSession {
+  id                String        @id @default(cuid())
+  vanId             Int
+  driverId          String
+  routeType         RouteType // MORNING_PICKUP or EVENING_DROPOFF
+  sessionDate       DateTime      @default(now()) @db.Date
+  startedAt         DateTime?
+  endedAt           DateTime?
+  status            SessionStatus @default(PENDING)
+  firebaseSessionId String?       @unique // Reference to Firebase Realtime DB
+  totalDistance     Float? // in meters
+  totalDuration     Int? // in seconds
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+
+  // Relations
+  van             Van               @relation(fields: [vanId], references: [id])
+  driver          UserProfile       @relation(fields: [driverId], references: [id])
+  sessionStudents SessionStudent[]
+  locationHistory LocationHistory[]
+
+  @@index([vanId, sessionDate, routeType])
+  @@index([status])
+}
+
+// Student status within a specific session
+model SessionStudent {
+  id              String       @id @default(cuid())
+  sessionId       String
+  childId         Int
+  isPresent       Boolean      @default(true) // false if marked absent
+  pickupStatus    PickupStatus @default(PENDING)
+  pickupOrder     Int // Order in optimized route (1, 2, 3...)
+  pickedUpAt      DateTime?
+  droppedOffAt    DateTime?
+  estimatedPickup DateTime? // ETA calculated at session start
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @default(now())
+
+  // Relations
+  session TransportSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  child   Child            @relation(fields: [childId], references: [id])
+
+  @@unique([sessionId, childId])
+  @@index([sessionId, pickupStatus])
+}
+
+// Attendance marking by parents (advance absence notification)
+model ChildAttendance {
+  id          String    @id @default(cuid())
+  childId     Int
+  absenceDate DateTime  @db.Date
+  routeType   RouteType // MORNING_PICKUP, EVENING_DROPOFF, or BOTH
+  reason      String?
+  markedBy    String // Parent who marked it
+  markedAt    DateTime  @default(now())
+
+  // Relations
+  child  Child       @relation(fields: [childId], references: [id], onDelete: Cascade)
+  parent UserProfile @relation(fields: [markedBy], references: [id])
+
+  @@unique([childId, absenceDate, routeType])
+  @@index([absenceDate])
+}
+
+// Historical location snapshots (saved from Firebase after session ends)
+model LocationHistory {
+  id         String   @id @default(cuid())
+  sessionId  String
+  latitude   Decimal  @db.Decimal(10, 8)
+  longitude  Decimal  @db.Decimal(11, 8)
+  accuracy   Float? // in meters
+  speed      Float? // in m/s
+  recordedAt DateTime
+  eventType  String? // "pickup", "dropoff", "waypoint", "periodic"
+  metadata   String? // JSON string for additional data
+
+  // Relations
+  session TransportSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, recordedAt])
+}
+
+enum SessionStatus {
+  PENDING // Created but not started
+  ACTIVE // Driver started, in progress
+  COMPLETED // All students dropped off
+  CANCELLED // Cancelled by driver/system
+  EMERGENCY // Emergency breakdown
+}
+
+enum RouteType {
+  MORNING_PICKUP
+  EVENING_DROPOFF
+  BOTH // For attendance marking only
+}
+
+enum PickupStatus {
+  PENDING // Waiting to be picked up
+  PICKED_UP // Student is on the van
+  DROPPED_OFF // Student has been dropped off
+  ABSENT // Marked absent (shouldn't appear in active session)
 }
 
 enum ChildStatus {
@@ -362,107 +515,12 @@ enum UserRole {
   TEACHER
 }
 
-// Transport Session - represents a single trip (morning or evening)
-model TransportSession {
-  id                String           @id @default(cuid())
-  vanId             Int
-  driverId          String
-  routeType         RouteType        // MORNING_PICKUP or EVENING_DROPOFF
-  sessionDate       DateTime         @default(now()) @db.Date
-  startedAt         DateTime?
-  endedAt           DateTime?
-  status            SessionStatus    @default(PENDING)
-  firebaseSessionId String?          @unique // Reference to Firebase Realtime DB
-  totalDistance     Float?           // in meters
-  totalDuration     Int?             // in seconds
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @default(now())
-
-  // Relations
-  van               Van              @relation(fields: [vanId], references: [id])
-  driver            UserProfile      @relation(fields: [driverId], references: [id])
-  sessionStudents   SessionStudent[]
-  locationHistory   LocationHistory[]
-
-  @@index([vanId, sessionDate, routeType])
-  @@index([status])
+enum PayrollStatus {
+  PENDING
+  COMPLETED
 }
 
-// Student status within a specific session
-model SessionStudent {
-  id              String           @id @default(cuid())
-  sessionId       String
-  childId         Int
-  isPresent       Boolean          @default(true) // false if marked absent
-  pickupStatus    PickupStatus     @default(PENDING)
-  pickupOrder     Int              // Order in optimized route (1, 2, 3...)
-  pickedUpAt      DateTime?
-  droppedOffAt    DateTime?
-  estimatedPickup DateTime?        // ETA calculated at session start
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @default(now())
-
-  // Relations
-  session         TransportSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  child           Child            @relation(fields: [childId], references: [id])
-
-  @@unique([sessionId, childId])
-  @@index([sessionId, pickupStatus])
-}
-
-// Attendance marking by parents (advance absence notification)
-model ChildAttendance {
-  id           String       @id @default(cuid())
-  childId      Int
-  absenceDate  DateTime     @db.Date
-  routeType    RouteType    // MORNING_PICKUP, EVENING_DROPOFF, or BOTH
-  reason       String?
-  markedBy     String       // Parent who marked it
-  markedAt     DateTime     @default(now())
-
-  // Relations
-  child        Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
-  parent       UserProfile  @relation(fields: [markedBy], references: [id])
-
-  @@unique([childId, absenceDate, routeType])
-  @@index([absenceDate])
-}
-
-// Historical location snapshots (saved from Firebase after session ends)
-model LocationHistory {
-  id          String           @id @default(cuid())
-  sessionId   String
-  latitude    Decimal          @db.Decimal(10, 8)
-  longitude   Decimal          @db.Decimal(11, 8)
-  accuracy    Float?           // in meters
-  speed       Float?           // in m/s
-  recordedAt  DateTime
-  eventType   String?          // "pickup", "dropoff", "waypoint", "periodic"
-  metadata    String?          // JSON string for additional data
-
-  // Relations
-  session     TransportSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  @@index([sessionId, recordedAt])
-}
-
-enum SessionStatus {
-  PENDING      // Created but not started
-  ACTIVE       // Driver started, in progress
-  COMPLETED    // All students dropped off
-  CANCELLED    // Cancelled by driver/system
-  EMERGENCY    // Emergency breakdown
-}
-
-enum RouteType {
-  MORNING_PICKUP
-  EVENING_DROPOFF
-  BOTH           // For attendance marking only
-}
-
-enum PickupStatus {
-  PENDING        // Waiting to be picked up
-  PICKED_UP      // Student is on the van
-  DROPPED_OFF    // Student has been dropped off
-  ABSENT         // Marked absent (shouldn't appear in active session)
+enum ReviewType {
+  DRIVER
+  VAN_SERVICE
 }

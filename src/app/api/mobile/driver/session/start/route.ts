@@ -1,27 +1,9 @@
-# Spec 1.1: Session Start API (Backend)
-
-## Objective
-Create API endpoint for drivers to start a transport session, which will:
-1. Create session record in PostgreSQL
-2. Fetch assigned children (excluding absent ones)
-3. Initialize Firebase session
-4. Return student list with pickup order
-
-## Context
-- Driver clicks "Start Transport" button in mobile app
-- Need to determine morning or evening route based on current time
-- Filter out children marked absent for today
-- Create both PostgreSQL and Firebase records
-
-## Implementation
-
-### File: `backend/app/api/mobile/driver/session/start/route.ts` (NEW)
-
-```typescript
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createFirebaseSession } from '@/lib/firebase-admin';
-import { RouteType, SessionStatus } from '@prisma/client';
+
+// Define RouteType manually since it's not exported by Prisma
+type RouteType = 'MORNING_PICKUP' | 'EVENING_DROPOFF';
 
 export async function POST(request: NextRequest) {
   try {

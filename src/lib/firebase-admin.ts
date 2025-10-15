@@ -1,55 +1,58 @@
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getDatabase } from 'firebase-admin/database';
-import type { App } from 'firebase-admin/app';
-import type { database as DatabaseNS } from 'firebase-admin';
-import * as fs from 'fs';
-import * as path from 'path';
+import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
+import { getDatabase, Database } from 'firebase-admin/database';
 
 let app: App;
-let database: DatabaseNS.Database;
+let database: Database;
 
 export function initializeFirebaseAdmin() {
-  console.log('initializeFirebaseAdmin called');
-  console.log('Current working directory:', process.cwd());
-  console.log('FIREBASE_ADMIN_KEY_PATH:', process.env.FIREBASE_ADMIN_KEY_PATH);
-  
-  if (!getApps().length) {
-    let serviceAccount;
-    const keyPath = process.env.FIREBASE_ADMIN_KEY_PATH;
-
-    if (!keyPath) {
-      throw new Error('FIREBASE_ADMIN_KEY_PATH environment variable is not set');
-    }
-
+  if (getApps().length === 0) {
     try {
-      const fullPath = path.join(process.cwd(), keyPath);
-      console.log('Attempting to read from:', fullPath);
-      serviceAccount = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-      console.log('Successfully loaded service account');
+
+      const serviceAccount = JSON.parse(
+        process.env.FIREBASE_ADMIN_KEY || '{}'
+      );
+
+      console.log('🔑 Firebase Service Account:',serviceAccount)
+      
+      app = initializeApp({
+        credential: cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+      });
+
+      // Option 2: Using individual environment variables
+      /*
+      app = initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+      });
+      */
+
+      console.log('✅ Firebase Admin initialized');
     } catch (error) {
-      console.error('Error reading Firebase admin key file:', error);
+      console.error('❌ Firebase Admin initialization error:', error);
       throw error;
     }
-
-    app = initializeApp({
-      credential: cert(serviceAccount),
-      databaseURL: process.env.FIREBASE_DATABASE_URL,
-    });
   } else {
     app = getApps()[0];
   }
+
   database = getDatabase(app);
   return database;
 }
 
-export function getFirebaseDatabase(): DatabaseNS.Database {
+// Helper to get database instance
+export function getFirebaseDatabase(): Database {
   if (!database) {
     return initializeFirebaseAdmin();
   }
   return database;
 }
 
-// Utility: Create a session in Firebase
+// Utility functions for session management
 export async function createFirebaseSession(sessionId: string, sessionData: any) {
   const db = getFirebaseDatabase();
   await db.ref(`active_sessions/${sessionId}`).set({
@@ -58,4 +61,34 @@ export async function createFirebaseSession(sessionId: string, sessionData: any)
   });
 }
 
-// Add more helpers as needed...
+export async function updateSessionLocation(
+  sessionId: string, 
+  location: { latitude: number; longitude: number; timestamp: number }
+) {
+  const db = getFirebaseDatabase();
+  await db.ref(`active_sessions/${sessionId}/currentLocation`).set(location);
+}
+
+export async function updateStudentStatus(
+  sessionId: string,
+  childId: string,
+  status: 'pending' | 'picked_up' | 'dropped_off',
+  timestamp: number
+) {
+  const db = getFirebaseDatabase();
+  await db.ref(`active_sessions/${sessionId}/students/${childId}`).update({
+    status,
+    [`${status === 'picked_up' ? 'pickedUpAt' : 'droppedOffAt'}`]: timestamp,
+  });
+}
+
+export async function deleteFirebaseSession(sessionId: string) {
+  const db = getFirebaseDatabase();
+  await db.ref(`active_sessions/${sessionId}`).remove();
+}
+
+export async function getFirebaseSession(sessionId: string) {
+  const db = getFirebaseDatabase();
+  const snapshot = await db.ref(`active_sessions/${sessionId}`).once('value');
+  return snapshot.val();
+}

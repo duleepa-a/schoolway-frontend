@@ -46,7 +46,7 @@ next-env.d.ts
 
 /prisma/migrations
 
-# firebase-admin-key.json
+/firebase-admin-key.json
 
 # Firebase Admin SDK
 # /config/firebase-admin.json
