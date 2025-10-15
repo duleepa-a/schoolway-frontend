@@ -6,9 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/school/components/AddGuardianModal.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,7 +16,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="dineth" />
+        <entry key="$PROJECT_DIR$" value="Dev_stage" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -56,23 +54,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "dineth",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Dineth/Desktop/schoolway-mobile",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dineth&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Dineth/Desktop/schoolway-frontend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Dineth\Desktop\schoolway-frontend\src\app\vanowner\vehicles\driver" />
@@ -87,17 +85,6 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
-    </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="schoolway-frontend" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="schoolway-frontend" />
-      <option name="filePath" />
-      <method v="2" />
     </configuration>
     <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
       <module name="schoolway-frontend" />
@@ -166,12 +153,6 @@
       <workItem from="1759726699282" duration="32000" />
       <workItem from="1759729556911" duration="263000" />
       <workItem from="1759730535216" duration="1632000" />
-      <workItem from="1760116571952" duration="331000" />
-      <workItem from="1760116923682" duration="139000" />
-      <workItem from="1760117085379" duration="395000" />
-      <workItem from="1760156027572" duration="808000" />
-      <workItem from="1760157556213" duration="592000" />
-      <workItem from="1760195460792" duration="3722000" />
     </task>
     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
       <option name="closed" value="true" />
