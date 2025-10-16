@@ -4,17 +4,17 @@ import React from 'react';
 // Creative activity data types
 interface ActivityItem {
   id: string;
-  type: 'accepted' | 'vehicle' | 'removed' | 'pending' | 'submitted';
+  type: 'accepted' | 'vehicle' | 'removed' | 'pending' | 'submitted' | string;
   title: string;
   description: string;
   userName: string;
   userId: string;
   timestamp: string;
-  status?: 'approved' | 'pending' | 'rejected' | 'review';
+  status?: 'approved' | 'pending' | 'rejected' | 'review' | string;
 }
 
-// Sample activity data with creative scenarios
-const activityData: ActivityItem[] = [
+// Sample activity data with creative scenarios (fallback)
+const sampleActivityData: ActivityItem[] = [
   {
     id: '1',
     type: 'accepted',
@@ -96,8 +96,8 @@ const activityData: ActivityItem[] = [
     status: 'review'
   }
 ];
-
-const ActivityFeed: React.FC = () => {
+const ActivityFeed: React.FC<{ data?: ActivityItem[] }> = ({ data }) => {
+  const activityData = data && data.length ? data : sampleActivityData;
   const getActivityTypeClass = (type: string) => {
     switch (type) {
       case 'accepted': return 'activity-accepted';

@@ -1,0 +1,197 @@
+# Spec 0.1: Database Schema Updates
+
+## Objective
+Add new models to support transport sessions, attendance tracking, and location history without breaking existing schema.
+
+## Context
+- Current schema has: UserProfile, Child, Van, DriverProfile
+- Using Prisma ORM with PostgreSQL (Neon DB)
+- Need to add: TransportSession, SessionStudent, ChildAttendance, LocationHistory
+
+## Implementation
+
+### File: `prisma/schema.prisma`
+
+**Add these new models at the end of the file (after Payment model):**
+
+```prisma
+// Transport Session - represents a single trip (morning or evening)
+model TransportSession {
+  id                String           @id @default(cuid())
+  vanId             Int
+  driverId          String
+  routeType         RouteType        // MORNING_PICKUP or EVENING_DROPOFF
+  sessionDate       DateTime         @default(now()) @db.Date
+  startedAt         DateTime?
+  endedAt           DateTime?
+  status            SessionStatus    @default(PENDING)
+  firebaseSessionId String?          @unique // Reference to Firebase Realtime DB
+  totalDistance     Float?           // in meters
+  totalDuration     Int?             // in seconds
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  
+  // Relations
+  van               Van              @relation(fields: [vanId], references: [id])
+  driver            UserProfile      @relation(fields: [driverId], references: [id])
+  sessionStudents   SessionStudent[]
+  locationHistory   LocationHistory[]
+  
+  @@index([vanId, sessionDate, routeType])
+  @@index([status])
+}
+
+// Student status within a specific session
+model SessionStudent {
+  id              String           @id @default(cuid())
+  sessionId       String
+  childId         Int
+  isPresent       Boolean          @default(true) // false if marked absent
+  pickupStatus    PickupStatus     @default(PENDING)
+  pickupOrder     Int              // Order in optimized route (1, 2, 3...)
+  pickedUpAt      DateTime?
+  droppedOffAt    DateTime?
+  estimatedPickup DateTime?        // ETA calculated at session start
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  // Relations
+  session         TransportSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  child           Child            @relation(fields: [childId], references: [id])
+  
+  @@unique([sessionId, childId])
+  @@index([sessionId, pickupStatus])
+}
+
+// Attendance marking by parents (advance absence notification)
+model ChildAttendance {
+  id           String       @id @default(cuid())
+  childId      Int
+  absenceDate  DateTime     @db.Date
+  routeType    RouteType    // MORNING_PICKUP, EVENING_DROPOFF, or BOTH
+  reason       String?
+  markedBy     String       // Parent who marked it
+  markedAt     DateTime     @default(now())
+  
+  // Relations
+  child        Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
+  parent       UserProfile  @relation(fields: [markedBy], references: [id])
+  
+  @@unique([childId, absenceDate, routeType])
+  @@index([absenceDate])
+}
+
+// Historical location snapshots (saved from Firebase after session ends)
+model LocationHistory {
+  id          String           @id @default(cuid())
+  sessionId   String
+  latitude    Decimal          @db.Decimal(10, 8)
+  longitude   Decimal          @db.Decimal(11, 8)
+  accuracy    Float?           // in meters
+  speed       Float?           // in m/s
+  recordedAt  DateTime
+  eventType   String?          // "pickup", "dropoff", "waypoint", "periodic"
+  metadata    String?          // JSON string for additional data
+  
+  // Relations
+  session     TransportSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId, recordedAt])
+}
+
+// Add new enums
+enum SessionStatus {
+  PENDING      // Created but not started
+  ACTIVE       // Driver started, in progress
+  COMPLETED    // All students dropped off
+  CANCELLED    // Cancelled by driver/system
+  EMERGENCY    // Emergency breakdown
+}
+
+enum RouteType {
+  MORNING_PICKUP
+  EVENING_DROPOFF
+  BOTH           // For attendance marking only
+}
+
+enum PickupStatus {
+  PENDING        // Waiting to be picked up
+  PICKED_UP      // Student is on the van
+  DROPPED_OFF    // Student has been dropped off
+  ABSENT         // Marked absent (shouldn't appear in active session)
+}
+```
+
+**Update existing Child model to add relation:**
+
+```prisma
+// Find the Child model and add this line at the bottom (before closing brace)
+model Child {
+  // ... existing fields ...
+  
+  sessionStudents SessionStudent[]
+  attendance      ChildAttendance[]
+}
+```
+
+**Update existing UserProfile model:**
+
+```prisma
+// Find UserProfile model and add these lines at the bottom
+model UserProfile {
+  // ... existing fields ...
+  
+  driverSessions     TransportSession[]
+  markedAttendances  ChildAttendance[]
+}
+```
+
+**Update existing Van model:**
+
+```prisma
+// Find Van model and add this line
+model Van {
+  // ... existing fields ...
+  
+  transportSessions TransportSession[]
+}
+```
+
+## Migration Steps
+
+```bash
+# 1. Create migration
+npx prisma migrate dev --name add_transport_session_models
+
+# 2. Generate Prisma Client
+npx prisma generate
+
+# 3. Verify migration
+npx prisma studio
+```
+
+## Testing Checklist
+
+- [ ] Migration runs without errors
+- [ ] Existing data is not affected
+- [ ] Can create a TransportSession record
+- [ ] Relations work correctly (van, driver, students)
+- [ ] Prisma Studio shows new tables
+- [ ] Generated types are available in code
+
+## Notes
+
+- All new models have cascade delete where appropriate
+- Indexes added for common queries (date, status, session lookups)
+- Using `@db.Date` for date-only fields (no time component)
+- firebaseSessionId is unique and nullable (created when session starts)
+- Decimal precision for lat/lng: (10,8) = ±90.0°, (11,8) = ±180.0°
+
+## Rollback Plan
+
+If migration fails:
+```bash
+npx prisma migrate resolve --rolled-back [migration-name]
+```
+
+Then fix schema and try again.
