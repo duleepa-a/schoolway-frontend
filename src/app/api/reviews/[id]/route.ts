@@ -211,3 +211,4 @@ async function updateAverageRatings(reviewType: string, targetId: string) {
     // Don't throw error here as the review operation was already successful
   }
 }
+

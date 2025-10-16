@@ -287,14 +287,22 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             firstname: true,
-            lastname: true
+            lastname: true,
+            dp: true,
+            mobile: true,
+            driverProfile: {
+              select: {
+                averageRating: true
+              }
+            }
           }
         },
         Van: {
           select: {
             id: true,
             registrationNumber: true,
-            makeAndModel: true
+            makeAndModel: true,
+            ownerId: true
           }
         }
       },
@@ -302,6 +310,36 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc'
       }
     });
+
+    // For van service reviews, fetch the van service names
+    if (reviewType === 'VAN_SERVICE') {
+      const vanOwnerIds = [...new Set(reviews.map(review => review.Van.ownerId))];
+      
+      if (vanOwnerIds.length > 0) {
+        const vanServices = await prisma.vanService.findMany({
+          where: {
+            userId: {
+              in: vanOwnerIds
+            }
+          },
+          select: {
+            userId: true,
+            serviceName: true
+          }
+        });
+
+        // Create a map of userId to serviceName
+        const serviceNameMap = vanServices.reduce((acc, service) => {
+          acc[service.userId] = service.serviceName;
+          return acc;
+        }, {} as Record<string, string>);
+
+        // Add service names to reviews
+        reviews.forEach(review => {
+          review.Van.serviceName = serviceNameMap[review.Van.ownerId] || 'Unknown Service';
+        });
+      }
+    }
 
     return NextResponse.json({
       reviews,

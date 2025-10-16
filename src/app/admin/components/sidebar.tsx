@@ -13,6 +13,7 @@ import { MdCreditCard, MdOutlinePayments } from "react-icons/md";
 import { RiQuestionAnswerFill } from "react-icons/ri";
 import { GiLaurelsTrophy } from "react-icons/gi";
 import { PiStudentFill } from "react-icons/pi";
+import { AiFillStar } from "react-icons/ai";
 
 const navItems = [
   { label: 'Dashboard', icon: <HiHome />, href: '/admin' },
@@ -23,6 +24,7 @@ const navItems = [
   // { label: 'Guardian', icon: <GiLaurelsTrophy />, href: '/admin/guardian' },
   { label: 'Payroll', icon: <MdCreditCard />, href: '/admin/payroll' },
   { label: 'Payments', icon: <MdOutlinePayments />, href: '/admin/payments' },
+  { label: 'Reviews', icon: <AiFillStar />, href: '/admin/reviews' },
   { label: 'Inquiries', icon: <RiQuestionAnswerFill />, href: '/admin/inquiries' },
   { label: 'Awareness', icon: <GiLaurelsTrophy />, href: '/admin/awareness' },
   
