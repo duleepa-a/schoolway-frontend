@@ -21,21 +21,30 @@ export async function POST(request: NextRequest) {
     const driver = await prisma.userProfile.findUnique({
       where: { id: driverId },
       include: {
-        Van: {
-          where: { assignedDriverId: driverId },
-        },
+        Van_Van_assignedDriverIdToUserProfile: true,
       },
     });
 
-    if (!driver || driver.Van.length === 0) {
+    if (!driver) {
+      return NextResponse.json(
+        { success: false, error: 'Driver not found' },
+        { status: 404 }
+      );
+    }
+
+    const vanList = driver.Van_Van_assignedDriverIdToUserProfile ?? [];
+
+    if (vanList.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Driver has no assigned van' },
         { status: 404 }
       );
     }
 
-    const van = driver.Van[0];
+    const van = vanList[0];
 
+    
+    console.log(`Driver ${driverId} assigned to van ${van.id}`);
     // Determine route type based on current time
     const now = new Date();
     const currentHour = now.getHours();
@@ -64,11 +73,11 @@ export async function POST(request: NextRequest) {
     if (existingSession) {
       return NextResponse.json(
         { 
-          success: false, 
-          error: `${routeType === 'MORNING_PICKUP' ? 'Morning' : 'Evening'} session already exists for today`,
+          success: true, 
+          message: `${routeType === 'MORNING_PICKUP' ? 'Morning' : 'Evening'} session already exists for today`,
           sessionId: existingSession.id,
-        },
-        { status: 409 }
+          sessionExists: true,
+        }     
       );
     }
 
@@ -78,7 +87,9 @@ export async function POST(request: NextRequest) {
     const children = await prisma.child.findMany({
       where: {
         vanID: van.id,
-        status: 'ON_VAN', // Or whatever status indicates active enrollment
+        status: {
+          in: ['ON_VAN', 'AT_HOME', 'AT_SCHOOL']
+        }, // Or whatever status indicates active enrollment
         NOT: {
           attendance: {
             some: {
@@ -104,6 +115,7 @@ export async function POST(request: NextRequest) {
             mobile: true,
           },
         },
+        Gate: true,
       },
       orderBy: {
         name: 'asc', // Simple ordering for now, will optimize with Google Maps later
@@ -120,6 +132,8 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       );
     }
+
+    console.log('children assigned to van:', children);
 
     // Create transport session in PostgreSQL
     const session = await prisma.transportSession.create({
@@ -165,6 +179,8 @@ export async function POST(request: NextRequest) {
         schoolLocation: {
           name: child.School.schoolName,
           address: child.School.address,
+          latitude : child.Gate?.latitude != null ? parseFloat(child.Gate.latitude.toString()) : null,
+          longitude : child.Gate?.longitude != null ? parseFloat(child.Gate.longitude.toString()) : null,
         },
         parentName: child.UserProfile 
           ? `${child.UserProfile.firstname} ${child.UserProfile.lastname}` 
@@ -209,6 +225,14 @@ export async function POST(request: NextRequest) {
         longitude: parseFloat(child.pickupLng.toString()),
         address: child.pickupAddress,
       },
+      DropoffLocation: (() => {
+        const gate = child.Gate;
+        return {
+          latitude: gate?.latitude != null ? parseFloat(gate.latitude.toString()) : null,
+          longitude: gate?.longitude != null ? parseFloat(gate.longitude.toString()) : null,
+          address: gate?.address || null,
+        };
+      })(),
       school: {
         name: child.School.schoolName,
         address: child.School.address,
@@ -231,6 +255,7 @@ export async function POST(request: NextRequest) {
         startedAt: session.startedAt,
         status: session.status,
       },
+      sessionExists: false,
       students: studentList,
       message: `${routeType === 'MORNING_PICKUP' ? 'Morning pickup' : 'Evening dropoff'} session started with ${studentList.length} student(s)`,
     });

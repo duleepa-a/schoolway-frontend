@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     const age = parseInt(formData.get('age') as string);
     const grade = parseInt(formData.get('grade') as string);
     const schoolID = parseInt(formData.get('schoolID') as string);
+    const gateID = parseInt(formData.get('gateID') as string);
     const schoolStartTime = formData.get('schoolStartTime') as string;
     const schoolEndTime = formData.get('schoolEndTime') as string;
     const pickupLat = parseFloat(formData.get('pickupLat') as string);
@@ -50,10 +51,12 @@ export async function POST(req: Request) {
         parentId : parentId,
         specialNotes,
         qrCode: 'default',
+        gateID,
         profilePicture: imageUrl,
         pickupLat: new Decimal(pickupLat),
         pickupLng: new Decimal(pickupLng),
         pickupAddress : pickupAddress,
+        updatedAt: new Date(),
       },
     });
 
