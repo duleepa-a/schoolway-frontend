@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -8,8 +8,8 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ icon, text, number }) => {
   return (
-    <div className="bg-white rounded-xl shadow border-1 border-amber-300 p-6 flex items-center gap-4">
-      <div className="p-3 bg-page-background rounded-full text-primary">
+    <div className="bg-white rounded-xl shadow border-1 border-[#0099cc] p-6 flex items-center gap-4">
+      <div className="p-3 bg-page-background rounded-full text-primary text-[#0099cc]">
         {icon}
       </div>
       <div>

@@ -228,7 +228,7 @@ model UserProfile {
   mobile                                                          String?
   nic                                                             String?
   nic_pic                                                         String?
-  district                                                        String?
+  district                                                        String?https://console.cloud.google.com/google/maps-apis/support?project=schoolway-464306
   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
   Child                                                           Child[]
   ChildAttendance                                                 ChildAttendance[]
