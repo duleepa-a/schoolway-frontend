@@ -24,7 +24,6 @@ model Child {
   age             Int
   profilePicture  String
   vanID           Int?
-  gateID         Int?
   schoolStartTime String
   schoolEndTime   String
   qrCode          String                    @unique
@@ -40,10 +39,11 @@ model Child {
   pickupAddress   String                    @default("Not Specified")
   status          ChildStatus               @default(NOT_ASSIGNED)
   feeAmount       Float                     @default(0)
+  gateID          Int?
+  Gate            Gate?                     @relation(fields: [gateID], references: [id])
   UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
-  Gate           Gate?                     @relation(fields: [gateID], references: [id])
   attendance      ChildAttendance[]
   Payment         Payment[]
   Review          Review[]
@@ -72,9 +72,6 @@ model DriverProfile {
   userId         String      @unique
   startedDriving DateTime?   @default(now())
   status         Int         @default(2)
-  bank             String?
-  branch           String?
-  accountNo        String?
   bio            String?
   languages      String[]
   licenseType    String[]
@@ -83,6 +80,9 @@ model DriverProfile {
   hasVan         Int         @default(0)
   averageRating  Float       @default(0)
   totalReviews   Int         @default(0)
+  accountNo      String?
+  bank           String?
+  branch         String?
   UserProfile    UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -116,12 +116,11 @@ model Gate {
   address     String?
   isActive    Boolean                  @default(true)
   schoolId    Int
+  createdAt   DateTime                 @default(now())
   latitude    Float?
   longitude   Float?
-  createdAt   DateTime                 @default(now())
+  Child       Child[]
   School      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  Child          Child[]
 
   @@index([isActive])
   @@index([schoolId])
@@ -228,7 +227,7 @@ model UserProfile {
   mobile                                                          String?
   nic                                                             String?
   nic_pic                                                         String?
-  district                                                        String?https://console.cloud.google.com/google/maps-apis/support?project=schoolway-464306
+  district                                                        String?
   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
   Child                                                           Child[]
   ChildAttendance                                                 ChildAttendance[]
@@ -304,12 +303,12 @@ model VanService {
   contactNo        String
   serviceRegNumber String
   businessDocument String?
-  bank             String?
-  branch           String?
-  accountNo        String?
   userId           String      @unique
   averageRating    Float       @default(0)
   totalReviews     Int         @default(0)
+  accountNo        String?
+  bank             String?
+  branch           String?
   UserProfile      UserProfile @relation(fields: [userId], references: [id])
 }
 
