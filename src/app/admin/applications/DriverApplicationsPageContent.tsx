@@ -34,7 +34,7 @@ export default function ApplicationsPage() {
             onClick={() => handleTabChange(tab)}
             className={`pb-2 font-medium capitalize ${
               activeTab === tab
-                ? 'border-b-2 border-yellow-500 text-yellow-600'
+                ? 'border-b-2 border-[#0099cc] text-[#0099cc]'
                 : 'text-gray-500'
             }`}
           >

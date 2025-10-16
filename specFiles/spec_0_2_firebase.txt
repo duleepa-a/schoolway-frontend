@@ -1,0 +1,395 @@
+# Spec 0.2: Firebase Project Setup
+
+## Objective
+Set up Firebase Realtime Database for live location tracking and configure both admin (backend) and client (mobile) SDKs.
+
+## Prerequisites
+- Google account
+- Access to Firebase Console
+
+## Part 1: Firebase Console Setup
+
+### Step 1: Create Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Click "Add Project"
+3. Enter project name: `van-tracking-system` (or your choice)
+4. Disable Google Analytics (not needed for this project)
+5. Click "Create Project"
+
+### Step 2: Enable Realtime Database
+
+1. In Firebase Console, click "Realtime Database" in left sidebar
+2. Click "Create Database"
+3. Select location: **Singapore** (closest to Sri Lanka for low latency)
+4. Start in **Test Mode** for now (we'll add rules later)
+5. Click "Enable"
+
+### Step 3: Get Configuration Keys
+
+#### For Backend (Admin SDK):
+1. Go to Project Settings (gear icon) → Service Accounts
+2. Click "Generate New Private Key"
+3. Save the JSON file as `firebase-admin-key.json`
+4. **DO NOT COMMIT THIS FILE** - add to `.gitignore`
+
+#### For Mobile App (Client SDK):
+1. Go to Project Settings → General
+2. Under "Your apps", click "Add app" → Web (</> icon)
+3. Register app with nickname: `van-tracking-mobile`
+4. Copy the `firebaseConfig` object
+5. Click "Continue to console"
+
+## Part 2: Backend Setup (Next.js)
+
+### File: `backend/.env.local`
+
+```env
+# Add these to your existing .env.local
+
+# Firebase Admin SDK (paste entire JSON content)
+FIREBASE_ADMIN_KEY='{"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}'
+
+# Or use individual fields
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
+```
+
+### File: `backend/lib/firebase-admin.ts` (NEW)
+
+```typescript
+import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
+import { getDatabase, Database } from 'firebase-admin/database';
+
+let app: App;
+let database: Database;
+
+export function initializeFirebaseAdmin() {
+  if (getApps().length === 0) {
+    try {
+      // Option 1: Using full JSON key (recommended for Vercel)
+      const serviceAccount = JSON.parse(
+        process.env.FIREBASE_ADMIN_KEY || '{}'
+      );
+      
+      app = initializeApp({
+        credential: cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+      });
+
+      // Option 2: Using individual environment variables
+      /*
+      app = initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+      });
+      */
+
+      console.log('✅ Firebase Admin initialized');
+    } catch (error) {
+      console.error('❌ Firebase Admin initialization error:', error);
+      throw error;
+    }
+  } else {
+    app = getApps()[0];
+  }
+
+  database = getDatabase(app);
+  return database;
+}
+
+// Helper to get database instance
+export function getFirebaseDatabase(): Database {
+  if (!database) {
+    return initializeFirebaseAdmin();
+  }
+  return database;
+}
+
+// Utility functions for session management
+export async function createFirebaseSession(sessionId: string, sessionData: any) {
+  const db = getFirebaseDatabase();
+  await db.ref(`active_sessions/${sessionId}`).set({
+    ...sessionData,
+    createdAt: Date.now(),
+  });
+}
+
+export async function updateSessionLocation(
+  sessionId: string, 
+  location: { latitude: number; longitude: number; timestamp: number }
+) {
+  const db = getFirebaseDatabase();
+  await db.ref(`active_sessions/${sessionId}/currentLocation`).set(location);
+}
+
+export async function updateStudentStatus(
+  sessionId: string,
+  childId: string,
+  status: 'pending' | 'picked_up' | 'dropped_off',
+  timestamp: number
+) {
+  const db = getFirebaseDatabase();
+  await db.ref(`active_sessions/${sessionId}/students/${childId}`).update({
+    status,
+    [`${status === 'picked_up' ? 'pickedUpAt' : 'droppedOffAt'}`]: timestamp,
+  });
+}
+
+export async function deleteFirebaseSession(sessionId: string) {
+  const db = getFirebaseDatabase();
+  await db.ref(`active_sessions/${sessionId}`).remove();
+}
+
+export async function getFirebaseSession(sessionId: string) {
+  const db = getFirebaseDatabase();
+  const snapshot = await db.ref(`active_sessions/${sessionId}`).once('value');
+  return snapshot.val();
+}
+```
+
+### File: `backend/.gitignore` (UPDATE)
+
+```gitignore
+# Add these lines
+firebase-admin-key.json
+.env.local
+```
+
+## Part 3: Mobile App Setup (React Native + Expo)
+
+### Install Dependencies
+
+```bash
+cd mobile-app
+npx expo install firebase
+```
+
+### File: `mobile-app/.env` (NEW)
+
+```env
+# Firebase Client Configuration
+EXPO_PUBLIC_FIREBASE_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXX
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+EXPO_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
+```
+
+### File: `mobile-app/app.json` (UPDATE)
+
+```json
+{
+  "expo": {
+    "name": "Van Tracking",
+    "extra": {
+      "firebaseApiKey": process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+      "firebaseAuthDomain": process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      "firebaseDatabaseURL": process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL,
+      "firebaseProjectId": process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+      "firebaseStorageBucket": process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      "firebaseMessagingSenderId": process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      "firebaseAppId": process.env.EXPO_PUBLIC_FIREBASE_APP_ID
+    }
+  }
+}
+```
+
+### File: `mobile-app/services/firebase.ts` (NEW)
+
+```typescript
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getDatabase, Database } from 'firebase/database';
+import Constants from 'expo-constants';
+
+const firebaseConfig = {
+  apiKey: Constants.expoConfig?.extra?.firebaseApiKey,
+  authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain,
+  databaseURL: Constants.expoConfig?.extra?.firebaseDatabaseURL,
+  projectId: Constants.expoConfig?.extra?.firebaseProjectId,
+  storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
+  messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
+  appId: Constants.expoConfig?.extra?.firebaseAppId,
+};
+
+let app: FirebaseApp;
+let database: Database;
+
+export function initializeFirebase() {
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+    console.log('✅ Firebase Client initialized');
+  } else {
+    app = getApps()[0];
+  }
+  
+  database = getDatabase(app);
+  return database;
+}
+
+export function getFirebaseDB(): Database {
+  if (!database) {
+    return initializeFirebase();
+  }
+  return database;
+}
+```
+
+## Part 4: Firebase Security Rules
+
+In Firebase Console → Realtime Database → Rules tab, replace with:
+
+```json
+{
+  "rules": {
+    "active_sessions": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (
+          root.child('active_sessions/' + $sessionId + '/driverId').val() === auth.token.user_id ||
+          root.child('active_sessions/' + $sessionId + '/vanOwnerId').val() === auth.token.user_id
+        )",
+        "currentLocation": {
+          ".write": "auth != null && root.child('active_sessions/' + $sessionId + '/driverId').val() === auth.token.user_id"
+        },
+        "students": {
+          "$childId": {
+            ".write": "auth != null && root.child('active_sessions/' + $sessionId + '/driverId').val() === auth.token.user_id"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Note:** For now, start with test mode rules. We'll implement proper authentication integration in Phase 2.
+
+## Testing Checklist
+
+### Backend Tests:
+- [ ] Firebase Admin initializes without errors
+- [ ] Can write data to Realtime Database from backend
+- [ ] Can read data from Realtime Database
+- [ ] Environment variables load correctly
+
+### Mobile Tests:
+- [ ] Firebase Client initializes without errors
+- [ ] Can read data from Realtime Database
+- [ ] Environment variables accessible via Constants
+
+### Test Script (Backend):
+
+Create `backend/scripts/test-firebase.ts`:
+
+```typescript
+import { initializeFirebaseAdmin } from '../lib/firebase-admin';
+
+async function testFirebase() {
+  try {
+    const db = initializeFirebaseAdmin();
+    
+    // Write test data
+    await db.ref('test/hello').set({
+      message: 'Hello from backend',
+      timestamp: Date.now(),
+    });
+    
+    // Read test data
+    const snapshot = await db.ref('test/hello').once('value');
+    console.log('✅ Test data:', snapshot.val());
+    
+    // Cleanup
+    await db.ref('test').remove();
+    console.log('✅ Firebase Admin working correctly!');
+  } catch (error) {
+    console.error('❌ Firebase test failed:', error);
+  }
+}
+
+testFirebase();
+```
+
+Run: `ts-node scripts/test-firebase.ts`
+
+### Test Component (Mobile):
+
+Create `mobile-app/app/test-firebase.tsx`:
+
+```tsx
+import { View, Text, Button } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ref, set, onValue } from 'firebase/database';
+import { getFirebaseDB } from '../services/firebase';
+
+export default function TestFirebase() {
+  const [data, setData] = useState<any>(null);
+  
+  const testWrite = async () => {
+    const db = getFirebaseDB();
+    await set(ref(db, 'test/mobile'), {
+      message: 'Hello from mobile',
+      timestamp: Date.now(),
+    });
+  };
+  
+  useEffect(() => {
+    const db = getFirebaseDB();
+    const dataRef = ref(db, 'test/mobile');
+    
+    const unsubscribe = onValue(dataRef, (snapshot) => {
+      setData(snapshot.val());
+    });
+    
+    return () => unsubscribe();
+  }, []);
+  
+  return (
+    <View style={{ padding: 20 }}>
+      <Text>Firebase Test</Text>
+      <Button title="Write Data" onPress={testWrite} />
+      <Text>{JSON.stringify(data, null, 2)}</Text>
+    </View>
+  );
+}
+```
+
+## Environment Setup for Vercel
+
+In Vercel dashboard → Project → Settings → Environment Variables:
+
+Add all Firebase environment variables from `.env.local`
+
+## Notes
+
+- Firebase Realtime Database is **free up to 1GB stored and 10GB/month downloaded**
+- Your estimated usage: ~100MB/month (well within free tier)
+- Database rules are in test mode initially - restrict after Phase 2
+- Mobile app doesn't need authentication to Firebase initially (we'll use database rules)
+
+## Troubleshooting
+
+**Issue:** "Failed to initialize Firebase Admin"
+- Check `FIREBASE_ADMIN_KEY` is valid JSON
+- Ensure no extra quotes or escape characters
+- Try using individual environment variables instead
+
+**Issue:** "Permission denied" in mobile app
+- Check Firebase rules are in test mode
+- Verify databaseURL is correct
+
+**Issue:** "Module not found: firebase-admin"
+- Run `npm install firebase-admin` in backend
+- Restart dev server
+
+## Next Steps
+
+After this spec is complete, you can move to **Spec 1.1: Session Management APIs**

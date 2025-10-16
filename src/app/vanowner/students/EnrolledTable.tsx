@@ -9,7 +9,7 @@ type StudentRow = {
   id: number;
   name: string;
   grade: number | string;
-  status: 'Active' | 'Inactive';
+  status: string; // Accept any status value
   van?: { id: number; name?: string; plateNumber?: string } | null;
   contactParent?: string | null;
   joinedDate: string;
@@ -19,6 +19,7 @@ type StudentRow = {
 const statusColors: Record<string, string> = {
   Active: 'bg-[var(--green-shade-light)] text-[var(--green-shade-dark)] border-[var(--green-shade-dark)]',
   Inactive: 'bg-gray-100 text-gray-600 border-gray-400',
+  AT_HOME: 'bg-yellow-100 text-yellow-700 border-yellow-400', // Example for extra status
 };
 
 export default function EnrolledTable() {
@@ -52,7 +53,7 @@ export default function EnrolledTable() {
 
   const handleAction = async (childId: number, action: 'inactive' | 'remove') => {
     try {
-      const res = await fetch(`api/vanowner/enrolled-students/${childId}`, {
+      const res = await fetch(`/api/vanowner/enrolled-students/${childId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
@@ -104,14 +105,14 @@ export default function EnrolledTable() {
           <table className="w-full border-collapse rounded-md overflow-hidden">
             <thead>
               <tr style={{background: 'var(--blue-shade-light)'}} className="text-left text-sm">
-                <th className="p-3 font-medium"><input type="checkbox" /></th>
-                <th className="p-3">Full Name</th>
-                <th className="p-3">Grade</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Van</th>
-                <th className="p-3">Contact No</th>
-                <th className="p-3">Joined Date</th>
-                <th className="p-3">Actions</th>
+                <th className="p-3 font-medium text-white"><input type="checkbox" /></th>
+                <th className="p-3 text-white">Full Name</th>
+                <th className="p-3 text-white">Grade</th>
+                <th className="p-3 text-white">Status</th>
+                <th className="p-3 text-white">Van</th>
+                <th className="p-3 text-white">Contact No</th>
+                <th className="p-3 text-white">Joined Date</th>
+                <th className="p-3 text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm">
@@ -123,12 +124,12 @@ export default function EnrolledTable() {
                     background: idx === 0 ? 'white' : undefined,
                     color: 'black',
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--blue-shade-light)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = idx === 0 ? 'white' : '')}
                 >
                   <td className="p-3"><input type="checkbox" /></td>
                   <td className="p-3 flex items-center gap-2">
-                    <Image src={s.profilePicture ?? '/Images/male_pro_pic_placeholder.png'} alt={s.name} width={32} height={32} className="rounded-full object-cover" />
+                    <div style={{width: 32, height: 32}} className="rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
+                      <Image src={s.profilePicture ?? '/Images/male_pro_pic_placeholder.png'} alt={s.name} width={32} height={32} className="object-cover w-full h-full" />
+                    </div>
                     <span className="font-medium" style={{color: 'black'}}>{s.name}</span>
                   </td>
                   <td className="p-3" style={{color: 'black'}}>{s.grade}</td>
