@@ -8,7 +8,7 @@ export async function POST() {
     const payments = await prisma.payment.findMany({
       where: { month: new Date().toLocaleString("default", { month: "long", year: "numeric" }) },
       include: {
-        child: true,
+        Child: true,
       },
     });
 

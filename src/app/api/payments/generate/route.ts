@@ -9,7 +9,9 @@ export async function GET() {
   const children = await prisma.child.findMany({
     where: { 
         status: {
-            not: "NOT_ASSIGNED"
+            not:{
+              in: ['INACTIVE', 'NOT_ASSIGNED']
+            } 
         }
     },
   });
@@ -39,6 +41,7 @@ export async function GET() {
           vanServiceId: van?.ownerId || null,
           salaryPercentageForDriver: van?.salaryPercentage || 0,
           month,
+          updatedAt: new Date(),
         },
       });
     }
