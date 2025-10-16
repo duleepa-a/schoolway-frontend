@@ -336,7 +336,7 @@ export async function GET(request: NextRequest) {
 
         // Add service names to reviews
         reviews.forEach(review => {
-          review.Van.serviceName = serviceNameMap[review.Van.ownerId] || 'Unknown Service';
+          (review.Van as any).serviceName = serviceNameMap[review.Van.ownerId] || 'Unknown Service';
         });
       }
     }
