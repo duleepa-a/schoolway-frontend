@@ -8,180 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-<<<<<<< HEAD
-model UserProfile {
-  id                                                              String                @id @default(cuid())
-  email                                                           String                @unique
-  firstname                                                       String?
-  createdAt                                                       DateTime              @default(now())
-  updatedAt                                                       DateTime              @updatedAt
-  lastname                                                        String?
-  role                                                            UserRole?
-  password                                                        String
-  activeStatus                                                    Boolean               @default(true)
-  address                                                         String?
-  birthDate                                                       DateTime?
-  mobile                                                          String?
-  nic                                                             String?
-  nic_pic                                                         String?
-  district                                                        String?
-  dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
-  Child                                                           Child[]
-  driverProfile                                                   DriverProfile?
-  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
-  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
-  payments                                                        Payment[]
-  PrivateHire                                                     PrivateHire[]
-  Review                                                          Review[]
-  SchoolGuardian                                                  SchoolGuardian?
-  Van_assignedDriverIdToUserProfile                               Van[]                 @relation("Van_assignedDriverIdToUserProfile")
-  Van                                                             Van[]
-  vanService                                                      VanService?
-  Payment_driverIdToUserProfile                                   Payment[]             @relation("Payment_driverIdToUserProfile")
-  Payment_vanserviceToUserProfile                                 Payment[]             @relation("Paymeny_vanserviceToUserProfile")
-  Payroll                                                         Payroll[]
-
-}
-
-model VanService {
-  id               String      @id @default(cuid())
-  serviceName      String
-  contactNo        String
-  serviceRegNumber String
-  businessDocument String?
-  userId           String      @unique
-  averageRating    Float       @default(0)
-  totalReviews     Int         @default(0)
-  user             UserProfile @relation(fields: [userId], references: [id])
-}
-
-model DriverProfile {
-  id             String      @id @default(cuid())
-  licenseId      String
-  licenseExpiry  DateTime
-  licenseFront   String?
-  licenseBack    String?
-  policeReport   String?
-  userId         String      @unique
-  startedDriving DateTime?   @default(now())
-  status         Int         @default(2)
-  bio            String?
-  languages      String[]
-  licenseType    String[]
-  medicalReport  String?
-  relocate       Boolean     @default(false)
-  hasVan         Int         @default(0)
-  averageRating  Float       @default(0)
-  totalReviews   Int         @default(0)
-  user           UserProfile @relation(fields: [userId], references: [id])
-}
-
-model Child {
-  id              Int                       @id @default(autoincrement())
-  name            String
-  age             Int
-  profilePicture  String
-  vanID           Int?
-  schoolStartTime String
-  schoolEndTime   String
-  qrCode          String                    @unique
-  pickupLat       Decimal
-  pickupLng       Decimal
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
-  schoolID        Int
-  grade           Int
-  pickupLocation  Unsupported("geography")?
-  specialNotes    String?
-  parentId        String?
-  pickupAddress   String                    @default("Not Specified")
-  status          ChildStatus               @default(NOT_ASSIGNED)
-  feeAmount       Float                     @default(0)
-  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
-  School          School                    @relation(fields: [schoolID], references: [id])
-  Van             Van?                      @relation(fields: [vanID], references: [id])
-  payments        Payment[]
-<<<<<<< HEAD
-  Review          Review[]
-=======
->>>>>>> c027659a6041b8e8ee09467a77288e41d8c4e349
-  VanRequest      VanRequest?
-}
-
-model Van {
-<<<<<<< HEAD
-  id                                        Int                   @id @default(autoincrement())
-  registrationNumber                        String                @unique
-  licensePlateNumber                        String
-  makeAndModel                              String
-  seatingCapacity                           Int
-  acCondition                               Boolean
-  rBookUrl                                  String
-  revenueLicenseUrl                         String
-  fitnessCertificateUrl                     String
-  insuranceCertificateUrl                   String
-  photoUrl                                  String
-  createdAt                                 DateTime              @default(now())
-  ownerId                                   String
-  hasDriver                                 Boolean               @default(false)
-  assignedDriverId                          String?
-  salaryPercentage                          Float?                @default(25.0)
-  shiftDetails                              String?
-  privateRating                             Float                 @default(0)
-  studentRating                             Float                 @default(0)
-  hasAssistant                              Boolean               @default(false)
-  status                                    Int                   @default(2)
-  pathId                                    String?
-  endTime                                   DateTime?
-  startTime                                 DateTime?
-  assistant                                 Assistant?
-  Child                                     Child[]
-  DriverVanJobRequest                       DriverVanJobRequest[]
-  payments                                  Payment[]
-  PrivateHire                               PrivateHire[]
-  Review                                    Review[]
-  UserProfile_assignedDriverIdToUserProfile UserProfile?          @relation("Van_assignedDriverIdToUserProfile", fields: [assignedDriverId], references: [id])
-  UserProfile                               UserProfile           @relation(fields: [ownerId], references: [id])
-  Path                                      Path?                 @relation(fields: [pathId], references: [id])
-  VanRequest                                VanRequest[]
-=======
-  id                      Int                   @id @default(autoincrement())
-  registrationNumber      String                @unique
-  licensePlateNumber      String
-  makeAndModel            String
-  seatingCapacity         Int
-  acCondition             Boolean
-  rBookUrl                String
-  revenueLicenseUrl       String
-  fitnessCertificateUrl   String
-  insuranceCertificateUrl String
-  photoUrl                String
-  createdAt               DateTime              @default(now())
-  ownerId                 String
-  hasDriver               Boolean               @default(false)
-  assignedDriverId        String?
-  salaryPercentage        Float?                @default(25.0)
-  shiftDetails            String?
-  privateRating           Float                 @default(0)
-  studentRating           Float                 @default(0)
-  hasAssistant            Boolean               @default(false)
-  status                  Int                   @default(2)
-  pathId                  String?
-  endTime                 DateTime?
-  startTime               DateTime?
-  assistant               Assistant?
-  Child                   Child[]
-  DriverVanJobRequest     DriverVanJobRequest[]
-  payments                Payment[]
-  PrivateHire             PrivateHire[]
-  UserProfile             UserProfile           @relation(fields: [ownerId], references: [id])
-  Path                    Path?                 @relation(fields: [pathId], references: [id])
-  VanRequest              VanRequest[]
->>>>>>> c027659a6041b8e8ee09467a77288e41d8c4e349
-}
-
-=======
->>>>>>> add-path
 model Assistant {
   id         String  @id
   name       String
@@ -189,132 +15,6 @@ model Assistant {
   nic        String
   vanId      Int?    @unique
   profilePic String?
-<<<<<<< HEAD
-  van        Van?    @relation(fields: [vanId], references: [id])
-}
-
-model Payment {
-  id          Int           @id @default(autoincrement())
-  childId     Int
-  parentId    String
-  vanId       Int
-<<<<<<< HEAD
-  driverId    String?       // New field
-  vanServiceId String?      // New field
-  salaryPercentageForDriver Float @default(0)
-=======
->>>>>>> c027659a6041b8e8ee09467a77288e41d8c4e349
-  amount      Float
-  month       String
-  status      PaymentStatus @default(PENDING)
-  paidAt      DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  paymentType PaymentType   @default(SCHOOL_VAN)
-<<<<<<< HEAD
-  
-  child       Child         @relation(fields: [childId], references: [id])
-  UserProfile UserProfile   @relation(fields: [parentId], references: [id])
-  van         Van           @relation(fields: [vanId], references: [id])
-  driver      UserProfile?  @relation("Payment_driverIdToUserProfile", fields: [driverId], references: [id])
-  vanService  UserProfile?  @relation("Paymeny_vanserviceToUserProfile",fields: [vanServiceId], references: [id])
-  payrolls    Payroll[]
-=======
-  child       Child         @relation(fields: [childId], references: [id])
-  UserProfile UserProfile   @relation(fields: [parentId], references: [id])
-  van         Van           @relation(fields: [vanId], references: [id])
->>>>>>> c027659a6041b8e8ee09467a77288e41d8c4e349
-
-  @@unique([childId, month])
-}
-
-model Payroll {
-  id          Int       @id @default(autoincrement())
-  paymentId   Int
-  recipientId String    // driverId or vanServiceId
-  recipientRole UserRole  // "DRIVER" or "VAN_SERVICE"
-  payrollStatus  PayrollStatus @default(PENDING) 
-  amount      Float
-  createdAt   DateTime  @default(now())
-  UserProfile UserProfile @relation(fields: [recipientId], references: [id])
-  payment     Payment   @relation(fields: [paymentId], references: [id])
-
-  @@index([recipientId])
-}
-
-
-
-model School {
-  id             Int              @id @default(autoincrement())
-  schoolName     String
-  email          String           @unique
-  contact        String
-  address        String
-  createdAt      DateTime         @default(now())
-  Child          Child[]
-  Gate           Gate[]
-  SchoolGuardian SchoolGuardian[]
-}
-
-model ContactUs {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String
-  subject   String
-  message   String
-  userType  String
-  status    String   @default("Pending")
-  createdAt DateTime @default(now())
-}
-
-model DriverVanJobRequest {
-  id                                                      String           @id @default(cuid())
-  driverId                                                String
-  vanId                                                   Int
-  vanOwnerId                                              String
-  status                                                  JobRequestStatus @default(PENDING)
-  message                                                 String?
-  proposedSalary                                          Float?
-  turn                                                    String?
-  responseMessage                                         String?
-  respondedAt                                             DateTime?
-  createdAt                                               DateTime         @default(now())
-  updatedAt                                               DateTime         @default(now())
-  expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
-  UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
-  Van                                                     Van              @relation(fields: [vanId], references: [id])
-  UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation("DriverVanJobRequest_vanOwnerIdToUserProfile", fields: [vanOwnerId], references: [id])
-
-  @@unique([driverId, vanOwnerId, vanId])
-}
-
-model SchoolGuardian {
-  id          Int         @id @default(autoincrement())
-  schoolId    Int
-  guardianId  String      @unique
-  createdAt   DateTime    @default(now())
-  email       String      @unique
-  firstName   String
-  lastName    String
-  phone       String?
-  updatedAt   DateTime?   @updatedAt
-  UserProfile UserProfile @relation(fields: [guardianId], references: [id])
-  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  @@index([schoolId])
-  @@index([email])
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model spatial_ref_sys {
-  srid      Int     @id
-  auth_name String? @db.VarChar(256)
-  auth_srid Int?
-  srtext    String? @db.VarChar(2048)
-  proj4text String? @db.VarChar(2048)
-}
-
-=======
   Van        Van?    @relation(fields: [vanId], references: [id])
 }
 
@@ -407,7 +107,6 @@ model DriverVanJobRequest {
   @@unique([driverId, vanOwnerId, vanId])
 }
 
->>>>>>> add-path
 model Gate {
   id          Int                      @id @default(autoincrement())
   gateName    String
@@ -627,42 +326,6 @@ model WayPoint {
   Path      Path                    @relation(fields: [pathId], references: [id])
 }
 
-<<<<<<< HEAD
-model VanRequest {
-  id            String        @id @default(cuid())
-  vanId         Int
-  childId       Int           @unique
-  status        RequestStatus @default(PENDING)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  estimatedFare Float         @default(0)
-  child         Child         @relation(fields: [childId], references: [id])
-  van           Van           @relation(fields: [vanId], references: [id])
-}
-
-model PrivateHire {
-  id             String      @id
-  userId         String
-  vanId          Int?
-  pickupLat      Float
-  pickupLng      Float
-  destinationLat Float
-  destinationLng Float
-  departureDate  DateTime
-  returnDate     DateTime?
-  noOfPassengers Int
-  fare           Float
-  notes          String?
-  status         HireStatus  @default(PENDING)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime
-  UserProfile    UserProfile @relation(fields: [userId], references: [id])
-  Van            Van?        @relation(fields: [vanId], references: [id])
-}
-
-model Review {
-  id          String      @id @default(cuid())
-=======
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model spatial_ref_sys {
   srid      Int     @id
@@ -688,27 +351,18 @@ model Payroll {
 
 model Review {
   id          String      @id
->>>>>>> c027659a6041b8e8ee09467a77288e41d8c4e349
   childId     Int
   reviewType  ReviewType
   targetId    String
   rating      Int
   comment     String?
   createdAt   DateTime    @default(now())
-<<<<<<< HEAD
-  updatedAt   DateTime    @updatedAt
-=======
   updatedAt   DateTime
->>>>>>> c027659a6041b8e8ee09467a77288e41d8c4e349
   vanId       Int
   Child       Child       @relation(fields: [childId], references: [id])
   UserProfile UserProfile @relation(fields: [targetId], references: [id])
   Van         Van         @relation(fields: [vanId], references: [id])
 
-<<<<<<< HEAD
-  @@index([reviewType, targetId])
-  @@index([childId])
-=======
   @@index([childId])
   @@index([reviewType, targetId])
 }
@@ -843,7 +497,6 @@ enum PaymentStatus {
 enum PaymentType {
   SCHOOL_VAN
   PRIVATE_HIRE
->>>>>>> c027659a6041b8e8ee09467a77288e41d8c4e349
 }
 
 enum RequestStatus {
@@ -870,28 +523,3 @@ enum ReviewType {
   DRIVER
   VAN_SERVICE
 }
-<<<<<<< HEAD
-
-enum PayrollStatus {
-  PENDING
-  COMPLETED
-}
-
-enum ChildStatus {
-  NOT_ASSIGNED
-  INACTIVE
-  AT_HOME
-  AT_SCHOOL
-  ON_VAN
-}
-
-enum PaymentType {
-  SCHOOL_VAN
-  PRIVATE_HIRE
-}
-
-enum ReviewType {
-  DRIVER
-  VAN_SERVICE
-}
-
