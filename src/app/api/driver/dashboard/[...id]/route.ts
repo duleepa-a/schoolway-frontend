@@ -68,7 +68,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
           in: ['ON_VAN', 'AT_HOME', 'AT_SCHOOL']
         },
         NOT: {
-          attendance: {
+          ChildAttendance: {
             some: {
               absenceDate: new Date(todayDate),
               routeType: {

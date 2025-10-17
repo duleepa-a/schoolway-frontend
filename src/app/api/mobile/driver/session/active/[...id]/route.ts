@@ -19,9 +19,9 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
         status: 'PENDING',
     },
     include: {
-        sessionStudents: {
+        SessionStudent: {
         include: {
-            child: {
+            Child: {
             include: {
                 UserProfile: true, 
                 School: true, // Include parent here
@@ -40,14 +40,14 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
       );
     }
 
-    const formattedStudents = session.sessionStudents.map(ss => ({
-      id: ss.child.id,
-      name: ss.child.name,
-      pickupLocation: ss.child.pickupAddress,
+    const formattedStudents = session.SessionStudent.map(ss => ({
+      id: ss.Child.id,
+      name: ss.Child.name,
+      pickupLocation: ss.Child.pickupAddress,
       pickupTime: ss.estimatedPickup ? new Date(ss.estimatedPickup).toLocaleTimeString() : '',
-      DropoffLocation: ss.child.School?.address || '',
-      parentContact: ss.child.UserProfile?.mobile || '',
-      profileImage: ss.child.profilePicture || '',
+      DropoffLocation: ss.Child.School?.address || '',
+      parentContact: ss.Child.UserProfile?.mobile || '',
+      profileImage: ss.Child.profilePicture || '',
       pickupStatus: ss.pickupStatus,
       estimatedPickup: ss.estimatedPickup,
     }));
