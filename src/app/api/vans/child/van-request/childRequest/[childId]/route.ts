@@ -3,10 +3,11 @@ import  prisma  from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET: fetch van request for a child
-export async function GET(req: Request, { params }: { params: { childId: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ childId: string }> }) {
   try {
+    const resolvedParams = await params;
     const request = await prisma.vanRequest.findUnique({
-      where: { childId: Number(params.childId) },
+      where: { childId: Number(resolvedParams.childId) },
       include: { van: true, child: true },
     });
 
@@ -20,10 +21,11 @@ export async function GET(req: Request, { params }: { params: { childId: string 
 }
 
 // DELETE: cancel van request
-export async function DELETE(req: Request, { params }: { params: { childId: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ childId: string }> }) {
   try {
+    const resolvedParams = await params;
     await prisma.vanRequest.delete({
-      where: { childId: Number(params.childId) },
+      where: { childId: Number(resolvedParams.childId) },
     });
 
     return NextResponse.json({ message: "Request deleted successfully" });

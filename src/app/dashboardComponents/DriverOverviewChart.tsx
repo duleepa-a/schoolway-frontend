@@ -1,22 +1,18 @@
 "use client";
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-const data = [
+type OverviewItem = { name: string; value: number; color?: string };
+
+const fallback = [
   { name: "Has vehicle", value: 8, color: "#FbbF24" },
-  { name: "No Vehicle", value: 4, color: "#1e3a8a" }, // blue-900
+  { name: "No Vehicle", value: 4, color: "#1e3a8a" },
 ];
 
 const COLORS = ["#FbbF24", "#1e3a8a"];
 
-const DriverOverviewChart = () => {
+const DriverOverviewChart = ({ data }: { data?: OverviewItem[] }) => {
+  const chartData = data && data.length ? data : fallback;
   return (
     <div className="driver-overview-container">
       <h3 className="driver-overview-title">Driver Applications</h3>
@@ -25,7 +21,7 @@ const DriverOverviewChart = () => {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius={20}
@@ -33,10 +29,10 @@ const DriverOverviewChart = () => {
               paddingAngle={5}
               dataKey="value"
             >
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
+                  fill={entry.color ?? COLORS[index % COLORS.length]}
                 />
               ))}
             </Pie>
@@ -46,7 +42,7 @@ const DriverOverviewChart = () => {
       </div>
 
       <div className="driver-stats-summary">
-        {data.map((item, index) => (
+        {chartData.map((item, index) => (
           <div key={index} className="driver-stat-item">
             <div
               className="driver-stat-indicator"
