@@ -9,7 +9,7 @@ export async function GET() {
         role: "DRIVER",
       },
       include: {
-        driverProfile: true,
+        DriverProfile: true,
       },
     });
     console.log("Fetched applications:", applications);

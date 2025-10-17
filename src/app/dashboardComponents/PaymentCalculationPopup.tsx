@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface PaymentCalculationPopupProps {
   isOpen: boolean;
@@ -16,18 +16,21 @@ interface PaymentCalculationPopupProps {
   };
 }
 
-const PaymentCalculationPopup: React.FC<PaymentCalculationPopupProps> = ({ isOpen, onClose, paymentData }) => {
+const PaymentCalculationPopup: React.FC<PaymentCalculationPopupProps> = ({
+  isOpen,
+  onClose,
+  paymentData,
+}) => {
   if (!isOpen) return null;
 
-  const {
-    fullName,
-    role,
-    accountId,
-    totalAmount,
-    calculationDetails
-  } = paymentData;
+  const { fullName, role, accountId, totalAmount, calculationDetails } =
+    paymentData;
 
-  const { studentFees = [], driverRate = 0, vanOwnerCut = 0 } = calculationDetails;
+  const {
+    studentFees = [],
+    driverRate = 0,
+    vanOwnerCut = 0,
+  } = calculationDetails;
 
   // Calculate totals and summaries
   const totalStudentFees = studentFees.reduce((sum, fee) => sum + fee, 0);
@@ -36,13 +39,26 @@ const PaymentCalculationPopup: React.FC<PaymentCalculationPopupProps> = ({ isOpe
     <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">Payment Calculation</h2>
-          <button 
+          <h2 className="text-xl font-bold text-gray-800">
+            Payment Calculation
+          </h2>
+          <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -56,40 +72,72 @@ const PaymentCalculationPopup: React.FC<PaymentCalculationPopupProps> = ({ isOpe
 
           <div className="border-t border-gray-200 pt-4">
             <h4 className="font-medium mb-2">Calculation Breakdown</h4>
-            
+
             {role === "Van Driver" && driverRate > 0 && (
               <div className="mb-3">
-                <p className="text-sm text-gray-600">Driver receives a fixed rate from the van owner:</p>
-                <p className="font-medium">LKR {driverRate.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-sm text-gray-600">
+                  Driver receives a fixed rate from the van owner:
+                </p>
+                <p className="font-medium">
+                  LKR{" "}
+                  {driverRate.toLocaleString("en-LK", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
               </div>
             )}
 
             {role === "Van Owner" && (
               <div className="mb-3">
                 <p className="text-sm text-gray-600">Van owner receives:</p>
-                <p className="font-medium">LKR {vanOwnerCut.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                
+                <p className="font-medium">
+                  LKR{" "}
+                  {vanOwnerCut.toLocaleString("en-LK", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+
                 {studentFees.length > 0 && (
                   <div className="mt-2">
                     <p className="text-sm text-gray-600">From student fees:</p>
                     <ul className="list-disc pl-5 text-sm">
                       {studentFees.map((fee, index) => (
                         <li key={index}>
-                          Student {index + 1}: LKR {fee.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          Student {index + 1}: LKR{" "}
+                          {fee.toLocaleString("en-LK", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </li>
                       ))}
                     </ul>
                     <p className="text-sm font-medium mt-1">
-                      Total student fees: LKR {totalStudentFees.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      Total student fees: LKR{" "}
+                      {totalStudentFees.toLocaleString("en-LK", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                 )}
 
                 {driverRate > 0 && (
                   <div className="mt-2 text-sm">
-                    <p>Driver payment: LKR {driverRate.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p>
+                      Driver payment: LKR{" "}
+                      {driverRate.toLocaleString("en-LK", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
                     <p className="font-medium">
-                      Van owner net: LKR {(totalStudentFees - driverRate).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      Van owner net: LKR{" "}
+                      {(totalStudentFees - driverRate).toLocaleString("en-LK", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                 )}
@@ -98,13 +146,19 @@ const PaymentCalculationPopup: React.FC<PaymentCalculationPopupProps> = ({ isOpe
 
             {role === "Van Driver & Owner" && (
               <div className="mb-3">
-                <p className="text-sm text-gray-600">As both van owner and driver, receives full amount:</p>
+                <p className="text-sm text-gray-600">
+                  As both van owner and driver, receives full amount:
+                </p>
                 {studentFees.length > 0 && (
                   <div className="mt-2">
                     <ul className="list-disc pl-5 text-sm">
                       {studentFees.map((fee, index) => (
                         <li key={index}>
-                          Student {index + 1}: LKR {fee.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          Student {index + 1}: LKR{" "}
+                          {fee.toLocaleString("en-LK", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </li>
                       ))}
                     </ul>
@@ -118,12 +172,16 @@ const PaymentCalculationPopup: React.FC<PaymentCalculationPopupProps> = ({ isOpe
             <div className="flex justify-between items-center">
               <span className="font-bold text-gray-700">Total Payment:</span>
               <span className="font-bold text-lg text-green-600">
-                LKR {totalAmount.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                LKR{" "}
+                {totalAmount.toLocaleString("en-LK", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           </div>
         </div>
-        
+
         <div className="mt-6">
           <button
             onClick={onClose}
