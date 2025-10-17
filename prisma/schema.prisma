@@ -229,6 +229,7 @@ model UserProfile {
   nic_pic                                                         String?
   district                                                        String?
   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  AwarenessPost                                                   AwarenessPost[]
   Child                                                           Child[]
   ChildAttendance                                                 ChildAttendance[]
   DriverProfile                                                   DriverProfile?
@@ -245,6 +246,7 @@ model UserProfile {
   Van_Van_assignedDriverIdToUserProfile                           Van[]                 @relation("Van_assignedDriverIdToUserProfile")
   Van                                                             Van[]
   VanService                                                      VanService?
+  bankAccount                                                    BankAccount?
 }
 
 model Van {
@@ -439,6 +441,44 @@ model LocationHistory {
   @@index([sessionId, recordedAt])
 }
 
+model AwarenessPost {
+  id             String      @id
+  title          String
+  content        String
+  imageUrl       String?
+  category       String
+  targetAudience String
+  priority       Priority    @default(MEDIUM)
+  scheduledDate  DateTime?
+  isPublished    Boolean     @default(false)
+  publishedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime
+  authorId       String
+  views          Int         @default(0)
+  UserProfile    UserProfile @relation(fields: [authorId], references: [id])
+
+  @@index([category])
+  @@index([createdAt])
+  @@index([isPublished])
+  @@index([scheduledDate])
+  @@index([targetAudience])
+}
+
+model BankAccount {
+  id           String      @id @default(cuid())
+  userId       String      @unique
+  accountNo    String
+  accountName  String      // Name as per bank account
+  bankName     String
+  branchName   String
+  branchCode   String?
+  isVerified   Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         UserProfile @relation(fields: [userId], references: [id])
+}
+
 enum SessionStatus {
   PENDING
   ACTIVE
@@ -522,4 +562,10 @@ enum PayrollStatus {
 enum ReviewType {
   DRIVER
   VAN_SERVICE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
 }
