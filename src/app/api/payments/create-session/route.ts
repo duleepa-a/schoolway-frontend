@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+export async function POST(req: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-09-30.clover",
 });
-
-export async function POST(req: NextRequest) {
   const { paymentId } = await req.json();
 
   try {
@@ -35,8 +34,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payments/cancel`,
+      success_url: `https://schoolway-frontend.vercel.app/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://schoolway-frontend.vercel.app/payments/cancel`,
       metadata: { paymentId: payment.id.toString() },
     });
 

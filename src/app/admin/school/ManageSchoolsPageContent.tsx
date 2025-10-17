@@ -421,7 +421,7 @@ const ManageSchoolsPageContent = () => {
 
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
             <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
               <FaUser className="text-xl text-white" />
@@ -451,16 +451,6 @@ const ManageSchoolsPageContent = () => {
               <p className="font-semibold text-lg text-gray-800">{statistics.totalStudents}</p>
             </div>
           </div>
-          
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
-            <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
-              <FaUserTimes className="text-xl text-white" />
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Total Gates</p>
-              <p className="font-semibold text-lg text-gray-800">{statistics.totalGates}</p>
-            </div>
-          </div>
         </div>
 
         {/* Split Layout Container */}
@@ -468,7 +458,7 @@ const ManageSchoolsPageContent = () => {
 
           {/* Left Side - Add School Form */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden h-fit">
               {/* Header */}
               <div className="px-6 py-4" style={{ background: 'linear-gradient(90deg, #0099cc 0%, #00bcd4 60%, #00d4aa 100%)' }}>
                 <div className="flex items-center">
@@ -608,7 +598,7 @@ const ManageSchoolsPageContent = () => {
 
           {/* Right Side - Schools Table */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden h-fit">
               {/* Header */}
               <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
