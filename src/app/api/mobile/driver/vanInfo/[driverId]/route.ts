@@ -58,11 +58,32 @@ async function getLocationName(lat: number, lng: number): Promise<string> {
 async function getDriverVehicleInfo(driverId: string) {
   try {
     const van = await prisma.van.findFirst({
-      where: { assignedDriverId: driverId },
+      where: {
+        assignedDriverId: driverId
+      },
       include: {
-        owner: true,
-        children: { include: { School: true } },
-        path: { include: { waypoints: { orderBy: { order: 'asc' } } } }
+        UserProfile: true,
+        Child: {
+          include: {
+            School: true
+          }
+        },
+        Path: {
+          include: {
+            WayPoint: {
+              orderBy: {
+                order: "asc"
+              }
+            }
+          }
+        },
+        Assistant: true,
+        // Include the van owner's VanService
+        UserProfile: {
+          include: {
+            VanService: true
+          }
+        }
       }
     });
 
@@ -73,8 +94,9 @@ async function getDriverVehicleInfo(driverId: string) {
     // --- Get routeStart and routeEnd coordinates from geometry columns ---
     let startLocation = 'Unknown Start';
     let endLocation = 'Unknown End';
-    if (van.path?.id) {
-      const coords = await getRouteStartEndCoords(van.path.id);
+    if (van.Path?.id) {
+      const coords = await getRouteStartEndCoords(van.Path.id);
+      console.log('Route coordinates:', coords);
       if (coords?.start_lat && coords?.start_lng) {
         startLocation = await getLocationName(coords.start_lat, coords.start_lng);
       }
@@ -84,7 +106,7 @@ async function getDriverVehicleInfo(driverId: string) {
     }
 
     // Get unique schools from children
-    const schools = van.children.reduce((acc, child) => {
+    const schools = van.Child.reduce((acc, child) => {
       const school = child.School;
       if (!acc.find(s => s.id === school.id)) {
         acc.push(school);
@@ -98,7 +120,7 @@ async function getDriverVehicleInfo(driverId: string) {
       licensePlate: van.licensePlateNumber,
       status: van.status === 1 ? 'active' : 'inactive',
       image: van.photoUrl || null,
-      ownerName: `${van.owner.firstname || ''} ${van.owner.lastname || ''}`.trim() || 'Unknown Owner',
+      ownerName: `${van.UserProfile.firstname || ''} ${van.UserProfile.lastname || ''}`.trim() || 'Unknown Owner',
       capacity: van.seatingCapacity,
       year: new Date(van.createdAt).getFullYear(),
       fuelType: 'Diesel',
@@ -107,9 +129,9 @@ async function getDriverVehicleInfo(driverId: string) {
         endLocation
       },
       stats: {
-        studentCount: van.children.length,
+        studentCount: van.Child.length,
         schoolCount: schools.length,
-        rating: van.privateRating || 0
+        rating: van.UserProfile.VanService?.averageRating || 0.0
       }
     };
   } catch (error) {
@@ -120,18 +142,51 @@ async function getDriverVehicleInfo(driverId: string) {
 
 // Function to get assistant info (lazy loaded)
 async function getAssistantInfo(driverId: string) {
-  // TODO: Replace with actual database query
-  // Simulate loading time
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  return {
-    fullName: 'Maria Santos',
-    phone: '+1 (555) 123-4567',
-    experience: '3 years',
-    emergencyContact: '+1 (555) 987-6543',
-    certifications: ['First Aid', 'Child Safety'],
-    joinDate: '2021-08-15'
-  };
+  try {
+    // First get the van associated with the driver to get the assistant
+    const van = await prisma.van.findFirst({
+      where: {
+        assignedDriverId: driverId
+      },
+      include: {
+        Assistant: true
+      }
+    });
+
+    if (!van || !van.Assistant) {
+      return {
+        error: 'No assistant assigned to this van',
+        status: 404
+      };
+    }
+
+    const assistant = van.Assistant;
+
+    return {
+      id: assistant.id,
+      fullName: assistant.name,
+      phone: assistant.contact,
+      // nic: assistant.nic,
+      profilePic: assistant.profilePic || null,
+      // Keeping the mock data for fields not in DB schema
+      experience: '3 years',
+      // certifications: ['First Aid', 'Child Safety'],
+      // joinDate: new Date().toISOString().split('T')[0] // Current date as join date
+    };
+
+    //  return {
+    //   fullName: 'Maria Santos',
+    //   phone: '+1 (555) 123-4567',
+    //   experience: '3 years',
+    //   emergencyContact: '+1 (555) 987-6543',
+    //   certifications: ['First Aid', 'Child Safety'],
+    //   joinDate: '2021-08-15'
+    // };
+
+  } catch (error) {
+    console.error('Error fetching assistant info:', error);
+    throw error;
+  }
 }
 
 // Function to get assigned students (lazy loaded)

@@ -66,13 +66,17 @@ export async function GET(
     
     const user = await prisma.userProfile.findUnique({
       where: { id: userId },
-      include: { driverProfile: true },
+      include: { 
+        DriverProfile: true  // Changed from driverProfile to DriverProfile
+      },
     });
 
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
-
+     
+    console.log("Fetched user profile:", user);
+    
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Error fetching user profile:', error);
