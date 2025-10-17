@@ -257,6 +257,26 @@ h1 , h2 {
     @apply bg-yellow-100 text-yellow-700 border-yellow-400;
   }
 
+  /* List styles for TipTap editor */
+  .tiptapEditorWrapper ul {
+    @apply list-disc pl-6 my-2;
+  }
+
+  .tiptapEditorWrapper ol {
+    @apply list-decimal pl-6 my-2;
+  }
+
+  .tiptapEditorWrapper li {
+    @apply my-1;
+  }
+
+  .tiptapEditorWrapper ul ul,
+  .tiptapEditorWrapper ol ol,
+  .tiptapEditorWrapper ul ol,
+  .tiptapEditorWrapper ol ul {
+    @apply my-0;
+  }
+
 
 
 

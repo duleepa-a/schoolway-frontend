@@ -47,10 +47,16 @@ const TiptapEditor = ({ value, onChange }: TiptapEditorProps) => {
         >
           U
         </button>
-        <button onClick={() => editor?.chain().focus().toggleBulletList().run()}>
+        <button
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          className={editor?.isActive('bulletList') ? 'activeBtn' : ''}
+        >
           • List
         </button>
-        <button onClick={() => editor?.chain().focus().toggleOrderedList().run()}>
+        <button
+          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          className={editor?.isActive('orderedList') ? 'activeBtn' : ''}
+        >
           1. List
         </button>
       </div>

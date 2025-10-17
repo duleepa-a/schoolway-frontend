@@ -55,16 +55,16 @@ const AwarenessPostCreator: React.FC = () => {
     'Policy Updates',
     'Emergency Procedures',
     'Community News',
-    'Educational Resources'
+    'Educational Resources',
+    'Other'
   ];
 
   const targetAudiences = [
     'All Users',
     'Parents Only',
-    'Students Only',
     'Staff Only',
     'Drivers Only',
-    'Van Owners Only'
+    'Van Service Owners Only'
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
