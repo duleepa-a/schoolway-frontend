@@ -9,7 +9,7 @@ export default function PrivateHireDetailTab() {
   const [activeTab, setActiveTab] = useState('new');
 
   return (
-    <div className="">
+  <div className="bg-blue-shade-light bg-opacity-10 rounded-xl p-6">
       {/* Tabs */}
       <div className="flex gap-6 border-b border-border-bold-shade mb-4">
         <button

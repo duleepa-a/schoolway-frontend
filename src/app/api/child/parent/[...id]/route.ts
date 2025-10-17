@@ -13,12 +13,19 @@ export async function GET(
   }
 
   try {
-   const children = await prisma.child.findMany({
-      where: { parentId: id },
+    const children = await prisma.child.findMany({
+      where: {
+        parentId: id
+      },
+      include: {
+        Van: {
+          select: { id: true, makeAndModel: true }
+        },
+      },
     });
 
     return NextResponse.json(children, { status: 200 });
-  } 
+  }
   catch (error) {
     console.error('Error fetching children:', error);
     return NextResponse.json({ error: 'Failed to fetch children' }, { status: 500 });

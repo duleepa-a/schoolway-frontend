@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id                                                              String                @id @default(cuid())
+  email                                                           String                @unique
+  firstname                                                       String?
+  createdAt                                                       DateTime              @default(now())
+  updatedAt                                                       DateTime              @updatedAt
+  lastname                                                        String?
+  role                                                            UserRole?
+  password                                                        String
+  activeStatus                                                    Boolean               @default(true)
+  address                                                         String?
+  birthDate                                                       DateTime?
+  mobile                                                          String?
+  nic                                                             String?
+  nic_pic                                                         String?
+  district                                                        String?
+  dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  Child                                                           Child[]
+  driverProfile                                                   DriverProfile?
+  DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
+  DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  SchoolGuardian                                                  SchoolGuardian[]
+  Van                                                             Van[]
+  vanService                                                      VanService?
+}
+
+model VanService {
+  id               String      @id @default(cuid())
+  serviceName      String
+  contactNo        String
+  serviceRegNumber String
+  businessDocument String?
+  userId           String      @unique
+  user             UserProfile @relation(fields: [userId], references: [id])
+}
+
+model DriverProfile {
+  id             String      @id @default(cuid())
+  licenseId      String
+  licenseExpiry  DateTime
+  licenseFront   String?
+  licenseBack    String?
+  policeReport   String?
+  userId         String      @unique
+  rating         Float       @default(0)
+  ratingCount    Int         @default(0)
+  startedDriving DateTime?   @default(now())
+  status         Int         @default(2)
+  bio            String?
+  languages      String[]
+  licenseType    String[]
+  medicalReport  String?
+  relocate       Boolean     @default(false)
+  hasVan         Int         @default(0)
+  user           UserProfile @relation(fields: [userId], references: [id])
+}
+
+model Van {
+  id                      Int                   @id @default(autoincrement())
+  registrationNumber      String                @unique
+  licensePlateNumber      String
+  makeAndModel            String
+  seatingCapacity         Int
+  acCondition             Boolean
+  rBookUrl                String
+  revenueLicenseUrl       String
+  fitnessCertificateUrl   String
+  insuranceCertificateUrl String
+  photoUrl                String
+  createdAt               DateTime              @default(now())
+  ownerId                 String
+  hasDriver               Boolean               @default(false)
+  assignedDriverId        String?
+  salaryPercentage        Float?                @default(25.0)
+  shiftDetails            String?
+  privateRating           Float                 @default(0)
+  studentRating           Float                 @default(0)
+  hasAssistant            Boolean               @default(false)
+  status                  Int                   @default(2)
+  pathId                  String?
+  endTime                 DateTime?
+  startTime               DateTime?
+  assistant               Assistant?
+  children                Child[]
+  jobRequests             DriverVanJobRequest[]
+  owner                   UserProfile           @relation(fields: [ownerId], references: [id])
+  path                    Path?                 @relation(fields: [pathId], references: [id])
+}
+
+model Path {
+  id                String                  @id
+  routeStart        Unsupported("geometry")
+  routeEnd          Unsupported("geometry")
+  routeGeometry     Unsupported("geometry")
+  boundingBox       Unsupported("geometry")
+  totalDistance     Float
+  estimatedDuration Int
+  van               Van[]
+  waypoints         WayPoint[]
+}
+
+model WayPoint {
+  id        Int                     @id @default(autoincrement())
+  pathId    String
+  name      String
+  placeId   String?
+  latitude  Float
+  longitude Float
+  location  Unsupported("geometry")
+  order     Int
+  isStop    Boolean
+  createdAt DateTime                @default(now())
+  path      Path                    @relation(fields: [pathId], references: [id])
+}
+
+model Assistant {
+  id         String  @id @default(uuid())
+  name       String
+  contact    String
+  nic        String
+  vanId      Int?    @unique
+  profilePic String?
+  van        Van?    @relation(fields: [vanId], references: [id])
+}
+
+model School {
+  id             Int              @id @default(autoincrement())
+  schoolName     String
+  email          String           @unique
+  contact        String
+  address        String
+  createdAt      DateTime         @default(now())
+  Child          Child[]
+  Gate           Gate[]
+  SchoolGuardian SchoolGuardian[]
+}
+
+model ContactUs {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  userType  String
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
+}
+
+model DriverVanJobRequest {
+  id                                                      String           @id @default(cuid())
+  driverId                                                String
+  vanId                                                   Int
+  vanOwnerId                                              String
+  status                                                  JobRequestStatus @default(PENDING)
+  message                                                 String?
+  proposedSalary                                          Float?
+  turn                                                    String?
+  responseMessage                                         String?
+  respondedAt                                             DateTime?
+  createdAt                                               DateTime         @default(now())
+  updatedAt                                               DateTime         @default(now())
+  expiresAt                                               DateTime?        @default(dbgenerated("(now() + '21 days'::interval)"))
+  UserProfile_DriverVanJobRequest_driverIdToUserProfile   UserProfile      @relation("DriverVanJobRequest_driverIdToUserProfile", fields: [driverId], references: [id])
+  Van                                                     Van              @relation(fields: [vanId], references: [id])
+  UserProfile_DriverVanJobRequest_vanOwnerIdToUserProfile UserProfile      @relation("DriverVanJobRequest_vanOwnerIdToUserProfile", fields: [vanOwnerId], references: [id])
+
+  @@unique([driverId, vanOwnerId, vanId])
+}
+
+model SchoolGuardian {
+  id          Int         @id @default(autoincrement())
+  schoolId    Int
+  guardianId  String
+  UserProfile UserProfile @relation(fields: [guardianId], references: [id])
+  School      School      @relation(fields: [schoolId], references: [id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+model Child {
+  id              Int                       @id @default(autoincrement())
+  name            String
+  age             Int
+  profilePicture  String
+  vanID           Int?
+  schoolStartTime String
+  schoolEndTime   String
+  qrCode          String                    @unique
+  pickupLat       Decimal
+  pickupLng       Decimal
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime
+  schoolID        Int
+  grade           Int
+  pickupLocation  Unsupported("geography")?
+  specialNotes    String?
+  parentId        String?
+  status          String                    @default("not assigned")
+  UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
+  School          School                    @relation(fields: [schoolID], references: [id])
+  Van             Van?                      @relation(fields: [vanID], references: [id])
+}
+
+model Gate {
+  id          Int                      @id @default(autoincrement())
+  gateName    String
+  description String?
+  location    Unsupported("geometry")?
+  placeName   String?
+  address     String?
+  isActive    Boolean                  @default(true)
+  schoolId    Int
+  createdAt   DateTime                 @default(now())
+  School      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+  @@index([schoolId])
+}
+
+enum UserRole {
+  ADMIN
+  PARENT
+  SERVICE
+  DRIVER
+  TEACHER
+}
+
+enum JobRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+enum JobRequestType {
+  VAN_OWNER_TO_DRIVER
+}
