@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
-  const segments = request.nextUrl.pathname.split('/');
-  const id = segments[segments.length - 1];
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string[] }> } 
+) 
+{
+  const resolvedParams = await params;
+  const id = resolvedParams.id?.[0]; 
   if (!id) {
     return NextResponse.json({ error: 'Invalid or missing ID' }, { status: 400 });
   }
