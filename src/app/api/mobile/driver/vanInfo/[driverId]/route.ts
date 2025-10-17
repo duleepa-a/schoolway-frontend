@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@/generated/prisma';
+import { profile } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -170,7 +171,7 @@ async function getAssistantInfo(driverId: string) {
       profilePic: assistant.profilePic || null,
       // Keeping the mock data for fields not in DB schema
       experience: '3 years',
-      // certifications: ['First Aid', 'Child Safety'],
+      // certifications: ['First Aid', 'Child Safety'],  
       // joinDate: new Date().toISOString().split('T')[0] // Current date as join date
     };
 
@@ -191,44 +192,47 @@ async function getAssistantInfo(driverId: string) {
 
 // Function to get assigned students (lazy loaded)
 async function getAssignedStudents(driverId: string) {
-  // TODO: Replace with actual database query
-  // Simulate loading time
-  await new Promise(resolve => setTimeout(resolve, 1200));
-  
-  return [
-    {
-      id: 'STU001',
-      name: 'Alex Johnson',
-      grade: 'Grade 5',
-      pickupLocation: '123 Oak Street',
-      dropoffLocation: 'Lincoln Elementary',
-      parentContact: '+1 (555) 111-2222'
-    },
-    {
-      id: 'STU002',
-      name: 'Sarah Williams',
-      grade: 'Grade 7',
-      pickupLocation: '456 Pine Avenue',
-      dropoffLocation: 'Jefferson Middle School',
-      parentContact: '+1 (555) 333-4444'
-    },
-    {
-      id: 'STU003',
-      name: 'Michael Brown',
-      grade: 'Grade 3',
-      pickupLocation: '789 Elm Drive',
-      dropoffLocation: 'Washington Primary',
-      parentContact: '+1 (555) 555-6666'
-    },
-    {
-      id: 'STU004',
-      name: 'Emma Davis',
-      grade: 'Grade 6',
-      pickupLocation: '321 Maple Lane',
-      dropoffLocation: 'Roosevelt Elementary',
-      parentContact: '+1 (555) 777-8888'
+  try {
+    // First get the van associated with the driver
+    const van = await prisma.van.findFirst({
+      where: {
+        assignedDriverId: driverId
+      },
+      include: {
+        Child: {
+          include: {
+            School: true,
+            UserProfile: true // This gets the parent info
+          }
+        }
+      }
+    });
+
+    if (!van) {
+      return {
+        error: 'No van assigned to this driver',
+        status: 404
+      };
     }
-  ];
+
+    // Transform the data to match the required format
+    const students = van.Child.map(child => ({
+      id: child.id.toString(),
+      name: child.name,
+      grade: `Grade ${child.grade}`,
+      pickupLocation: child.pickupAddress,
+      dropoffLocation: child.School.schoolName,
+      parentContact: child.UserProfile?.mobile || 'No contact provided',
+      profilePic: child.profilePicture || null
+    }));
+
+    // console.log(`Found `, students);
+    return students;
+
+  } catch (error) {
+    console.error('Error fetching assigned students:', error);
+    throw error;
+  }
 }
 
 // Function to get route and schools (lazy loaded)
