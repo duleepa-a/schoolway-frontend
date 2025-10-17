@@ -34,6 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
               include: {
                 UserProfile: true,
                 School: true,
+                Gate: true,
               },
             },
           },
@@ -61,7 +62,11 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
         address: ss.child.pickupAddress || 'Not Specified',
       },
       pickupTime: ss.estimatedPickup ? new Date(ss.estimatedPickup).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-      DropoffLocation: ss.child.School?.address || '',
+      dropOffLocation: {
+        latitude: Number(ss.child.Gate?.latitude || 0),
+        longitude: Number(ss.child.Gate?.longitude || 0),
+        address: ss.child.School.address || 'Not Specified',
+      },
       parentContact: ss.child.UserProfile?.mobile || '',
       profileImage: ss.child.profilePicture || '',
       pickupStatus: ss.pickupStatus,

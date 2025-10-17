@@ -9,24 +9,24 @@ export function formatDriverApplication(app: any): ApplicationData {
     mobile: app.mobile || "N/A",
     dob: app.birthDate ? new Date(app.birthDate).toLocaleDateString() : "N/A",
     address: app.address || "N/A",
-    drivingLicense: app.driverProfile?.licenseId || "N/A",
-    licenseExpiry: app.driverProfile?.licenseExpiry
-      ? new Date(app.driverProfile.licenseExpiry).toLocaleDateString()
+    drivingLicense: app.DriverProfile?.licenseId || "N/A",
+    licenseExpiry: app.DriverProfile?.licenseExpiry
+      ? new Date(app.DriverProfile.licenseExpiry).toLocaleDateString()
       : "",
-    policeReport: app.driverProfile?.policeReport ? "Uploaded" : "Missing",
-    medicalReport: app.driverProfile?.medicalReport || "",
-    medicalReportDocument: app.driverProfile?.medicalReport || "",
-    bio: app.driverProfile?.bio || "",
-    languages: app.driverProfile?.languages || [],
-    licenseType: app.driverProfile?.licenseType || [],
+    policeReport: app.DriverProfile?.policeReport ? "" : "",
+    medicalReport: app.DriverProfile?.medicalReport || "",
+    medicalReportDocument: app.DriverProfile?.medicalReport || "",
+    bio: app.DriverProfile?.bio || "",
+    languages: app.DriverProfile?.languages || [],
+    licenseType: app.DriverProfile?.licenseType || [],
     profilePicture: app.dp || "",
-    policeReportDocument: app.driverProfile?.policeReport || "",
-    licenseFront: app.driverProfile?.licenseFront || "",
-    licenseBack: app.driverProfile?.licenseBack || "",
+    policeReportDocument: app.DriverProfile?.policeReport || "",
+    licenseFront: app.DriverProfile?.licenseFront || "",
+    licenseBack: app.DriverProfile?.licenseBack || "",
     status:
-      app.driverProfile?.status === 2
+      app.DriverProfile?.status === 2
         ? "Pending"
-        : app.driverProfile?.status === 1
+        : app.DriverProfile?.status === 1
         ? "Approved"
         : "Rejected",
     date: new Date(app.createdAt).toLocaleDateString(),

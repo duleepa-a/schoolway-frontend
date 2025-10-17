@@ -272,6 +272,12 @@ const GuradianPageContent = () => {
     };
 
     const handleAddGuardianClick = () => setShowForm(true);
+    
+    const handleCancelForm = () => {
+        setShowForm(false);
+        resetForm();
+    };
+    
     const handleCloseForm = () => {
                 setShowForm(false);
                 resetForm();
@@ -388,7 +394,7 @@ const GuradianPageContent = () => {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto">
                         {/* Close Button */}
                         <button
-                            onClick={handleCloseForm}
+                            onClick={handleCancelForm}
                             className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
                         >
                             <MdOutlineClose className='hover:text-error-color'/>
@@ -461,7 +467,7 @@ const GuradianPageContent = () => {
                             <div className="flex justify-center space-x-4">
                                 <button
                                     type="button"
-                                    onClick={handleCloseForm}
+                                    onClick={handleCancelForm}
                                     className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                                 >
                                     Cancel
