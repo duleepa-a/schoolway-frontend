@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // Determine route type based on current time
     const now = new Date();
     const currentHour = now.getHours();
-    const routeType: RouteType = currentHour < 12 ? 'MORNING_PICKUP' : 'EVENING_DROPOFF';
+    const routeType: RouteType = currentHour < 10 ? 'MORNING_PICKUP' : 'EVENING_DROPOFF';
 
     // Check if session already exists for today
     const today = new Date();
@@ -76,6 +76,12 @@ export async function POST(request: NextRequest) {
           success: true, 
           message: `${routeType === 'MORNING_PICKUP' ? 'Morning' : 'Evening'} session already exists for today`,
           sessionId: existingSession.id,
+          session: {
+            id: existingSession.id,
+            routeType,
+            startedAt: existingSession.startedAt,
+            status: existingSession.status,
+          },
           sessionExists: true,
         }     
       );
@@ -142,7 +148,7 @@ export async function POST(request: NextRequest) {
         driverId: driver.id,
         routeType,
         sessionDate: today,
-        status: 'PENDING', // Will change to ACTIVE when driver confirms
+        status: 'PENDING', 
         startedAt: now,
       },
     });
