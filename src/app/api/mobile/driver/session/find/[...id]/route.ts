@@ -28,9 +28,9 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
         , 
       },
       include: {
-        SessionStudent: {
+        sessionStudents: {
           include: {
-            Child: {
+            child: {
               include: {
                 UserProfile: true,
                 School: true,
@@ -53,22 +53,22 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
     }
 
     // Format students for frontend
-    const formattedStudents = session.SessionStudent.map(ss => ({
-      id: ss.Child.id,
-      name: ss.Child.name,
+    const formattedStudents = session.sessionStudents.map(ss => ({
+      id: ss.child.id,
+      name: ss.child.name,
       pickupLocation: {
-        latitude: Number(ss.Child.pickupLat),
-        longitude: Number(ss.Child.pickupLng),
-        address: ss.Child.pickupAddress || 'Not Specified',
+        latitude: Number(ss.child.pickupLat),
+        longitude: Number(ss.child.pickupLng),
+        address: ss.child.pickupAddress || 'Not Specified',
       },
       pickupTime: ss.estimatedPickup ? new Date(ss.estimatedPickup).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
       dropOffLocation: {
-        latitude: Number(ss.Child.Gate?.latitude || 0),
-        longitude: Number(ss.Child.Gate?.longitude || 0),
-        address: ss.Child.School.address || 'Not Specified',
+        latitude: Number(ss.child.Gate?.latitude || 0),
+        longitude: Number(ss.child.Gate?.longitude || 0),
+        address: ss.child.School.address || 'Not Specified',
       },
-      parentContact: ss.Child.UserProfile?.mobile || '',
-      profileImage: ss.Child.profilePicture || '',
+      parentContact: ss.child.UserProfile?.mobile || '',
+      profileImage: ss.child.profilePicture || '',
       pickupStatus: ss.pickupStatus,
       estimatedPickup: ss.estimatedPickup,
     }));

@@ -19,10 +19,10 @@ export async function GET(
         status: "PENDING",
       },
       include: {
-        child: {
+        Child: {
           select: { name: true, grade: true, feeAmount: true },
         },
-        van: {
+        Van: {
           select: { makeAndModel: true, registrationNumber: true },
         },
       },
@@ -39,10 +39,10 @@ export async function GET(
         },
       },
       include: {
-        child: {
+        Child: {
           select: { name: true, grade: true, feeAmount: true },
         },
-        van: {
+        Van: {
           select: { makeAndModel: true, registrationNumber: true },
         },
       },

@@ -70,6 +70,7 @@ model DriverProfile {
   licenseBack    String?
   policeReport   String?
   userId         String      @unique
+  Qrcode         String?
   startedDriving DateTime?   @default(now())
   status         Int         @default(2)
   bio            String?
@@ -153,8 +154,8 @@ model Payment {
   driverId                                      String?
   vanServiceId                                  String?
   salaryPercentageForDriver                     Float         @default(0)
-  systemFeePercentage                           Float         @default(0)
   systemFee                                     Float         @default(0)
+  systemFeePercentage                           Float         @default(0)
   Child                                         Child         @relation(fields: [childId], references: [id])
   UserProfile_Payment_driverIdToUserProfile     UserProfile?  @relation("Payment_driverIdToUserProfile", fields: [driverId], references: [id])
   UserProfile                                   UserProfile   @relation(fields: [parentId], references: [id])
@@ -166,7 +167,7 @@ model Payment {
 }
 
 model PrivateHire {
-  id             String      @id 
+  id             String      @id
   userId         String
   vanId          Int?
   pickupLat      Float
@@ -354,7 +355,7 @@ model Payroll {
 }
 
 model Review {
-  id          String      @id 
+  id          String      @id
   childId     Int
   reviewType  ReviewType
   targetId    String

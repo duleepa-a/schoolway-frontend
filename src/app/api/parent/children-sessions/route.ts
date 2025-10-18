@@ -32,18 +32,18 @@ export async function GET(req: NextRequest) {
     // 2️⃣ Fetch active sessions for these children
     const sessions = await prisma.transportSession.findMany({
       where: {
-        SessionStudent: {
+        sessionStudents: {
           some: { childId: { in: childIds } },
         },
         status: { in: ['PENDING', 'ACTIVE'] },
       },
       include: {
-        SessionStudent: {
+        sessionStudents: {
           where: { childId: { in: childIds } },
           select: { childId: true, pickupStatus: true },
         },
-        Van: { select: { id: true, registrationNumber: true } },
-        UserProfile: true,
+        van: { select: { id: true, registrationNumber: true } },
+        driver: true,
       },
     });
 

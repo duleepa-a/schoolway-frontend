@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
           in: ['ON_VAN', 'AT_HOME', 'AT_SCHOOL']
         }, // Or whatever status indicates active enrollment
         NOT: {
-           ChildAttendance: {
+          attendance: {
             some: {
               absenceDate: new Date(todayDate),
               routeType: {

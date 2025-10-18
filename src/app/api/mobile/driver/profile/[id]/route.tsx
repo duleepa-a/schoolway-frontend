@@ -66,7 +66,7 @@ export async function GET(
     
     const user = await prisma.userProfile.findUnique({
       where: { id: userId },
-      include: { driverProfile: true },
+      include: { DriverProfile: true },
     });
 
     if (!user) {
