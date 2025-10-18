@@ -7,26 +7,33 @@ interface AdminRequestBody {
   lastname: string;
   email: string;
   contact?: string;
-  password : string;
+  password: string;
 }
 
-export async function POST(req: NextRequest, 
-  ) {
+export async function POST(req: NextRequest) {
   try {
     const body: AdminRequestBody = await req.json();
     const { firstname, lastname, email, contact, password } = body;
     if (!firstname || !lastname || !email || !password) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     // Check if admin already exists in UserProfile
-    const existingAdmin = await prisma.userProfile.findUnique({ where: { email } });
+    const existingAdmin = await prisma.userProfile.findUnique({
+      where: { email },
+    });
     if (existingAdmin) {
-      return NextResponse.json({ error: "Admin with this email already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Admin with this email already exists" },
+        { status: 409 }
+      );
     }
 
     // Hash password
-    const hashedPassword = await bcryptjs.hash('admin', 10);
+    const hashedPassword = await bcryptjs.hash("admin", 10);
 
     // Create admin in UserProfile
     const newAdmin = await prisma.userProfile.create({
@@ -35,9 +42,8 @@ export async function POST(req: NextRequest,
         firstname,
         lastname,
         password: hashedPassword,
-        role: 'ADMIN',
+        role: "ADMIN",
         mobile: contact,
-        
       },
     });
 
@@ -45,23 +51,29 @@ export async function POST(req: NextRequest,
     const { password: _pw, ...adminData } = newAdmin;
     return NextResponse.json(adminData, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to create admin", details: error?.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create admin", details: error?.message },
+      { status: 500 }
+    );
   }
 }
-
 
 export async function GET() {
   try {
     const admins = await prisma.userProfile.findMany({
-      where: { role: 'ADMIN' },
+      where: { role: "ADMIN" },
       select: {
         email: true,
         firstname: true,
         lastname: true,
+        activeStatus: true,
       },
     });
     return NextResponse.json(admins);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch admins', details: error?.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch admins", details: error?.message },
+      { status: 500 }
+    );
   }
 }

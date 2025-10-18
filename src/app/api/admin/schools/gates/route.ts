@@ -125,13 +125,15 @@ export async function POST(request: NextRequest) {
 
     // Create the gate using raw SQL to handle PostGIS geometry
     const result = await prisma.$queryRaw`
-      INSERT INTO "Gate" ("gateName", "description", "location", "placeName", "address", "isActive", "schoolId")
+      INSERT INTO "Gate" ("gateName", "description", "location", "placeName", "address","latitude","longitude","isActive", "schoolId")
       VALUES (
         ${gateName}, 
         ${description || null}, 
         ST_SetSRID(ST_MakePoint(${location.lng}, ${location.lat}), 4326),
         ${placeName || null},
         ${address || null},
+        ${location.lat},
+        ${location.lng},
         ${isActive !== undefined ? isActive : true},
         ${parseInt(schoolId)}
       )
@@ -141,6 +143,8 @@ export async function POST(request: NextRequest) {
         "description",
         "placeName",
         "address",
+        "latitude",
+        "longitude",
         "isActive",
         "schoolId",
         "createdAt",

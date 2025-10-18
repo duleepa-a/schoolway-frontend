@@ -2,15 +2,18 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const ratingData = [
+type RatingItem = { rating: string; count: number };
+
+const fallbackRatingData: RatingItem[] = [
   { rating: '5 Stars', count: 45 },
-  { rating: '4 Stars', count: 32, },
+  { rating: '4 Stars', count: 32 },
   { rating: '3 Stars', count: 18 },
-  { rating: '2 Stars', count: 8,},
-  { rating: '1 Star', count: 3, },
+  { rating: '2 Stars', count: 8 },
+  { rating: '1 Star', count: 3 },
 ];
 
-const DriverRatingChart = () => {
+const DriverRatingChart = ({ data }: { data?: RatingItem[] }) => {
+  const ratingData = data && data.length ? data : fallbackRatingData;
   return (
     <div className="driver-rating-container">
       <span className='flex gap-20'>
