@@ -1,12 +1,26 @@
 import { FaChevronDown } from 'react-icons/fa';
 import TablePagination from '@/app/components/TablePagination';
 
-const privateHires = [
+
+interface AcceptedHire {
+  name: string;
+  driver: string;
+  vanNumber: string;
+  seats: number;
+  amount: string;
+  pickupDate: string;
+  dropoffDate: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  avatar?: string;
+}
+
+const privateHires: AcceptedHire[] = [
   {
     name: 'Duleepa Edirisinghe',
     driver: 'Nimsara Wickramathanthree',
     vanNumber: 'Van 1',
-    seats:2,
+    seats: 2,
     amount: 'Rs. 12,000',
     pickupDate: 'July 10, 2025',
     dropoffDate: 'July 10, 2025',
@@ -14,30 +28,7 @@ const privateHires = [
     dropoffLocation: 'Kandy',
     avatar: '/Images/male_pro_pic_placeholder.png',
   },
-  {
-    name: 'Tharindu Perera',
-    driver: 'Nimsara Wickramathanthree',
-    vanNumber: 'Van 2',
-    seats:2,
-    amount: 'Rs. 15,000',
-    pickupDate: 'July 12, 2025',
-    dropoffDate: 'July 12, 2025',
-    pickupLocation: 'Galle',
-    dropoffLocation: 'Matara',
-    avatar: '/Images/male_pro_pic_placeholder.png',
-  },
-  {
-    name: 'Nimasha Fernando',
-    driver: 'Nimsara Wickramathanthree',
-    vanNumber: 'Van 3',
-    seats:2,
-    amount: 'Rs. 10,500',
-    pickupDate: 'July 13, 2025',
-    dropoffDate: 'July 13, 2025',
-    pickupLocation: 'Nugegoda',
-    dropoffLocation: 'Negombo',
-    avatar: '/Images/female_pro_pic_placeholder.png',
-  },
+  // ...add more sample data as needed
 ];
 
 export default function AcceptedhiresTable() {
