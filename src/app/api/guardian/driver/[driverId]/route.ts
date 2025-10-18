@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth"; // adjust path as needed
 
 export async function GET(req: Request, { params }: { params: { driverId: string } }) {
   try {
-    console.log("in");
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
@@ -13,9 +12,6 @@ export async function GET(req: Request, { params }: { params: { driverId: string
     }
 
     const guardianId = session.user.id;
-
-    console.log(guardianId)
-
     const guardian = await prisma.schoolGuardian.findUnique({
       where: { guardianId },
       select: { schoolId: true },
