@@ -35,42 +35,65 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
     useEffect(() => {
       async function fetchPath() {
         setLoading(true);
-        const res = await fetch(`/api/vans/${vehicleId}/path`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data) {
-            setPath(data);
-            // If waypoints exist, set them
-            if (Array.isArray(data.waypoints) && data.waypoints.length > 0) {
-              setWaypoints(
-                data.waypoints
-                  .sort((a, b) => a.order - b.order)
-                  .map(wp => ({
-                    name: wp.name,
-                    placeId: wp.placeId,
-                    latitude: wp.latitude,
-                    longitude: wp.longitude,
-                    order: wp.order,
-                    isStop: wp.isStop,
-                  }))
-              );
-              // Set start and end from first and last waypoint
-              const first = data.waypoints[0];
-              const last = data.waypoints[data.waypoints.length - 1];
-              setRouteStart({ lat: first.latitude, lng: first.longitude });
-              setRouteEnd({ lat: last.latitude, lng: last.longitude });
-              if (startInputRef.current) {
-                startInputRef.current.value = first.name || '';
-              }
-              if (endInputRef.current) {
-                endInputRef.current.value = last.name || '';
+        try {
+          const res = await fetch(`/api/vans/${vehicleId}/path`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data) {
+              setPath(data);
+              console.log('Fetched path data:', data);
+              
+              // Transform WayPoint data to match waypoint interface
+              if (Array.isArray(data.WayPoint) && data.WayPoint.length > 0) {
+                const transformedWaypoints = data.WayPoint.map(wp => ({
+                  name: wp.name,
+                  placeId: wp.placeId,
+                  latitude: wp.latitude,
+                  longitude: wp.longitude,
+                  order: wp.order,
+                  isStop: wp.isStop
+                }));
+                
+                setWaypoints(transformedWaypoints);
+
+                // Set start and end points from first and last waypoints
+                const first = data.WayPoint[0];
+                const last = data.WayPoint[data.WayPoint.length - 1];
+                
+                if (first) {
+                  setRouteStart({ 
+                    lat: first.latitude, 
+                    lng: first.longitude 
+                  });
+                }
+                
+                if (last) {
+                  setRouteEnd({ 
+                    lat: last.latitude, 
+                    lng: last.longitude 
+                  });
+                }
+
+                // Update input fields
+                if (startInputRef.current && first) {
+                  startInputRef.current.value = first.name;
+                }
+                if (endInputRef.current && last) {
+                  endInputRef.current.value = last.name;
+                }
               }
             }
           }
+        } catch (error) {
+          console.error('Error fetching path:', error);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
-      fetchPath();
+      
+      if (vehicleId) {
+        fetchPath();
+      }
     }, [vehicleId]);
 
 
