@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { parentId: string } }
+  { params }: { params: { id: string[] } }
 ) {
-  const { parentId } = params;
+  const parentId = params.id[0];
 
   try {
     const now = new Date();
@@ -19,10 +19,10 @@ export async function GET(
         status: "PENDING",
       },
       include: {
-        child: {
+        Child: {
           select: { name: true, grade: true, feeAmount: true },
         },
-        van: {
+        Van: {
           select: { makeAndModel: true, registrationNumber: true },
         },
       },
@@ -39,10 +39,10 @@ export async function GET(
         },
       },
       include: {
-        child: {
+        Child: {
           select: { name: true, grade: true, feeAmount: true },
         },
-        van: {
+        Van: {
           select: { makeAndModel: true, registrationNumber: true },
         },
       },

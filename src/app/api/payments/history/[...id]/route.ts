@@ -12,8 +12,8 @@ export async function GET(
       where: { parentId },
       orderBy: { createdAt: "desc" },
       include: {
-        child: { select: { name: true } },
-        van: { select: { makeAndModel: true } },
+        Child: { select: { name: true } },
+        Van: { select: { makeAndModel: true } },
       },
     });
 

@@ -17,7 +17,7 @@ export async function GET(
     include: {
       Van: {
         include: {
-          UserProfile: {
+          UserProfile_Van_ownerIdToUserProfile: {
             select: {
               id: true,
               firstname: true,
@@ -25,19 +25,10 @@ export async function GET(
               email: true,
               mobile: true,
               dp: true,
-              vanService: {
-                select: {
-                  id: true,
-                  serviceName: true,
-                  contactNo: true,
-                  serviceRegNumber: true,
-                  averageRating: true,
-                  totalReviews: true
-                }
-              }
+              VanService: true
             }
           },
-          UserProfile_assignedDriverIdToUserProfile: {
+          UserProfile_Van_assignedDriverIdToUserProfile: {
             select: {
               id: true,
               firstname: true,
@@ -45,7 +36,7 @@ export async function GET(
               email: true,
               mobile: true,
               dp: true,
-              driverProfile: {
+              DriverProfile: {
                 select: {
                   id: true,
                   licenseId: true,
