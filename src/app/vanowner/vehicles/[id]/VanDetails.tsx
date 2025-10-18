@@ -274,7 +274,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             </button>
           </div>
           <div className="p-4">
-            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isLoaded} />
+            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isGoogleMapsLoaded} />
           </div>
         </div>
       </div>

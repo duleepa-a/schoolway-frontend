@@ -51,3 +51,4 @@ next-env.d.ts
 # Firebase Admin SDK
 # /config/firebase-admin.json
 prisma/schema.prisma
+prisma/schema.prisma
