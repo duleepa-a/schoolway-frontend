@@ -43,6 +43,23 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
               setPath(data);
               console.log('Fetched path data:', data);
               
+              // Set route start and end points
+              if (data.routeStart) {
+                setRouteStart(data.routeStart);
+                if (startInputRef.current) {
+                  // You'll need to reverse geocode to get the address
+                  reverseGeocode(data.routeStart, startInputRef);
+                }
+              }
+              
+              if (data.routeEnd) {
+                setRouteEnd(data.routeEnd);
+                if (endInputRef.current) {
+                  // You'll need to reverse geocode to get the address
+                  reverseGeocode(data.routeEnd, endInputRef);
+                }
+              }
+              
               // Transform WayPoint data to match waypoint interface
               if (Array.isArray(data.WayPoint) && data.WayPoint.length > 0) {
                 const transformedWaypoints = data.WayPoint.map(wp => ({
@@ -55,32 +72,6 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
                 }));
                 
                 setWaypoints(transformedWaypoints);
-
-                // Set start and end points from first and last waypoints
-                const first = data.WayPoint[0];
-                const last = data.WayPoint[data.WayPoint.length - 1];
-                
-                if (first) {
-                  setRouteStart({ 
-                    lat: first.latitude, 
-                    lng: first.longitude 
-                  });
-                }
-                
-                if (last) {
-                  setRouteEnd({ 
-                    lat: last.latitude, 
-                    lng: last.longitude 
-                  });
-                }
-
-                // Update input fields
-                if (startInputRef.current && first) {
-                  startInputRef.current.value = first.name;
-                }
-                if (endInputRef.current && last) {
-                  endInputRef.current.value = last.name;
-                }
               }
             }
           }
@@ -95,7 +86,6 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
         fetchPath();
       }
     }, [vehicleId]);
-
 
   type Waypoint = {
     name: string;
@@ -203,6 +193,24 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
       setIsSubmitting(false);
     }
   };
+
+  // Add reverse geocoding function
+const reverseGeocode = async (location: { lat: number, lng: number }, inputRef: React.RefObject<HTMLInputElement>) => {
+  if (!window.google) return;
+  
+  const geocoder = new window.google.maps.Geocoder();
+  try {
+    const result = await geocoder.geocode({
+      location: { lat: location.lat, lng: location.lng }
+    });
+    
+    if (result.results[0] && inputRef.current) {
+      inputRef.current.value = result.results[0].formatted_address;
+    }
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+  }
+};
 
   if (!isLoaded) {
     return <div>Loading Google Maps...</div>;

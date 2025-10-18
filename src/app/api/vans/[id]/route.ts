@@ -17,7 +17,7 @@ export async function GET(
       include: {
         Path: {
           include: {
-            WayPoint: { // Changed from waypoints to WayPoint
+            WayPoint: {
               orderBy: {
                 order: 'asc',
               },
@@ -43,10 +43,16 @@ export async function GET(
     const driverRequest = van.DriverVanJobRequest[0];
     const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
 
-    return NextResponse.json({
+    // Add hasRoute flag based on Path existence
+    const transformedVan = {
       ...van,
       driver,
-    });
+      hasRoute: !!van.Path,  // Convert to boolean
+      routeAssigned: !!van.pathId && !!van.Path // Check both pathId and Path existence
+    };
+
+    console.log('Transformed Van:', transformedVan);
+    return NextResponse.json(transformedVan);
   } catch (error) {
     console.error('Error fetching van:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

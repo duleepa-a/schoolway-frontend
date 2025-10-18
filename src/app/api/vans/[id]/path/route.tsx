@@ -21,18 +21,14 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
   try {
     const params = await context.params;
     const vanId = parseInt(params.id);
+    
+    // First get the path ID
     const van = await prisma.van.findFirst({
       where: {
         id: vanId,
       },
-      include: {
-        Path: {
-          include: {
-            WayPoint: { // Changed from Waypoint to WayPoint
-              orderBy: { order: 'asc' }
-            }
-          }
-        }
+      select: {
+        pathId: true
       }
     });
 
@@ -40,11 +36,58 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
       return NextResponse.json(null, { status: 404 });
     }
 
-    console.log('path:', JSON.stringify(van.Path, null, 2));
-    return NextResponse.json(van.Path);
+    // Then use raw query to get path data with geometry conversion
+    const pathData = await prisma.$queryRaw`
+      SELECT 
+        p.id,
+        p."totalDistance",
+        p."estimatedDuration",
+        ST_AsGeoJSON(p."routeStart")::json as "routeStart",
+        ST_AsGeoJSON(p."routeEnd")::json as "routeEnd",
+        ST_AsGeoJSON(p."routeGeometry")::json as "routeGeometry",
+        ST_AsGeoJSON(p."boundingBox")::json as "boundingBox",
+        json_agg(
+          json_build_object(
+            'id', w.id,
+            'pathId', w."pathId",
+            'name', w.name,
+            'placeId', w."placeId",
+            'latitude', w.latitude,
+            'longitude', w.longitude,
+            'order', w."order",
+            'isStop', w."isStop",
+            'createdAt', w."createdAt"
+          ) ORDER BY w."order"
+        ) as "WayPoint"
+      FROM "Path" p
+      LEFT JOIN "WayPoint" w ON p.id = w."pathId"
+      WHERE p.id = ${van.pathId}
+      GROUP BY p.id
+    `;
+
+    if (!pathData || !pathData[0]) {
+      return NextResponse.json(null, { status: 404 });
+    }
+
+    // Transform coordinates to match frontend expectations
+    const transformedPath = {
+      ...pathData[0],
+      routeStart: pathData[0].routeStart ? {
+        lat: pathData[0].routeStart.coordinates[1],
+        lng: pathData[0].routeStart.coordinates[0]
+      } : null,
+      routeEnd: pathData[0].routeEnd ? {
+        lat: pathData[0].routeEnd.coordinates[1],
+        lng: pathData[0].routeEnd.coordinates[0]
+      } : null,
+      WayPoint: pathData[0].WayPoint || []
+    };
+
+    console.log('path:', JSON.stringify(transformedPath, null, 2));
+    return NextResponse.json(transformedPath);
     
   } catch (error) {
-    console.error('Error fetching applications:', error);
+    console.error('Error fetching path:', error);
     return NextResponse.json([], { status: 500 });
   }
 }
