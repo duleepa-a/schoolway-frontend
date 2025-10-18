@@ -80,6 +80,7 @@ const VanDetails = ({ van }: { van: Van }) => {
   const [localVan, setLocalVan] = useState<Van>(van);
   const [showAddRoute, setShowAddRoute] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     makeAndModel: van.makeAndModel,
     seatingCapacity: van.seatingCapacity,
