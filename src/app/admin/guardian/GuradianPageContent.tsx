@@ -526,7 +526,6 @@ const GuradianPageContent = () => {
             {/* Edit Guardian Modal */}
             {showEditModal && selectedGuardianForEdit && (
                 <EditGuardianModal
-                    isOpen={showEditModal}
                     onClose={handleEditClose}
                     onSuccess={handleEditSuccess}
                     guardian={selectedGuardianForEdit}

@@ -6,10 +6,8 @@ import Image from "next/image";
 import { 
   FileText, 
   Image as ImageIcon, 
-  Calendar, 
   Tag, 
   Users, 
-  Globe, 
   Save, 
   Send, 
   X,
@@ -18,6 +16,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import TextEditor from '@/app/components/TextEditor';
+import ModernAlert from './ModernAlert';
 
 interface AwarenessPostFormData {
   title: string;
@@ -42,11 +41,58 @@ const AwarenessPostCreator: React.FC = () => {
     isPublished: false
   });
 
-  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+  const [isScheduledPost, setIsScheduledPost] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Modern alert state
+  const [alert, setAlert] = useState<{
+    isOpen: boolean;
+    variant: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    variant: 'info',
+    title: '',
+    message: ''
+  });
+
+  const showAlert = (variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlert({
+      isOpen: true,
+      variant,
+      title,
+      message
+    });
+  };
+
+  const closeAlert = () => {
+    setAlert(prev => ({ ...prev, isOpen: false }));
+  };
+
+  // Function to check if scheduled date is valid (at least 20 minutes from now)
+  const checkScheduledDate = (scheduledDate: string) => {
+    if (!scheduledDate) {
+      setIsScheduledPost(false);
+      return;
+    }
+
+    const now = new Date();
+    const scheduled = new Date(scheduledDate);
+    const twentyMinutesFromNow = new Date(now.getTime() + 20 * 60 * 1000);
+
+    setIsScheduledPost(scheduled >= twentyMinutesFromNow);
+  };
+
+  // Function to get minimum allowed datetime (20 minutes from now)
+  const getMinDateTime = () => {
+    const now = new Date();
+    const twentyMinutesFromNow = new Date(now.getTime() + 20 * 60 * 1000);
+    return twentyMinutesFromNow.toISOString().slice(0, 16); // Format for datetime-local input
+  };
 
   const categories = [
     'Safety Awareness',
@@ -69,13 +115,41 @@ const AwarenessPostCreator: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Validate scheduled date before updating form data
+    if (name === 'scheduledDate' && value) {
+      const now = new Date();
+      const scheduled = new Date(value);
+      const twentyMinutesFromNow = new Date(now.getTime() + 20 * 60 * 1000);
+      
+      if (scheduled < twentyMinutesFromNow) {
+        setErrors(prev => ({
+          ...prev,
+          scheduledDate: 'Scheduled time must be at least 20 minutes from now'
+        }));
+        setIsScheduledPost(false);
+        return; // Don't update form data if validation fails
+      } else {
+        // Clear error if validation passes
+        setErrors(prev => ({
+          ...prev,
+          scheduledDate: ''
+        }));
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
     
-    // Clear error when user starts typing
-    if (errors[name]) {
+    // Check scheduled date validation when scheduledDate changes
+    if (name === 'scheduledDate') {
+      checkScheduledDate(value);
+    }
+    
+    // Clear error when user starts typing (for other fields)
+    if (errors[name] && name !== 'scheduledDate') {
       setErrors(prev => ({
         ...prev,
         [name]: ''
@@ -86,20 +160,23 @@ const AwarenessPostCreator: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setUploadedImages([file]);
       
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-      setFormData(prev => ({
-        ...prev,
-        imageUrl: previewUrl
-      }));
+      // Convert to base64 for storage
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: base64String
+        }));
+        // Use base64 string for preview as well
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const removeImage = () => {
-    setUploadedImages([]);
     setImagePreview('');
     setFormData(prev => ({
       ...prev,
@@ -126,34 +203,73 @@ const AwarenessPostCreator: React.FC = () => {
       newErrors.targetAudience = 'Target audience is required';
     }
 
-    if (!formData.imageUrl) {
-      newErrors.imageUrl = 'Please upload an image';
+    // Validate scheduled date if provided
+    if (formData.scheduledDate) {
+      const now = new Date();
+      const scheduled = new Date(formData.scheduledDate);
+      const twentyMinutesFromNow = new Date(now.getTime() + 20 * 60 * 1000);
+      
+      if (scheduled < twentyMinutesFromNow) {
+        newErrors.scheduledDate = 'Scheduled time must be at least 20 minutes from now';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent, action: 'save' | 'publish') => {
+  const handleSubmit = async (e: React.FormEvent, action: 'save' | 'publish' | 'schedule') => {
     e.preventDefault();
     
+    console.log('=== FORM SUBMISSION STARTED ===');
+    console.log('Form data:', formData);
+    console.log('Action:', action);
+    
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
+    
+    console.log('Form validation passed');
 
     setIsLoading(true);
     
     try {
-      // Here you would typically upload the image to a cloud service
-      // and then save the post data to your database
-      console.log('Submitting awareness post:', {
-        ...formData,
-        isPublished: action === 'publish',
-        action
+      // Prepare the data for API submission
+      const postData = {
+        title: formData.title,
+        content: formData.content,
+        imageUrl: formData.imageUrl || null,
+        category: formData.category,
+        targetAudience: formData.targetAudience,
+        priority: formData.priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH',
+        scheduledDate: formData.scheduledDate || null,
+        isPublished: action === 'publish' || action === 'schedule',
+        authorId: 'temp-admin-id' // TODO: Replace with actual admin user ID from auth
+      };
+
+      console.log('Submitting awareness post:', postData);
+
+      // Submit to API
+      const response = await fetch('/api/admin/awareness', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
       });
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('API Response status:', response.status);
+      console.log('API Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('Error response data:', errorData);
+        throw new Error(errorData.error || 'Failed to submit awareness post');
+      }
+
+      const result = await response.json();
+      console.log('Post created successfully:', result);
 
       // Reset form after successful submission
       setFormData({
@@ -166,14 +282,14 @@ const AwarenessPostCreator: React.FC = () => {
         scheduledDate: '',
         isPublished: false
       });
-      setUploadedImages([]);
       setImagePreview('');
       setErrors({});
+      setIsScheduledPost(false);
 
-      alert(`Awareness post ${action === 'save' ? 'saved as draft' : 'published'} successfully!`);
+        showAlert('success', 'Success', `Awareness post ${action === 'save' ? 'saved as draft' : action === 'schedule' ? 'scheduled' : 'published'} successfully!`);
     } catch (error) {
       console.error('Error submitting awareness post:', error);
-      alert('Failed to submit awareness post. Please try again.');
+      showAlert('error', 'Error', `Failed to submit awareness post: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -184,9 +300,9 @@ const AwarenessPostCreator: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 pt-2">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-8">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-2">
         <div className="px-6 py-4" style={{ background: 'linear-gradient(90deg, #0099cc 0%, #00bcd4 60%, #00d4aa 100%)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -309,18 +425,29 @@ const AwarenessPostCreator: React.FC = () => {
                       id="scheduledDate"
                       name="scheduledDate"
                       value={formData.scheduledDate}
+                      min={getMinDateTime()}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white ${
+                        errors.scheduledDate ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:ring-blue-200'
+                      }`}
+                      style={{ '--tw-ring-color': errors.scheduledDate ? '#fecaca' : '#00d4aa' } as React.CSSProperties}
                     />
+                    {errors.scheduledDate ? (
+                      <p className="text-red-500 text-sm">{errors.scheduledDate}</p>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        Minimum scheduling time: 20 minutes from now
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Content Editor */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label htmlFor="content" className="block text-sm font-semibold text-gray-700">
                     Post Content *
                   </label>
-                  <div className="min-h-[300px]">
+                  <div className="min-h-[350px]">
                     <TextEditor 
                       value={formData.content} 
                       onChange={(content) => {
@@ -335,23 +462,26 @@ const AwarenessPostCreator: React.FC = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex space-x-4 pt-6">
+                <div className="flex space-x-4 pt-2">
                   <button
                     type="button"
-                    onClick={(e) => handleSubmit(e, 'publish')}
+                    onClick={(e) => handleSubmit(e, isScheduledPost ? 'schedule' : 'publish')}
                     disabled={isLoading}
-                    className="flex-1 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center justify-center font-semibold shadow-md hover:shadow-lg disabled:opacity-50"
+                    className="flex-1 text-white px-4 py-2 rounded-xl transition-all duration-200 flex items-center justify-center font-medium shadow-sm hover:shadow-md disabled:opacity-50 transform hover:-translate-y-0.5 active:translate-y-0"
                     style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}
                   >
-                    <Send className="mr-2" size={18} />
-                    {isLoading ? 'Publishing...' : 'Publish Post'}
+                    <Send className="mr-2" size={16} />
+                    {isLoading 
+                      ? (isScheduledPost ? 'Scheduling...' : 'Publishing...') 
+                      : (isScheduledPost ? 'Schedule Post' : 'Publish Post')
+                    }
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold border border-gray-200 disabled:opacity-50"
+                    className="flex-1 bg-gray-50 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-100 transition-all duration-200 font-medium border border-gray-200 hover:border-gray-300 disabled:opacity-50 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0"
                   >
-                    <Save className="mr-2" size={18} />
+                    <Save className="mr-2" size={16} />
                     {isLoading ? 'Saving...' : 'Save Draft'}
                   </button>
                 </div>
@@ -420,7 +550,6 @@ const AwarenessPostCreator: React.FC = () => {
                   <p className="text-sm text-gray-600 text-center">Click the X to remove image</p>
                 </div>
               )}
-              {errors.imageUrl && <p className="text-red-500 text-sm mt-2">{errors.imageUrl}</p>}
             </div>
           </div>
 
@@ -464,6 +593,15 @@ const AwarenessPostCreator: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modern Alert */}
+      <ModernAlert
+        isOpen={alert.isOpen}
+        variant={alert.variant}
+        title={alert.title}
+        message={alert.message}
+        onClose={closeAlert}
+      />
     </div>
   );
 };

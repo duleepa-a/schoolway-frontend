@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -25,6 +24,8 @@ model UserProfile {
   nic_pic                                                         String?
   district                                                        String?
   dp                                                              String?               @default("/Images/male_pro_pic_placeholder.png")
+  AwarenessPost                                                   AwarenessPost[]
+  BankAccount                                                     BankAccount?
   Child                                                           Child[]
   ChildAttendance                                                 ChildAttendance[]
   driverProfile                                                   DriverProfile?
@@ -52,6 +53,9 @@ model VanService {
   userId           String      @unique
   averageRating    Float       @default(0)
   totalReviews     Int         @default(0)
+  accountNo        String?
+  bank             String?
+  branch           String?
   user             UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -73,6 +77,9 @@ model DriverProfile {
   hasVan         Int         @default(0)
   averageRating  Float       @default(0)
   totalReviews   Int         @default(0)
+  accountNo      String?
+  bank           String?
+  branch         String?
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -97,6 +104,8 @@ model Child {
   pickupAddress   String                    @default("Not Specified")
   status          ChildStatus               @default(NOT_ASSIGNED)
   feeAmount       Float                     @default(0)
+  gateID          Int?
+  Gate            Gate?                     @relation(fields: [gateID], references: [id])
   UserProfile     UserProfile?              @relation(fields: [parentId], references: [id])
   School          School                    @relation(fields: [schoolID], references: [id])
   Van             Van?                      @relation(fields: [vanID], references: [id])
@@ -260,6 +269,9 @@ model Gate {
   isActive    Boolean                  @default(true)
   schoolId    Int
   createdAt   DateTime                 @default(now())
+  latitude    Float?
+  longitude   Float?
+  Child       Child[]
   School      School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([isActive])
@@ -428,6 +440,44 @@ model TransportSession {
   @@index([vanId, sessionDate, routeType])
 }
 
+model AwarenessPost {
+  id             String      @id @default(cuid())
+  title          String
+  content        String
+  imageUrl       String?
+  category       String
+  targetAudience String
+  priority       Priority    @default(MEDIUM)
+  scheduledDate  DateTime?
+  isPublished    Boolean     @default(false)
+  publishedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  authorId       String
+  views          Int         @default(0)
+  UserProfile    UserProfile @relation(fields: [authorId], references: [id])
+
+  @@index([category])
+  @@index([createdAt])
+  @@index([isPublished])
+  @@index([scheduledDate])
+  @@index([targetAudience])
+}
+
+model BankAccount {
+  id          String      @id
+  userId      String      @unique
+  accountNo   String
+  accountName String
+  bankName    String
+  branchName  String
+  branchCode  String?
+  isVerified  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  UserProfile UserProfile @relation(fields: [userId], references: [id])
+}
+
 enum RequestStatus {
   PENDING
   ACCEPTED
@@ -513,3 +563,8 @@ enum SessionStatus {
   EMERGENCY
 }
 
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
