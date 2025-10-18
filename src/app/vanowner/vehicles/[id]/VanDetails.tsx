@@ -369,7 +369,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </div>
                   <div className='flex items-center justify-center'> 
                     <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
-                      <button className="btn-secondary px-14 py-3 rounded-2xl">Find a Driver</button>
+                      <button className="btn-secondary w-full max-w-[200px] py-3 rounded-2xl">Find a Driver</button>
                     </Link>
                   </div>
                 </div>
@@ -396,7 +396,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                           </div>
                         </div>
                         <div className='flex items-center justify-center'> 
-                            <button className="btn-small-primary font-bold"
+                            <button className="btn-small-primary font-bold w-full max-w-[200px] py-3 rounded-2xl"
                               onClick={() => setIsAssistantModalOpen(true)}
                             >
                               Update Assistant
@@ -405,20 +405,22 @@ const VanDetails = ({ van }: { van: Van }) => {
                       </div>
                   </>
                 :
-
                 <><div className="my-3 grid  grid-cols-2">
                 <div>
                   <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
                   <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
                 </div>
                 <div className='flex items-center justify-center'>
-                  <button className="btn-secondary px-8 py-3 rounded-2xl"
+                  <button className="btn-secondary w-full max-w-[200px] py-3 rounded-2xl"
                     onClick={() => setIsAssistantModalOpen(true)}
                   >
                     Assign an Assistant
                   </button>
                 </div>
-              </div><div className="my-3 grid  grid-cols-2">
+              </div></>
+                }
+                {/* Show Add Route button always */}
+                <div className="my-3 grid grid-cols-2">
                   <div>
                     <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
                     <p className="text-sm text-gray-500 mb-4">Please create a route for this van</p>
@@ -426,16 +428,12 @@ const VanDetails = ({ van }: { van: Van }) => {
                   <div className='flex items-center justify-center'>
                     <button
                       onClick={handleAddRouteClick}
-                      className="btn-secondary px-8 py-3 rounded-2xl"
+                      className="btn-secondary w-full max-w-[200px] py-3 rounded-2xl"
                     >
                       Add route
                     </button>
                   </div>
-                </div></>
-
-
-
-                } 
+                </div>
                   
               </> 
               } 
