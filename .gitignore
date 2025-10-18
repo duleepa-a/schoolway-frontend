@@ -46,6 +46,7 @@ next-env.d.ts
 
 /prisma/migrations
 /prisma/schema.prisma
+/prisma/*
 
 /firebase-admin-key.json
 
