@@ -11,8 +11,6 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
  
   const driverId = params.id?.[0];
 
-  console.log("Dashboard API called for driver ID:", driverId);
-
   if (!driverId) {
     return NextResponse.json(
       { success: false, message: "Missing driver ID" },
@@ -29,7 +27,6 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
         Van_Van_assignedDriverIdToUserProfile: true,
       },
     });
-    console.log("Driver fetched for dashboard:", driverId);
 
     if (!driver) {
       return NextResponse.json(
@@ -113,8 +110,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
       createdAt.getMonth() === now.getMonth() &&
       createdAt.getFullYear() === now.getFullYear()
     ) {
-      console.log("now date", now.getDate());
-      console.log("recent date", createdAt.getDate());
+ 
       hasSessionDue = false;
     }
 

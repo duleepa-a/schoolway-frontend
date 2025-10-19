@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createFirebaseSession } from '@/lib/firebase-admin';
-import { randomUUID } from 'crypto';
+import { date } from 'zod';
 
 // Define RouteType manually since it's not exported by Prisma
 type RouteType = 'MORNING_PICKUP' | 'EVENING_DROPOFF';
@@ -51,6 +51,13 @@ export async function POST(request: NextRequest) {
     const currentHour = now.getHours();
     const routeType: RouteType = currentHour < 10 ? 'MORNING_PICKUP' : 'EVENING_DROPOFF';
 
+    const newd = new Date(now.toLocaleDateString())
+    console.log("now",now);
+    console.log("now to date",now.toDateString());
+    console.log("now to locale Date",now.toLocaleDateString());
+    console.log("now to locale",now.toLocaleString());
+    console.log("now to date",newd);
+ 
     // Check if session already exists for today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -66,7 +73,7 @@ export async function POST(request: NextRequest) {
           lt: tomorrow,
         },
         status: {
-          in: ['PENDING', 'ACTIVE'],
+          in: ['PENDING', 'ACTIVE','COMPLETED'],
         },
       },
     });
