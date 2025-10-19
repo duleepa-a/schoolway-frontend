@@ -1,6 +1,53 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+// Helper function to extract coordinates from geometry
+function extractCoordinates(geometry: any): { lat: number; lng: number } | null {
+  try {
+    if (!geometry) return null;
+    
+    // Handle POINT(lng lat) format from ST_AsText
+    // Format: "POINT(79.96074 6.5853948)"
+    const pointMatch = geometry.toString().match(/POINT\((-?\d+\.?\d*)\s+(-?\d+\.?\d*)\)/);
+    if (pointMatch) {
+      return { lat: parseFloat(pointMatch[2]), lng: parseFloat(pointMatch[1]) };
+    }
+    
+    // Fallback: Handle comma-separated format
+    const coordMatch = geometry.toString().match(/(-?\d+\.?\d*),\s*(-?\d+\.?\d*)/);
+    if (coordMatch) {
+      return { lat: parseFloat(coordMatch[1]), lng: parseFloat(coordMatch[2]) };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error extracting coordinates:", error);
+    return null;
+  }
+}
+
+// Helper function to get location name from coordinates using Google Maps Reverse Geocoding
+async function getLocationNameFromCoordinates(
+  lat: number,
+  lng: number
+): Promise<string | null> {
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status === "OK" && data.results.length > 0) {
+      return data.results[0].formatted_address;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching location name:", error);
+    return null;
+  }
+}
+
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
@@ -54,7 +101,7 @@ export async function GET(
         // Van reviews - Only VAN_SERVICE reviews
         Review: {
           where: {
-            reviewType: "VAN_SERVICE", // Filter for VAN_SERVICE reviews only
+            reviewType: "VAN_SERVICE",
           },
           select: {
             id: true,
@@ -78,6 +125,53 @@ export async function GET(
 
     if (!van) {
       return NextResponse.json({ error: "Van not found" }, { status: 404 });
+    }
+
+    // Extract and convert route start/end to location names
+    let routeStartName: string | null = null;
+    let routeEndName: string | null = null;
+
+    if (van.Path?.id) {
+      try {
+        // Use raw query to get geometry data since Prisma doesn't support it natively
+        const pathGeometry = await prisma.$queryRaw<
+          Array<{ routeStart: string | null; routeEnd: string | null }>
+        >`SELECT 
+          ST_AsText("routeStart") as "routeStart", 
+          ST_AsText("routeEnd") as "routeEnd" 
+        FROM "Path" 
+        WHERE id = ${van.Path.id}`;
+
+        console.log("Raw pathGeometry result:", pathGeometry);
+
+        if (pathGeometry && pathGeometry.length > 0) {
+          const { routeStart, routeEnd } = pathGeometry[0];
+
+          console.log("Van Path Geometry:", routeStart, routeEnd);
+
+          if (routeStart) {
+            const startCoords = extractCoordinates(routeStart);
+            if (startCoords) {
+              routeStartName = await getLocationNameFromCoordinates(
+                startCoords.lat,
+                startCoords.lng
+              );
+            }
+          }
+
+          if (routeEnd) {
+            const endCoords = extractCoordinates(routeEnd);
+            if (endCoords) {
+              routeEndName = await getLocationNameFromCoordinates(
+                endCoords.lat,
+                endCoords.lng
+              );
+            }
+          }
+        }
+      } catch (geoError) {
+        console.error("Error fetching geometry data:", geoError);
+      }
     }
 
     // Calculate average rating from reviews
@@ -157,6 +251,8 @@ export async function GET(
       route: van.Path
         ? {
             id: van.Path.id,
+            routeStart: routeStartName,
+            routeEnd: routeEndName,
             totalDistance: van.Path.totalDistance,
             estimatedDuration: van.Path.estimatedDuration,
             waypoints: van.Path.WayPoint.map((wp) => ({
