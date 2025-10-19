@@ -1,7 +1,6 @@
 import { FaChevronDown } from 'react-icons/fa';
 import TablePagination from '@/app/components/TablePagination';
 
-
 interface AcceptedHire {
   name: string;
   driver: string;
@@ -15,23 +14,11 @@ interface AcceptedHire {
   avatar?: string;
 }
 
-const privateHires: AcceptedHire[] = [
-  {
-    name: 'Duleepa Edirisinghe',
-    driver: 'Nimsara Wickramathanthree',
-    vanNumber: 'Van 1',
-    seats: 2,
-    amount: 'Rs. 12,000',
-    pickupDate: 'July 10, 2025',
-    dropoffDate: 'July 10, 2025',
-    pickupLocation: 'Colombo 07',
-    dropoffLocation: 'Kandy',
-    avatar: '/Images/male_pro_pic_placeholder.png',
-  },
-  // ...add more sample data as needed
-];
+interface AcceptedhiresTableProps {
+  hires: AcceptedHire[];
+}
 
-export default function AcceptedhiresTable() {
+export default function AcceptedhiresTable({ hires }: AcceptedhiresTableProps) {
   return (
     <div className="bg-white rounded-2xl shadow-card p-6">
       <div className="flex flex-row items-center justify-between mb-4 gap-4">
@@ -67,7 +54,7 @@ export default function AcceptedhiresTable() {
             </tr>
           </thead>
           <tbody className="text-sm">
-            {privateHires.map((hire, index) => (
+            {hires.map((hire, index) => (
               <tr
                 key={index}
                 className={`transition-colors bg-white hover:bg-[var(--blue-shade-light)]/40`}

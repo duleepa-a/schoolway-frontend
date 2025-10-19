@@ -94,7 +94,6 @@ const VanDetails = ({ van }: { van: Van }) => {
   const [localVan, setLocalVan] = useState<Van>(van);
   const [showAddRoute, setShowAddRoute] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     makeAndModel: van.makeAndModel,
     seatingCapacity: van.seatingCapacity,
@@ -288,7 +287,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             </button>
           </div>
           <div className="p-4">
-            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isGoogleMapsLoaded} />
+            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isLoaded} />
           </div>
         </div>
       </div>
@@ -417,93 +416,113 @@ const VanDetails = ({ van }: { van: Van }) => {
           {/* Driver & Assistant */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               {(van.status == 1) && <>
-                { van.hasDriver && van.driver ?
-                  <div>
-                    <h2 className="text-base font-semibold mb-4">Driver</h2>
-                    <div className="grid grid-cols-2 gap-4 items-center">
+                { van.hasDriver ?
+                <>
+                  <h2 className="text-base font-semibold mb-4">Driver</h2>
+                  <div className=" grid  grid-cols-2">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4">
+                        <div className=''> 
                         <Image
-                          src={van.driver.dp || '/Images/male_pro_pic_placeholder.png'}
-                          alt="Driver"
-                          width={70}
-                          height={70}
-                          className="rounded-full object-cover border-2 border-green-400"
-                        />
-                        <div>
-                          <p className="font-medium text-base">{van.driver.firstname} {van.driver.lastname}</p>
-                          <p className="text-xs text-gray-500">NIC: {van.driver.nic}</p>
-                          <p className="text-xs text-gray-500">Contact: {van.driver.mobile}</p>
-                          <p className="text-xs text-gray-500">Email: {van.driver.email}</p>
-                          <p className="text-xs text-gray-500">District: {van.driver.district}</p>
-                          <p className="text-xs text-gray-500">Address: {van.driver.address}</p>
+                                src={van.driver?.dp || '/Images/male_pro_pic_placeholder.png'}
+                                alt="Assistant"
+                                width={50}
+                                height={50}
+                                className="rounded-full object-cover"
+                          /> 
                         </div>
-                      </div>
-                      <div className='flex items-center justify-center'>
-                        <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
-                          <button className="btn-small-primary font-bold w-full max-w-[200px] py-3 rounded-2xl">
-                            Change Driver
-                          </button>
-                        </Link>
-                      </div>
+                        <div>
+                          <p className="font-medium text-sm">{van.driver?.firstname + " " + van.driver?.lastname}</p>
+                          <p className="text-xs text-gray-500">NIC: {van.driver?.nic}</p>
+                          <p className="text-xs text-gray-500">ContactNo: {van.driver?.mobile}</p>
+                        </div>
+                      </div>   
                     </div>
-                  </div>
-                :
-                  <div className="my-3 grid grid-cols-2">
-                    <div>
-                      <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
-                      <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
-                    </div>
-                    <div className='flex items-center justify-center'>
+                    <div className='flex items-center justify-center'> 
                       <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
-                        <button className="btn-secondary w-full max-w-[200px] py-3 rounded-2xl">Find a Driver</button>
+                            <button className="btn-small-primary font-bold"
+                            >
+                              Change Driver
+                            </button>
                       </Link>
                     </div>
                   </div>
-                }
-                { van.hasAssistant && van.Assistant ?
+                </> :
+
+                <div className="my-3 grid  grid-cols-2">
                   <div>
+                    <h2 className="text-base font-semibold mb-4">Driver Not Assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please assign a driver to this van.</p>
+                  </div>
+                  <div className='flex items-center justify-center'> 
+                    <Link href={`/vanowner/vehicles/driver?vanId=${van.id}&vanMakeAndModel=${localVan.makeAndModel}`}>
+                      <button className="btn-secondary px-14 py-3 rounded-2xl">Find a Driver</button>
+                    </Link>
+                  </div>
+                </div>
+
+                } 
+                { van.hasAssistant ? 
+                  <>
                     <h2 className="text-base font-semibold mb-4">Assistant</h2>
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                      <div className="flex items-center space-x-4">
-                        <Image
-                          src={van.Assistant.profilePic || '/Images/male_pro_pic_placeholder.png'}
-                          alt="Assistant"
-                          width={70}
-                          height={70}
-                          className="rounded-full aspect-square object-cover border-2 border-green-400"
-                        />
-                        <div>
-                          <p className="font-medium text-base">{van.Assistant.name}</p>
-                          <p className="text-xs text-gray-500">NIC: {van.Assistant.nic}</p>
-                          <p className="text-xs text-gray-500">Contact: {van.Assistant.contact}</p>
+                      <div className="grid grid-cols-2">
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <Image
+                              src={localVan.assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
+                              alt="Assistant"
+                              width={50}
+                              height={50}
+                              className="rounded-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{localVan.assistant?.name}</p>
+                            <p className="text-xs text-gray-500">NIC: {localVan.assistant?.nic}</p>
+                            <p className="text-xs text-gray-500">Contact: {localVan.assistant?.contact}</p>
+                          </div>
+                        </div>
+                        <div className='flex items-center justify-center'> 
+                            <button className="btn-small-primary font-bold"
+                              onClick={() => setIsAssistantModalOpen(true)}
+                            >
+                              Update Assistant
+                            </button>
                         </div>
                       </div>
-                      <div className='flex items-center justify-center'>
-                        <button className="btn-small-primary font-bold w-full max-w-[200px] py-3 rounded-2xl"
-                          onClick={() => setIsAssistantModalOpen(true)}
-                        >
-                          Update Assistant
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  </>
                 :
+
                 <><div className="my-3 grid  grid-cols-2">
                 <div>
                   <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
                   <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
                 </div>
                 <div className='flex items-center justify-center'>
-                  <button className="btn-secondary w-full max-w-[200px] py-3 rounded-2xl"
+                  <button className="btn-secondary px-8 py-3 rounded-2xl"
                     onClick={() => setIsAssistantModalOpen(true)}
                   >
                     Assign an Assistant
                   </button>
                 </div>
-              </div></>
-                }
-                
-                {renderRouteSection()}
+              </div><div className="my-3 grid  grid-cols-2">
+                  <div>
+                    <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please create a route for this van</p>
+                  </div>
+                  <div className='flex items-center justify-center'>
+                    <button
+                      onClick={handleAddRouteClick}
+                      className="btn-secondary px-8 py-3 rounded-2xl"
+                    >
+                      Add route
+                    </button>
+                  </div>
+                </div></>
+
+
+
+                } 
                   
               </> 
               } 

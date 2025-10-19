@@ -3,46 +3,38 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log('Fetching van with ID:', params.id);
-  try {
-    const id = parseInt(params.id);
+  const { id: idString } = params;
+  const id = parseInt(idString);
 
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const van = await prisma.van.findUnique({
-      where: { id },
-      include: {
-        Path: {
-          include: {
-            WayPoint: {
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
+  const van = await prisma.van.findUnique({
+    where: { id },
+    include: {
+      Assistant: true,
+      DriverVanJobRequest: {
+        where: {
+          status: 'ACCEPTED',
         },
-        Assistant: true,
-        DriverVanJobRequest: {
-          where: {
-            status: 'ACCEPTED',
-          },
-          include: {
-            UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
-          },
+        include: {
+          UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
         },
       },
-    });
+    },
+  });
 
     if (!van) {
       return NextResponse.json({ error: 'Van not found' }, { status: 404 });
     }
 
-    const driverRequest = van.DriverVanJobRequest[0];
-    const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
+  // Extract driver info from the first accepted request
+  const driverRequest = van.DriverVanJobRequest[0]; // assuming only one accepted at a time
+
+  const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
 
     // Add hasRoute flag based on Path existence
     const transformedVan = {
@@ -60,9 +52,9 @@ export async function GET(
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: idString } = params;
+    const { id: idString } = await params;
     const id = Number(idString);
     const data = await req.json();
 
