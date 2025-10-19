@@ -23,35 +23,77 @@ function calculateDistance(
   return R * c;
 }
 
+// Helper function to get minimum distance from a point to any waypoint
+function getMinDistanceToWaypoints(
+  pointLat: number,
+  pointLng: number,
+  waypoints: any[]
+): number {
+  if (!waypoints || waypoints.length === 0) return Infinity;
+
+  let minDistance = Infinity;
+  for (const waypoint of waypoints) {
+    const distance = calculateDistance(
+      pointLat,
+      pointLng,
+      parseFloat(waypoint.latitude.toString()),
+      parseFloat(waypoint.longitude.toString())
+    );
+    minDistance = Math.min(minDistance, distance);
+  }
+  return minDistance;
+}
+
 // Helper function to check if van route direction matches child's direction
 function isDirectionMatching(
   childPickupLat: number,
   childPickupLng: number,
   schoolLat: number,
   schoolLng: number,
-  vanStartLat: number,
-  vanStartLng: number,
-  vanEndLat: number,
-  vanEndLng: number
+  vanPathWaypoints: any[]
 ): boolean {
+  if (!vanPathWaypoints || vanPathWaypoints.length < 2) return false;
+
+  // Get the first and last waypoints of the van's route
+  const vanStartWaypoint = vanPathWaypoints[0];
+  const vanEndWaypoint = vanPathWaypoints[vanPathWaypoints.length - 1];
+
   // Calculate distances: child pickup to van start and school to van end
   const childPickupToVanStart = calculateDistance(
     childPickupLat,
     childPickupLng,
-    vanStartLat,
-    vanStartLng
+    parseFloat(vanStartWaypoint.latitude.toString()),
+    parseFloat(vanStartWaypoint.longitude.toString())
   );
 
   const schoolToVanEnd = calculateDistance(
     schoolLat,
     schoolLng,
-    vanEndLat,
-    vanEndLng
+    parseFloat(vanEndWaypoint.latitude.toString()),
+    parseFloat(vanEndWaypoint.longitude.toString())
   );
 
-  // Child pickup should be close to van's start, and school close to van's end
-  // Allowing flexibility (within 10km each for general direction check)
-  return childPickupToVanStart <= 10 && schoolToVanEnd <= 10;
+  // Child pickup should be closer to van's start, and school closer to van's end
+  // Allowing flexibility (within 5km each)
+  return childPickupToVanStart < 5 && schoolToVanEnd < 5;
+}
+
+// Helper function to check if van passes near child's pickup location
+function isVanNearPickup(
+  childPickupLat: number,
+  childPickupLng: number,
+  vanPathWaypoints: any[]
+): boolean {
+  if (!vanPathWaypoints || vanPathWaypoints.length === 0) return false;
+
+  // Check if any waypoint is within 10km of child's pickup
+  const minDistance = getMinDistanceToWaypoints(
+    childPickupLat,
+    childPickupLng,
+    vanPathWaypoints
+  );
+
+  return minDistance <= 1000;
 }
 
 export async function GET(
@@ -84,6 +126,14 @@ export async function GET(
     const pickupLng = parseFloat(child.pickupLng.toString());
 
     // 2️⃣ Get school gate location (using first active gate)
+    const schoolLocation = await prisma.school.findUnique({
+      where: { id: child.schoolID },
+    });
+
+    if (!schoolLocation) {
+      return NextResponse.json({ error: "School not found" }, { status: 404 });
+    }
+
     const gateLocation = child.School?.Gate?.[0];
     if (!gateLocation || gateLocation.latitude === null || gateLocation.longitude === null) {
       return NextResponse.json(
@@ -95,9 +145,13 @@ export async function GET(
     const schoolLat = gateLocation.latitude;
     const schoolLng = gateLocation.longitude;
 
-    // 3️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers and their paths
+    // 3️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers
     const vans = await prisma.van.findMany({
-  
+      where: {
+        hasDriver: true,
+        status: 1,
+        assignedDriverId: { not: null },
+      },
       include: {
         UserProfile_Van_ownerIdToUserProfile: {
           select: {
@@ -115,23 +169,28 @@ export async function GET(
           include: {
             WayPoint: {
               orderBy: { order: "asc" },
-              take: 2, // Get only start and end waypoints
             },
           },
         },
       },
     });
 
-    // 4️⃣ Filter vans based on direction matching
+    // 4️⃣ Filter vans based on proximity and direction matching
     const qualifiedVans = [];
 
     for (const van of vans) {
-      if (!van.Path || !van.Path.WayPoint || van.Path.WayPoint.length < 2) {
+      if (!van.Path || !van.Path.WayPoint || van.Path.WayPoint.length === 0) {
         continue;
       }
 
-      const vanStartWaypoint = van.Path.WayPoint[0];
-      const vanEndWaypoint = van.Path.WayPoint[van.Path.WayPoint.length - 1];
+      // Check if van passes near pickup location (within 10km)
+      const isNearPickup = isVanNearPickup(
+        pickupLat,
+        pickupLng,
+        van.Path.WayPoint
+      );
+
+      if (!isNearPickup) continue;
 
       // Check if van's route direction matches child's direction
       const isDirectionGood = isDirectionMatching(
@@ -139,10 +198,7 @@ export async function GET(
         pickupLng,
         schoolLat,
         schoolLng,
-        parseFloat(vanStartWaypoint.latitude.toString()),
-        parseFloat(vanStartWaypoint.longitude.toString()),
-        parseFloat(vanEndWaypoint.latitude.toString()),
-        parseFloat(vanEndWaypoint.longitude.toString())
+        van.Path.WayPoint
       );
 
       if (!isDirectionGood) continue;
