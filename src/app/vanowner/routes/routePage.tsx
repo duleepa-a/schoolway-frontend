@@ -104,11 +104,11 @@ const RoutePage = ({ serverSession }: Props) => {
                         <tbody className="text-sm">
                         {transportSessions.map((session) => (
                             <tr key={session.id} className="border-b hover:bg-gray-100 transition-colors">
-                            <td className="p-3">{session.van.makeAndModel}</td>
-                            <td className="p-3">{`${session.driver.firstname} ${session.driver.lastname}`}</td>
-                            <td className="p-3">{new Date(session.sessionDate).toLocaleDateString()}</td>
-                            <td className="p-3">{session.routeType.replace('_', ' ')}</td>
-                            <td className="p-3">
+                            <td className="p-3" style={{color: 'black'}}>{session.van.makeAndModel}</td>
+                            <td className="p-3" style={{color: 'black'}}>{`${session.driver.firstname} ${session.driver.lastname}`}</td>
+                            <td className="p-3" style={{color: 'black'}}>{new Date(session.sessionDate).toLocaleDateString()}</td>
+                            <td className="p-3" style={{color: 'black'}}>{session.routeType.replace('_', ' ')}</td>
+                            <td className="p-3" >
                                 <span
                                 className={`px-5 py-1 rounded-lg cursor-pointer items-center text-white${
                                     session.status === "ACTIVE"
