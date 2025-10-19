@@ -46,6 +46,20 @@ interface Van {
   status : number;
   assistant?: Assistant | null;
   driver?: Driver | null;
+  hasRoute: boolean;
+  routeAssigned: boolean;
+  Path?: {
+    id: string;
+    routeStart: { lat: number; lng: number } | null;
+    routeEnd: { lat: number; lng: number } | null;
+    WayPoint: Array<{
+      name: string;
+      latitude: number;
+      longitude: number;
+      order: number;
+      isStop: boolean;
+    }>;
+  } | null;
 }
 
 interface FormData {
@@ -279,6 +293,80 @@ const VanDetails = ({ van }: { van: Van }) => {
       </div>
     );
   }
+
+  const renderRouteStatus = () => {
+    if (van.routeAssigned) {
+      return (
+        <div className="text-green-600">
+          Route Assigned ({van.Path?.WayPoint.length || 0} stops)
+        </div>
+      );
+    }
+    return <div className="text-red-600">Route Not Assigned</div>;
+  };
+
+  // Add this helper function inside the VanDetails component
+  const renderRouteSection = () => {
+    if (!van.Path) {
+      // No route exists - use black button (btn-secondary) like "Find a Driver"
+      return (
+        <div className="my-3 grid grid-cols-2">
+          <div>
+            <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
+            <p className="text-sm text-gray-500 mb-4">Please create a route by adding start and end points</p>
+          </div>
+          <div className='flex items-center justify-center'>
+            <button
+              onClick={handleAddRouteClick}
+              className="btn-secondary w-full max-w-[200px] py-3 rounded-2xl justify-center"
+            >
+              Add Route
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Route exists but no waypoints - use small primary button
+    if (van.Path && (!van.Path.WayPoint || van.Path.WayPoint.length === 0)) {
+      return (
+        <div className="my-3 grid grid-cols-2">
+          <div>
+            <h2 className="text-base font-semibold mb-4">Basic Route Created</h2>
+            <p className="text-sm text-gray-500 mb-4">Add waypoints to define your service coverage areas</p>
+          </div>
+          <div className='flex items-center justify-center'>
+            <button
+              onClick={handleAddRouteClick}
+              className="btn-small-primary font-bold w-full max-w-[200px] py-3 rounded-2xl"
+            >
+              Add Waypoints
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Complete route with waypoints - use small primary button like "Update Assistant"
+    return (
+      <div className="my-3 grid grid-cols-2">
+        <div>
+          <h2 className="text-base font-semibold mb-4 text-green-600">Route Assigned</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            {van.Path.WayPoint.length} stops configured
+          </p>
+        </div>
+        <div className='flex items-center justify-center'>
+          <button
+            onClick={handleAddRouteClick}
+            className="btn-small-primary font-bold w-full max-w-[200px] py-3 rounded-2xl"
+          >
+            Update Route
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">

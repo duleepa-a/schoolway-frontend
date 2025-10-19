@@ -5,18 +5,18 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id: idString } = await params;
+  const { id: idString } = params;
   const id = parseInt(idString);
 
-  if (isNaN(id)) {
-    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
-  }
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
 
   const van = await prisma.van.findUnique({
     where: { id },
     include: {
-      assistant: true,
-      DriverVanJobRequests: {
+      Assistant: true,
+      DriverVanJobRequest: {
         where: {
           status: 'ACCEPTED',
         },
@@ -27,21 +27,30 @@ export async function GET(
     },
   });
 
-  if (!van) {
-    return NextResponse.json({ error: 'Van not found' }, { status: 404 });
-  }
+    if (!van) {
+      return NextResponse.json({ error: 'Van not found' }, { status: 404 });
+    }
 
   // Extract driver info from the first accepted request
-  const driverRequest = van.DriverVanJobRequests[0]; // assuming only one accepted at a time
+  const driverRequest = van.DriverVanJobRequest[0]; // assuming only one accepted at a time
 
   const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
 
-  return NextResponse.json({
-    ...van,
-    driver, 
-  });
-}
+    // Add hasRoute flag based on Path existence
+    const transformedVan = {
+      ...van,
+      driver,
+      hasRoute: !!van.Path,  // Convert to boolean
+      routeAssigned: !!van.pathId && !!van.Path // Check both pathId and Path existence
+    };
 
+    console.log('Transformed Van:', transformedVan);
+    return NextResponse.json(transformedVan);
+  } catch (error) {
+    console.error('Error fetching van:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

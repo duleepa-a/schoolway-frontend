@@ -16,15 +16,20 @@ export async function GET(request: NextRequest) {
      
     // Build where clause for filtering
     const whereClause: any = {
-      user: {
-        activeStatus: true, // Only fetch active drivers
+      UserProfile: {
+        activeStatus: true,
         role: 'DRIVER'
       }
     };
+
+    // Add hasVan condition only for non-name searches or when using district filter
+    if (!search || (district && district !== 'All')) {
+      whereClause.hasVan = 0;
+    }
     
     // Add search filter if provided
     if (search) {
-      whereClause.user.OR = [
+      whereClause.UserProfile.OR = [
         {
           firstname: {
             contains: search,
@@ -42,7 +47,7 @@ export async function GET(request: NextRequest) {
     
     // Add district filter if provided
     if (district && district !== 'All') {
-      whereClause.user.district = district;
+      whereClause.UserProfile.district = district;
     }
 
     // Get total count for pagination
@@ -53,7 +58,7 @@ export async function GET(request: NextRequest) {
     // Get paginated drivers with their user profiles
     const drivers = await prisma.driverProfile.findMany({
       include: {
-        user: {
+        UserProfile: {
           select: {
             id: true,
             firstname: true,
@@ -69,8 +74,8 @@ export async function GET(request: NextRequest) {
       skip: skip,
       take: limit,
       orderBy: [
-        { rating: 'desc' }, // Order by rating first
-        { user: { firstname: 'asc' } } // Then by name
+        { averageRating: 'desc' },
+        { UserProfile: { firstname: 'asc' } }
       ]
     });
 
@@ -108,20 +113,21 @@ export async function GET(request: NextRequest) {
         experience = Math.max(0, Math.floor(diffInYears)); // Ensure non-negative
       }
 
-      const fullName = `${driver.user.firstname || ''} ${driver.user.lastname || ''}`.trim();
+      const fullName = `${driver.UserProfile.firstname || ''} ${driver.UserProfile.lastname || ''}`.trim();
 
       return {
-        id: driver.user.id,
+        id: driver.UserProfile.id,
         name: fullName || 'No name provided',
         experience: experience === 0 ? 'New driver' : `${experience} year${experience !== 1 ? 's' : ''}`,
-        rating: Math.max(0, Math.min(5, Math.round(driver.rating))) || 0, // Ensure rating is between 0-5
+        rating: Math.max(0, Math.min(5, Math.round(driver.averageRating))) || 0,
         image: '/Images/male_pro_pic_placeholder.png',
-        district: driver.user.district || 'Not specified',
-        contact: driver.user.mobile || 'Not provided',
+        district: driver.UserProfile.district || 'Not specified',
+        contact: driver.UserProfile.mobile || 'Not provided',
         licenseId: driver.licenseId,
         licenseExpiry: driver.licenseExpiry,
-        ratingCount: Math.max(0, driver.ratingCount),
-        email: driver.user.email
+        ratingCount: Math.max(0, driver.totalReviews),
+        email: driver.UserProfile.email,
+        hasVan: driver.hasVan === 1  // Add this field to show
       };
     });
 

@@ -12,13 +12,13 @@ export async function GET(
     const driver = await prisma.driverProfile.findFirst({
       where: {
         userId: id,
-        user: {
+        UserProfile: {
           activeStatus: true,
           role: 'DRIVER'
         }
       },
       include: {
-        user: {
+        UserProfile: {
           select: {
             id: true,
             firstname: true,
@@ -26,7 +26,6 @@ export async function GET(
             email: true,
             district: true,
             mobile: true,
-            // city: true,
             nic: true,
             dp: true,
             activeStatus: true,
@@ -54,17 +53,18 @@ export async function GET(
       experience = Math.max(0, Math.floor(diffInYears));
     }
 
-    const fullName = `${driver.user.firstname || ''} ${driver.user.lastname || ''}`.trim();
+    // Update the transformedDriver object to use UserProfile instead of user
+    const fullName = `${driver.UserProfile.firstname || ''} ${driver.UserProfile.lastname || ''}`.trim();
 
     // Transform the data to match the frontend format
     const transformedDriver = {
-      id: driver.user.id,
+      id: driver.UserProfile.id,
       name: fullName || 'No name provided',
-      profilePic: driver.user.dp || '/Images/male_pro_pic_placeholder.png',
-      city: 'City not provided', // city field doesn't exist in UserProfile
-      district: driver.user.district || 'District not provided',
-      contactNumber: driver.user.mobile || 'Contact not provided',
-      nic: driver.user.nic || 'NIC not provided',
+      profilePic: driver.UserProfile.dp || '/Images/male_pro_pic_placeholder.png',
+      city: 'City not provided',
+      district: driver.UserProfile.district || 'District not provided',
+      contactNumber: driver.UserProfile.mobile || 'Contact not provided',
+      nic: driver.UserProfile.nic || 'NIC not provided',
       licenseNumber: driver.licenseId,
       licenseExpiryDate: driver.licenseExpiry ? new Date(driver.licenseExpiry).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -72,14 +72,14 @@ export async function GET(
         day: 'numeric'
       }) : 'Not provided',
       experience: experience === 0 ? 'New driver' : `${experience} year${experience !== 1 ? 's' : ''}`,
-      rating: Math.max(0, Math.min(5, driver.rating)) || 0,
-      totalReviews: Math.max(0, driver.ratingCount),
-      email: driver.user.email,
-      // Document URLs (if they exist in your schema, otherwise keep as mock)
+      rating: Math.max(0, Math.min(5, driver.averageRating)) || 0,
+      totalReviews: Math.max(0, driver.totalReviews),
+      email: driver.UserProfile.email,
+      hasVan: driver.hasVan === 1,  // Add this field
       documents: {
         driverLicense: driver.licenseFront || '/documents/driver_license_placeholder.pdf',
         policeReport: driver.policeReport || '/documents/police_report_placeholder.pdf',
-        medicalReport: '/documents/medical_report_placeholder.pdf' // Keep as mock since not in schema
+        medicalReport: '/documents/medical_report_placeholder.pdf'
       }
     };
 
