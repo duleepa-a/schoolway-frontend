@@ -30,7 +30,8 @@ interface Props {
 
 const RoutePage = ({ serverSession }: Props) => {
 
-    const [sessions, setSessions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [transportSessions,setTransportSessions] = useState<any[]>([]);
   const [locations, setLocations] = useState<Record<string, any>>({});
   const [center, setCenter] = useState({ lat: 6.9271, lng: 79.8612 }); // Default Colombo
 
@@ -41,10 +42,17 @@ const RoutePage = ({ serverSession }: Props) => {
   // Fetch active sessions for this owner
   useEffect(() => {
     async function fetchActiveSessions() {
-      const res = await fetch(`/api/vanowner/active-sessions`);
-      const data = await res.json();
-      setSessions(data);
+        const res = await fetch(`/api/vanowner/active-sessions`);
+        const data = await res.json();
+        setSessions(data);
     }
+
+    async function fetchTransportSessions(){
+        const res = await fetch('/api/vanowner/transport-sessions');
+        const data = await res.json();
+        setTransportSessions(data);
+    }
+    fetchTransportSessions();
     fetchActiveSessions();
   }, []);
 
@@ -76,29 +84,74 @@ const RoutePage = ({ serverSession }: Props) => {
   return (
     <section className="p-6 md:p-10 min-h-screen w-full">
         <TopBarContent serverSession={serverSession} heading="Daily Routes" />
-        <div className="flex gap-6 border-b border-border-bold-shade mb-4">
+        <div className=" grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="bg-white rounded-2xl px-8 py-8 shadow-lg col-span-2">
+            <h1 className="text-2xl font-semibold text-center my-4">Transport Sessions</h1>
+               {transportSessions.length === 0 ? (
+                    <div className="text-center text-gray-500 p-4">No active sessions found.</div>
+                ) : (
+                    <div className="overflow-x-auto">
+                    <table className="w-full border-collapse rounded-md overflow-hidden">
+                        <thead>
+                        <tr style={{background: 'var(--blue-shade-light)'}} className=" text-white text-left text-sm">
+                            <th className="p-3">Van</th>
+                            <th className="p-3">Driver</th>
+                            <th className="p-3">Session Date</th>
+                            <th className="p-3">Route Type</th>
+                            <th className="p-3">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody className="text-sm">
+                        {transportSessions.map((session) => (
+                            <tr key={session.id} className="border-b hover:bg-gray-100 transition-colors">
+                            <td className="p-3">{session.van.makeAndModel}</td>
+                            <td className="p-3">{`${session.driver.firstname} ${session.driver.lastname}`}</td>
+                            <td className="p-3">{new Date(session.sessionDate).toLocaleDateString()}</td>
+                            <td className="p-3">{session.routeType.replace('_', ' ')}</td>
+                            <td className="p-3">
+                                <span
+                                className={`px-5 py-1 rounded-lg cursor-pointer items-center text-white${
+                                    session.status === "ACTIVE"
+                                    ? " bg-[var(--blue-shade-dark)]  hover:bg-[var(--blue-shade-dark)] "
+                                    : session.status === "COMPLETED"
+                                    ? " bg-[var(--green-shade-dark)]  hover:bg-[var(--blue-shade-dark)]"
+                                    : session.status === "CANCELLED"
+                                    ? " bg-[var(--red-shade-dark)] hover:bg-red-700"
+                                    : " bg-[var(--blue-shade-dark)]  hover:bg-[var(--blue-shade-dark)]"
+                                }`}
+                                >
+                                {session.status}
+                                </span>
+                            </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                    </div>
+                )}
+            </div>
 
-        <div className="h-screen w-full">
-        <h1 className="text-2xl font-semibold text-center my-4">🚐 Active Van Tracking</h1>
-        <GoogleMap
-            mapContainerStyle={{ width: "100%", height: "90%" }}
-            center={center}
-            zoom={12}
-        >
-            {Object.keys(locations).map((sessionId) => {
-            const loc = locations[sessionId];
-            return (
-                <Marker
-                key={sessionId}
-                position={{ lat: loc.latitude, lng: loc.longitude }}
-                label={loc.vanName}
-                title={`Driver: ${loc.driver}`}
-                />
-            );
-            })}
-        </GoogleMap>
-        </div>
-      
+            <div className='col-span-2 space-y-2'>
+                <div className="bg-white rounded-2xl px-8 py-8 shadow-lg col-span-2 h-[600px]">
+                    <GoogleMap
+                        mapContainerStyle={{ width: "100%", height: "100%" }}
+                        center={center}
+                        zoom={12}
+                    >
+                        {Object.keys(locations).map((sessionId) => {
+                        const loc = locations[sessionId];
+                        return (
+                            <Marker
+                            key={sessionId}
+                            position={{ lat: loc.latitude, lng: loc.longitude }}
+                            label={loc.vanName}
+                            title={`Driver: ${loc.driver}`}
+                            />
+                        );
+                        })}
+                    </GoogleMap>
+                </div>
+            </div>
         </div>
     </section>
   );
