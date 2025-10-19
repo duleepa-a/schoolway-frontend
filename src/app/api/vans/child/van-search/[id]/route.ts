@@ -151,11 +151,11 @@ export async function GET(
 
     // 4️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers and their paths
     const vans = await prisma.van.findMany({
-      // where: {
-      //   hasDriver: true,
-      //   status: 1,
-      //   assignedDriverId: { not: null },
-      // },
+      where: {
+        hasDriver: true,
+        status: 1,
+        assignedDriverId: { not: null },
+      },
       include: {
         UserProfile_Van_ownerIdToUserProfile: {
           select: {
