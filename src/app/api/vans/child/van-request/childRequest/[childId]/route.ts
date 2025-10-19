@@ -1,14 +1,17 @@
 // /app/api/van-requests/[childId]/route.ts
-import  prisma  from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET: fetch van request for a child
-export async function GET(req: Request, { params }: { params: Promise<{ childId: string }> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ childId: string }> }
+) {
   try {
     const resolvedParams = await params;
-    const request = await prisma.vanRequest.findUnique({
+    const request = await prisma.vanRequest.findFirst({
       where: { childId: Number(resolvedParams.childId) },
-      include: { van: true, child: true },
+      include: { Van: true, Child: true },
     });
 
     if (!request) return NextResponse.json(null, { status: 200 });
@@ -21,10 +24,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ childId:
 }
 
 // DELETE: cancel van request
-export async function DELETE(req: Request, { params }: { params: Promise<{ childId: string }> }) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ childId: string }> }
+) {
   try {
     const resolvedParams = await params;
-    await prisma.vanRequest.delete({
+    await prisma.vanRequest.deleteMany({
       where: { childId: Number(resolvedParams.childId) },
     });
 

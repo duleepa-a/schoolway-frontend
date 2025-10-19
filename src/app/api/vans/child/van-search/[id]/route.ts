@@ -95,9 +95,21 @@ export async function GET(
     const schoolLat = gateLocation.latitude;
     const schoolLng = gateLocation.longitude;
 
-    // 3️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers and their paths
+    // 3️⃣ Fetch existing van requests for this child
+    const existingRequests = await prisma.vanRequest.findMany({
+      where: { childId },
+      select: { vanId: true, status: true },
+    });
+
+    const requestMap = new Map(existingRequests.map(r => [r.vanId, r.status]));
+
+    // 4️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers and their paths
     const vans = await prisma.van.findMany({
-  
+      // where: {
+      //   hasDriver: true,
+      //   status: 1,
+      //   assignedDriverId: { not: null },
+      // },
       include: {
         UserProfile_Van_ownerIdToUserProfile: {
           select: {
@@ -122,7 +134,7 @@ export async function GET(
       },
     });
 
-    // 4️⃣ Filter vans based on direction matching
+    // 5️⃣ Filter vans based on direction matching
     const qualifiedVans = [];
 
     for (const van of vans) {
@@ -150,7 +162,7 @@ export async function GET(
       qualifiedVans.push(van);
     }
 
-    // 5️⃣ Calculate distance and estimated fare for qualified vans
+    // 6️⃣ Calculate distance and estimated fare for qualified vans
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${pickupLat},${pickupLng}&destinations=${schoolLat},${schoolLng}&key=${GOOGLE_MAPS_API_KEY}`;
 
     const distanceRes = await fetch(url);
@@ -169,13 +181,18 @@ export async function GET(
     const distanceInMeters = distanceData.rows[0].elements[0].distance.value;
     const distanceInKm = distanceInMeters / 1000;
 
-    const vansWithEstimate = qualifiedVans.map((van) => ({
-      ...van,
-      estimatedFare: Math.round(distanceInKm * van.studentRating * 100) / 100,
-      distanceInKm,
-    }));
+    const vansWithEstimate = qualifiedVans.map((van) => {
+      const requestStatus = requestMap.get(van.id);
+      return {
+        ...van,
+        estimatedFare: Math.round(distanceInKm * van.studentRating * 100) / 100,
+        distanceInKm,
+        requestStatus: requestStatus || null, // null if no request, otherwise PENDING/ACCEPTED/REJECTED
+      };
+    });
 
     console.log(`Found ${vansWithEstimate.length} qualified vans for child ${childId}`);
+    console.log(vansWithEstimate);
 
     return NextResponse.json(vansWithEstimate, { status: 200 });
   } catch (error) {
