@@ -56,8 +56,14 @@ const ModernConfirmationBox: React.FC<ModernConfirmationBoxProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`max-w-md w-full ${getBgColor()} border rounded-xl shadow-2xl overflow-hidden`}>
+    <div 
+      className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onCancel}
+    >
+      <div 
+        className={`max-w-md w-full ${getBgColor()} border rounded-2xl shadow-2xl overflow-hidden`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Modern Header */}
         <div className="px-6 py-4" style={{ background: 'linear-gradient(90deg, #0099cc 0%, #00bcd4 60%, #00d4aa 100%)' }}>
           <div className="flex items-center justify-between">
@@ -118,3 +124,5 @@ const ModernConfirmationBox: React.FC<ModernConfirmationBoxProps> = ({
 };
 
 export default ModernConfirmationBox;
+
+

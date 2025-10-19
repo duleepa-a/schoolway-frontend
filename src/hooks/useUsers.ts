@@ -15,9 +15,10 @@ interface User {
 }
 
 interface UseUsersProps {
-  userRole: 'driver' | 'parent' | 'van owner' | 'admin';
+  userRole: 'driver' | 'parent' | 'van owner' | 'admin' | 'all';
   searchTerm?: string;
   statusFilter?: string;
+  roleFilter?: string;
 }
 
 interface UseUsersReturn {
@@ -29,7 +30,7 @@ interface UseUsersReturn {
   toggleUserStatus: (userId: string, activeStatus: boolean) => Promise<boolean>;
 }
 
-export const useUsers = ({ userRole, searchTerm = '', statusFilter = '' }: UseUsersProps): UseUsersReturn => {
+export const useUsers = ({ userRole, searchTerm = '', statusFilter = '', roleFilter = '' }: UseUsersProps): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,8 @@ export const useUsers = ({ userRole, searchTerm = '', statusFilter = '' }: UseUs
       const params = new URLSearchParams({
         role: userRole,
         ...(searchTerm && { search: searchTerm }),
-        ...(statusFilter && { status: statusFilter })
+        ...(statusFilter && { status: statusFilter }),
+        ...(roleFilter && { roleFilter: roleFilter })
       });
 
       const response = await fetch(`/api/admin/users?${params}`);
@@ -136,7 +138,7 @@ export const useUsers = ({ userRole, searchTerm = '', statusFilter = '' }: UseUs
 
   useEffect(() => {
     fetchUsers();
-  }, [userRole, searchTerm, statusFilter]);
+  }, [userRole, searchTerm, statusFilter, roleFilter]);
 
   return {
     users,
@@ -147,3 +149,4 @@ export const useUsers = ({ userRole, searchTerm = '', statusFilter = '' }: UseUs
     toggleUserStatus
   };
 };
+

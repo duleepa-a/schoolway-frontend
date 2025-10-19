@@ -9,7 +9,7 @@ import { FaChartSimple } from 'react-icons/fa6';
 import { TbBriefcase2Filled } from 'react-icons/tb';
 import { HiRectangleGroup } from 'react-icons/hi2';
 import { PiStudentFill } from 'react-icons/pi';
-import { Bus } from 'lucide-react';
+import { Bus, Shield } from 'lucide-react';
 import { MdCreditCard, MdOutlinePayments } from "react-icons/md";
 import { RiQuestionAnswerFill } from "react-icons/ri";
 import { GiLaurelsTrophy } from "react-icons/gi";
@@ -18,7 +18,7 @@ import { AiFillStar } from "react-icons/ai";
 const navItems = [
   { label: 'Dashboard', icon: <HiHome />, href: '/admin' },
   { label: 'Users', icon: <FaUser />, href: '/admin/users' },
-  { label: 'Admins', icon: <FaUser />, href: '/admin/admins' },
+  { label: 'Admins', icon: <Shield size={20} />, href: '/admin/admins' },
   { label: 'Applications', icon: <FaChartSimple />, href: '/admin/applications' },
   { label: 'Schools', icon: <PiStudentFill />, href: '/admin/school' },
   { label: 'Payroll', icon: <MdCreditCard />, href: '/admin/payroll' },

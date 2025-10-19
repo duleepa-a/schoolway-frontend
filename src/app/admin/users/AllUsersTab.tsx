@@ -1,37 +1,23 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, RefreshCw, Edit3, UserCheck, UserX, Loader2, ToggleLeft, ToggleRight, Eye } from 'lucide-react';
+import { Search, Filter, RefreshCw, Edit3, UserCheck, UserX, Loader2, Users, ToggleLeft, ToggleRight } from 'lucide-react';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import ModernPopupForm from './ModernPopupForm';
 import ModernConfirmationBox from './ModernConfirmationBox';
 import ModernAlert from './ModernAlert';
 import LiveToggleButton from './components/LiveToggleButton';
-import ChildrenViewModal from './components/ChildrenViewModal';
-import VansViewModal from './components/VansViewModal';
 import { useUsers } from '@/hooks/useUsers';
 
-interface UserTabProps {
-  userRole: 'driver' | 'parent' | 'van owner' | 'admin';
-  tabTitle: string;
-}
-
-const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
+export default function AllUsersTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
   const [userToUpdate, setUserToUpdate] = useState<any>(null);
   const [newStatus, setNewStatus] = useState<'Active' | 'Inactive'>('Active');
-
-  // Modal states
-  const [isChildrenModalOpen, setIsChildrenModalOpen] = useState(false);
-  const [isVansModalOpen, setIsVansModalOpen] = useState(false);
-  const [selectedChildren, setSelectedChildren] = useState<any[]>([]);
-  const [selectedVans, setSelectedVans] = useState<any[]>([]);
-  const [selectedParentName, setSelectedParentName] = useState('');
-  const [selectedServiceName, setSelectedServiceName] = useState('');
 
   // Modern alert state
   const [alert, setAlert] = useState<{
@@ -59,12 +45,12 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
     setAlert(prev => ({ ...prev, isOpen: false }));
   };
 
-  // Use the custom hook to fetch users
+  // Fetch all users regardless of role
   const { users, loading, error, updateUser, toggleUserStatus } = useUsers({
-    userRole,
+    userRole: 'all' as any,
     searchTerm,
     statusFilter: selectedStatus,
-    roleFilter: ''
+    roleFilter: selectedRole || ''
   });
 
   // Define form fields for the edit user popup
@@ -103,21 +89,7 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
       type: 'text' as const,
       required: false,
       placeholder: 'Enter NIC number'
-    },
-    ...(userRole === 'driver' ? [{
-      name: 'LicenseNumber',
-      label: 'License Number',
-      type: 'text' as const,
-      required: false,
-      placeholder: 'Enter license number'
-    }] : []),
-    ...(userRole === 'van owner' ? [{
-      name: 'ServiceName',
-      label: 'Service Name',
-      type: 'text' as const,
-      required: false,
-      placeholder: 'Enter service name'
-    }] : [])
+    }
   ];
 
   const editActionButtons = [
@@ -137,36 +109,29 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
   const handleClearFilters = () => {
     setSearchTerm('');
     setSelectedStatus('');
+    setSelectedRole('');
   };
 
-  const handleEdit = (row: Record<string, string | number | boolean | null | undefined>) => {
-    setSelectedUser(row);
+  const handleEdit = (user: any) => {
+    setSelectedUser(user);
     setIsEditPopupOpen(true);
   };
 
-  const handleStatusToggle = (row: Record<string, string | number | boolean | null | undefined>) => {
-    const user = row as any;
+  const handleStatusToggle = (user: any) => {
+    // Prevent toggling for admin users
+    if (user.Role === 'admin') {
+      return;
+    }
+    
     setUserToUpdate(user);
     setNewStatus(user.Status === 'Active' ? 'Inactive' : 'Active');
     setIsStatusConfirmOpen(true);
   };
 
-  const handleViewChildren = (row: any) => {
-    setSelectedChildren(row.Children || []);
-    setSelectedParentName(row.Name);
-    setIsChildrenModalOpen(true);
-  };
-
-  const handleViewVans = (row: any) => {
-    setSelectedVans(row.Vans || []);
-    setSelectedServiceName(row.ServiceName || row.Name);
-    setIsVansModalOpen(true);
-  };
-
   const confirmStatusChange = async () => {
     if (userToUpdate) {
       try {
-        const success = await toggleUserStatus(userToUpdate.id, newStatus === 'Active');
+        const success = await toggleUserStatus(userToUpdate.User_ID, newStatus === 'Active');
         if (success) {
           showAlert('success', 'Status Updated', `${userToUpdate.Name} has been ${newStatus === 'Active' ? 'activated' : 'deactivated'} successfully!`);
         } else {
@@ -188,10 +153,10 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
     setUserToUpdate(null);
   };
 
-  const handleFormSubmit = async (data: Record<string, string>) => {
+  const handleFormSubmit = async (formData: any) => {
     if (selectedUser) {
       try {
-        const success = await updateUser(selectedUser.id, data);
+        const success = await updateUser(selectedUser.User_ID, formData);
         if (success) {
           showAlert('success', 'User Updated', `${selectedUser.Name}'s information has been updated successfully!`);
           setIsEditPopupOpen(false);
@@ -218,36 +183,6 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
               e.currentTarget.src = '/Images/male_pro_pic_placeholder.png';
             }}
           />
-        </div>
-      );
-    }
-    if (column === 'Children' && value && Array.isArray(value)) {
-      return (
-        <div className="flex items-center gap-2 whitespace-nowrap">
-          <span className="text-sm text-gray-600">{value.length} child{value.length !== 1 ? 'ren' : ''}</span>
-          <button
-            onClick={() => handleViewChildren(row)}
-            className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-xs font-medium shadow-sm flex-shrink-0"
-            title="View children details"
-          >
-            <Eye size={12} />
-            View
-          </button>
-        </div>
-      );
-    }
-    if (column === 'Vans' && value && Array.isArray(value)) {
-      return (
-        <div className="flex items-center gap-2 whitespace-nowrap">
-          <span className="text-sm text-gray-600">{value.length} van{value.length !== 1 ? 's' : ''}</span>
-          <button
-            onClick={() => handleViewVans(row)}
-            className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-xs font-medium shadow-sm flex-shrink-0"
-            title="View vans details"
-          >
-            <Eye size={12} />
-            View
-          </button>
         </div>
       );
     }
@@ -278,6 +213,22 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
         </a>
       );
     }
+    if (column === 'Role' && value) {
+      let displayRole = value === 'service' ? 'van service' : value;
+      displayRole = displayRole === 'teacher' ? 'guardian' : displayRole;
+      return (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          displayRole === 'driver' ? 'bg-blue-100 text-blue-800' :
+          displayRole === 'parent' ? 'bg-green-100 text-green-800' :
+          displayRole === 'van service' ? 'bg-purple-100 text-purple-800' :
+          displayRole === 'admin' ? 'bg-red-100 text-red-800' :
+          displayRole === 'guardian' ? 'bg-orange-100 text-orange-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {displayRole.charAt(0).toUpperCase() + displayRole.slice(1)}
+        </span>
+      );
+    }
     if (column === 'Actions') {
       return (
         <div className="flex items-center gap-3">
@@ -296,6 +247,7 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
             isActive={row.Status === 'Active'}
             onToggle={() => handleStatusToggle(row)}
             size="md"
+            disabled={row.Role === 'admin'}
           />
         </div>
       );
@@ -303,38 +255,13 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
     return String(value ?? '');
   };
 
-  const columns = userRole === 'driver' ? [
-    { key: "ProfilePicture", label: "Photo" },
-    { key: "Name", label: "Name" },
-    { key: "Email", label: "Email" },
-    { key: "Mobile", label: "Phone" },
-    { key: "NIC", label: "NIC" },
-    { key: "LicenseNumber", label: "License No." },
-    { key: "AssignedVan", label: "Assigned Van" },
-    { key: "Actions", label: "Actions" },
-  ] : userRole === 'parent' ? [
+  const columns = [
     { key: "ProfilePicture", label: "Photo" },
     { key: "Name", label: "Name" },
     { key: "Email", label: "Email" },
     { key: "NIC", label: "NIC" },
     { key: "Address", label: "Address" },
-    { key: "Children", label: "Children" },
-    { key: "Actions", label: "Actions" },
-  ] : userRole === 'van owner' ? [
-    { key: "ProfilePicture", label: "Photo" },
-    { key: "Name", label: "Name" },
-    { key: "ServiceName", label: "Service Name" },
-    { key: "Email", label: "Email" },
-    { key: "Mobile", label: "Phone" },
-    { key: "NIC", label: "NIC" },
-    { key: "Vans", label: "Vans" },
-    { key: "Actions", label: "Actions" },
-  ] : [
-    { key: "ProfilePicture", label: "Photo" },
-    { key: "Name", label: "Name" },
-    { key: "User_ID", label: "User ID" },
-    { key: "Email", label: "Email" },
-    { key: "NIC", label: "NIC" },
+    { key: "Role", label: "Role" },
     { key: "Actions", label: "Actions" },
   ];
 
@@ -342,49 +269,66 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
     <div className="p-6">
       {/* Modern Search and Filter Section */}
       <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 mb-6 border border-gray-200">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder={`Search ${tabTitle.toLowerCase()} by name, email, or ID`}
+                placeholder="Search by name, email, or NIC..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all duration-200 bg-white"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               />
             </div>
-          </div>
 
-          {/* Status Filter */}
-          <div className="lg:w-48">
+            {/* Status Filter */}
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all duration-200 bg-white appearance-none"
+                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white appearance-none min-w-[140px]"
               >
                 <option value="">All Status</option>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
+
+            {/* Role Filter */}
+            <div className="relative">
+              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white appearance-none min-w-[140px]"
+              >
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="driver">Driver</option>
+                <option value="parent">Parent</option>
+                <option value="van owner">Van Service Owner</option>
+                <option value="teacher">Guardian</option>
+              </select>
+            </div>
           </div>
 
-          {/* Clear Filters Button */}
-          <button
-            onClick={handleClearFilters}
-            className="px-4 py-3 bg-white text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 flex items-center gap-2 font-medium"
-          >
-            <RefreshCw size={16} />
-            Clear
-          </button>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleClearFilters}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <RefreshCw size={16} />
+              Clear Filters
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error State */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
@@ -404,26 +348,26 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
         <div className="flex items-center justify-center py-12">
           <div className="flex items-center gap-3">
             <Loader2 className="animate-spin text-blue-600" size={24} />
-            <span className="text-gray-600">Loading users...</span>
+            <span className="text-gray-600">Loading all users...</span>
           </div>
         </div>
       )}
 
-      {/* Modern Table */}
-        {!loading && (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <DataTable
-              columns={columns}
-              data={users}
-              renderCell={renderCell}
-            />
-          </div>
-        )}
+      {/* Users Table */}
+      {!loading && (
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <DataTable
+            columns={columns}
+            data={users}
+            renderCell={renderCell}
+          />
+        </div>
+      )}
 
-      {/* Modern Edit User Popup */}
+      {/* Edit User Modal */}
       <ModernPopupForm
         isOpen={isEditPopupOpen}
-        heading={`Edit ${tabTitle}`}
+        heading="Edit User"
         fields={userFormFields}
         actionButtons={editActionButtons}
         initialData={selectedUser || undefined}
@@ -431,7 +375,7 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
         onSubmit={handleFormSubmit}
       />
 
-      {/* Modern Status Change Confirmation Box */}
+      {/* Status Change Confirmation */}
       <ModernConfirmationBox
         isOpen={isStatusConfirmOpen}
         title={`${newStatus === 'Active' ? 'Activate' : 'Deactivate'} User`}
@@ -452,24 +396,6 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
         message={alert.message}
         onClose={closeAlert}
       />
-
-      {/* Children View Modal */}
-      <ChildrenViewModal
-        isOpen={isChildrenModalOpen}
-        onClose={() => setIsChildrenModalOpen(false)}
-        children={selectedChildren}
-        parentName={selectedParentName}
-      />
-
-      {/* Vans View Modal */}
-      <VansViewModal
-        isOpen={isVansModalOpen}
-        onClose={() => setIsVansModalOpen(false)}
-        vans={selectedVans}
-        serviceName={selectedServiceName}
-      />
     </div>
   );
-};
-
-export default UserTab;
+}

@@ -182,9 +182,12 @@ const ModernPopupForm: React.FC<ModernPopupFormProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
       <div 
-        className="bg-white rounded-xl shadow-2xl border border-gray-100 w-full max-w-md max-h-[90vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-md max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modern Header */}
@@ -267,3 +270,5 @@ const ModernPopupForm: React.FC<ModernPopupFormProps> = ({
 };
 
 export default ModernPopupForm;
+
+

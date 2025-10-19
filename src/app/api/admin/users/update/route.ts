@@ -56,6 +56,10 @@ export async function PUT(request: NextRequest) {
       dbUpdateData.district = updateData.District;
     }
 
+    if (updateData.NIC) {
+      dbUpdateData.nic = updateData.NIC;
+    }
+
     // Update the user
     const updatedUser = await prisma.userProfile.update({
       where: { id: userId },
@@ -70,9 +74,36 @@ export async function PUT(request: NextRequest) {
         mobile: true,
         address: true,
         district: true,
-        updatedAt: true
+        nic: true,
+        updatedAt: true,
+        driverProfile: {
+          select: {
+            licenseId: true
+          }
+        },
+        vanService: {
+          select: {
+            serviceName: true
+          }
+        }
       }
     });
+
+    // If updating license number for a driver, update the driver profile
+    if (updateData.LicenseNumber && updatedUser.role === 'DRIVER') {
+      await prisma.driverProfile.update({
+        where: { userId: userId },
+        data: { licenseId: updateData.LicenseNumber }
+      });
+    }
+
+    // If updating service name for a van service owner, update the van service
+    if (updateData.ServiceName && updatedUser.role === 'SERVICE') {
+      await prisma.vanService.update({
+        where: { userId: userId },
+        data: { serviceName: updateData.ServiceName }
+      });
+    }
 
     // Transform the response to match frontend expectations
     const transformedUser = {
@@ -85,6 +116,9 @@ export async function PUT(request: NextRequest) {
       Mobile: updatedUser.mobile || '',
       Address: updatedUser.address || '',
       District: updatedUser.district || '',
+      NIC: updatedUser.nic || '',
+      LicenseNumber: updatedUser.driverProfile?.licenseId || '',
+      ServiceName: updatedUser.vanService?.serviceName || '',
       UpdatedAt: updatedUser.updatedAt
     };
 

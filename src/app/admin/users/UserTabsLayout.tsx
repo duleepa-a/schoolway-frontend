@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Users, UserCheck, UserX, Shield } from 'lucide-react';
+import { Users, UserCheck, UserX } from 'lucide-react';
 import DriversTab from './DriversTab';
 import ParentsTab from './ParentsTab';
 import VanOwnersTab from './VanOwnersTab';
-import AdminsTab from './AdminsTab';
+import AllUsersTab from './AllUsersTab';
 
 const TABS = [
   { key: 'drivers', label: 'Drivers', icon: Users },
+  { key: 'van-owners', label: 'Van Service Owners', icon: UserX },
   { key: 'parents', label: 'Parents', icon: UserCheck },
-  { key: 'van-owners', label: 'Van Owners', icon: UserX },
-  { key: 'admins', label: 'Admins', icon: Shield }
+  { key: 'all-users', label: 'All Users', icon: Users }
 ];
 
 export default function UserTabsLayout() {
@@ -76,13 +76,13 @@ export default function UserTabsLayout() {
         </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        {activeTab === 'drivers' && <DriversTab />}
-        {activeTab === 'parents' && <ParentsTab />}
-        {activeTab === 'van-owners' && <VanOwnersTab />}
-        {activeTab === 'admins' && <AdminsTab />}
-      </div>
+        {/* Tab Content */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+          {activeTab === 'drivers' && <DriversTab />}
+          {activeTab === 'van-owners' && <VanOwnersTab />}
+          {activeTab === 'parents' && <ParentsTab />}
+          {activeTab === 'all-users' && <AllUsersTab />}
+        </div>
     </div>
   );
 }

@@ -5,7 +5,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12-Oct-25_11_24_AM_[Changes]1/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12-Oct-25_11_24_AM__Changes_1.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12-Oct-25_3_11_PM_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12-Oct-25_3_11_PM__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12-Oct-25_3_13_PM_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12-Oct-25_3_13_PM__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/components/sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/components/sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/AdminUsersPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/AdminUsersPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/AdminsTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/AdminsTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/DriversTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/DriversTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/ModernConfirmationBox.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/ModernConfirmationBox.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/ModernPopupForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/ModernPopupForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/ParentsTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/ParentsTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/UserTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/UserTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/UserTabsLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/UserTabsLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/users/VanOwnersTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/users/VanOwnersTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/admin/users/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/users/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/admin/users/status/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/users/status/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/admin/users/update/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/users/update/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/child/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/details/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hooks/useUsers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/hooks/useUsers.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,7 +180,8 @@
       <workItem from="1760638245673" duration="3405000" />
       <workItem from="1760758692819" duration="7893000" />
       <workItem from="1760801360201" duration="2194000" />
-      <workItem from="1760844092699" duration="7128000" />
+      <workItem from="1760844092699" duration="8782000" />
+      <workItem from="1760868089145" duration="6323000" />
     </task>
     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
       <option name="closed" value="true" />
