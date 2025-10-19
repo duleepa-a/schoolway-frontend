@@ -6,36 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/guardian/GuradianPageContent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/reviews/ReviewsPageContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/reviews/ReviewsPageContent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/reviews/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/reviews/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/admin/guardian/route.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/guardian/route.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/admin/schools/SchoolGuardians/[schoolId]/route.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/schools/SchoolGuardians/[schoolId]/route.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/admin/schools/getGuardians/route.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/schools/getGuardians/route.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/child/QRcode/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/QRcode/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/child/childView/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/childView/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/child/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/child/parent/[...id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/parent/[...id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/child/publicView/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/publicView/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/mobile/driver/vanInfo/[driverId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/mobile/driver/vanInfo/[driverId]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/parent/[...id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/parent/[...id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/reviews/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/reviews/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/users/mobile-update-password/[...id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/users/mobile-update-password/[...id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/vans/[id]/path/route.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/vans/[id]/path/route.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/vans/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/vans/child/van-request/childRequest/[childId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/vans/child/van-request/childRequest/[childId]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/components/TextEditor.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/components/TextEditor.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/dashboardComponents/TopBarContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/dashboardComponents/TopBarContent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/prisma.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/prisma.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -184,7 +154,9 @@
       <workItem from="1759730535216" duration="1632000" />
       <workItem from="1760552068783" duration="3555000" />
       <workItem from="1760638245673" duration="3405000" />
-      <workItem from="1760758692819" duration="7175000" />
+      <workItem from="1760758692819" duration="7893000" />
+      <workItem from="1760801360201" duration="2194000" />
+      <workItem from="1760844092699" duration="1161000" />
     </task>
     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
       <option name="closed" value="true" />
