@@ -16,6 +16,8 @@ type GroupedPayroll = {
   totalAmount: number;
   recipientId: string;
   recipientRole: string;
+  month: string;
+  year: string;
   payrollCount: number; // Track how many payroll entries were summed
 };
 
@@ -105,6 +107,7 @@ export async function GET() {
           month: "long",
           year: "numeric",
         });
+        const [month, year] = monthYear.split(" ");
 
         const payrollAmount = p.amount || 0;
 
@@ -115,6 +118,8 @@ export async function GET() {
         return {
           id: p.id,
           monthYear,
+          month,
+          year,
           date: p.createdAt.toISOString(),
           amount: payrollAmount,
           firstname: user?.firstname || null,
@@ -150,6 +155,8 @@ export async function GET() {
               record.lastname || ""
             }`.trim(),
             role: record.role,
+            month: record.month,
+            year: record.year,
             vanServiceName: record.vanServiceName,
             accountNo: record.accountNo,
             bank: record.bank,

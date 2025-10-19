@@ -19,10 +19,10 @@ export async function GET(
         status: "PENDING",
       },
       include: {
-        child: {
+        Child: {
           select: { name: true, grade: true, feeAmount: true },
         },
-        van: {
+        Van: {
           select: { makeAndModel: true, registrationNumber: true },
         },
       },
@@ -39,10 +39,10 @@ export async function GET(
         },
       },
       include: {
-        child: {
+        Child: {
           select: { name: true, grade: true, feeAmount: true },
         },
-        van: {
+        Van: {
           select: { makeAndModel: true, registrationNumber: true },
         },
       },
@@ -50,8 +50,8 @@ export async function GET(
     });
 
     // Merge arrays and remove duplicates (in case a payment is both pending and this month)
-    const mergedPaymentsMap = new Map<string, typeof pendingPayments[0]>();
-    [...pendingPayments, ...currentMonthPayments].forEach(payment => {
+    const mergedPaymentsMap = new Map<string, (typeof pendingPayments)[0]>();
+    [...pendingPayments, ...currentMonthPayments].forEach((payment) => {
       mergedPaymentsMap.set(payment.id.toString(), payment);
     });
 
@@ -60,6 +60,9 @@ export async function GET(
     return NextResponse.json(mergedPayments);
   } catch (error) {
     console.error("❌ Error fetching payments:", error);
-    return NextResponse.json({ error: "Failed to fetch payments" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch payments" },
+      { status: 500 }
+    );
   }
 }

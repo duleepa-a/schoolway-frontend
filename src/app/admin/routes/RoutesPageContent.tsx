@@ -15,14 +15,13 @@ export default function RoutesPageContent() {
   const [selectedVan, setSelectedVan] = useState<VanDetails | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<string>("");
 
   const router = useRouter();
 
   useEffect(() => {
     const fetchVans = async () => {
       try {
-        const res = await fetch("/api/admin/applications/vans");
+        const res = await fetch("/api/admin/routes/vans");
         if (!res.ok) {
           console.error("Failed to fetch vans. Status:", res.status);
           return;
@@ -46,14 +45,12 @@ export default function RoutesPageContent() {
         console.error("Failed to fetch vans:", error);
       }
     };
-
     fetchVans();
   }, []);
 
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedStatus("");
-    setSelectedRole("");
   };
 
   const filteredVans = vans.filter((van) => {
@@ -83,10 +80,12 @@ export default function RoutesPageContent() {
     <>
       <SearchFilter
         onSearchChange={setSearchTerm}
-        onRoleChange={setSelectedRole}
         onStatusChange={setSelectedStatus}
+        onRoleChange={() => {}}
+        onDateChange={() => {}}
         onClearFilters={handleClearFilters}
         config={{
+          SearchBarCss: "min-w-[400px] sm:min-w-[500px] ml-",
           searchPlaceholder:
             "Search vans... (service, owner, email, contact, plate)",
           roleOptions: undefined,
@@ -107,6 +106,7 @@ export default function RoutesPageContent() {
         columns={[
           { key: "serviceName", label: "Van Service Name" },
           { key: "ownerName", label: "Owner Name" },
+          { key: "id", label: "Van ID" },
           { key: "email", label: "Email" },
           { key: "contact", label: "Contact No" },
           { key: "isApproved", label: "Status" },

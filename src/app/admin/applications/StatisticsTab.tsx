@@ -98,11 +98,6 @@ export default function StatisticsTab() {
           text="Rejected"
           number={loading ? 0 : stats?.drivers?.rejected ?? 0}
         />{" "}
-        <StatCard
-          icon={<FaRedo className="text-xl" />}
-          text="Re-submitted"
-          number={loading ? 0 : stats?.drivers?.resubmitted ?? 0}
-        />{" "}
       </div>
 
       <div className="grid grid-cols-5 gap-4">{/* StatCards here */}</div>
@@ -135,11 +130,6 @@ export default function StatisticsTab() {
           text="Rejected"
           number={loading ? 0 : stats?.vans?.rejected ?? 0}
         />{" "}
-        <StatCard
-          icon={<FaRedo className="text-xl" />}
-          text="Re-submitted"
-          number={loading ? 0 : stats?.vans?.resubmitted ?? 0}
-        />{" "}
       </div>
 
       <div className="grid grid-cols-5 gap-4 mb-10">{/* StatCards here */}</div>
@@ -156,10 +146,6 @@ export default function StatisticsTab() {
         </div>
 
         {/* Full-height dense section (right column) */}
-      </div>
-
-      <div className="row-span-2 dashboard-section-card">
-        <ActivityFeed />
       </div>
     </div>
   );

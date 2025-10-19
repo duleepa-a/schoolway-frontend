@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import SearchFilter from "@/app/dashboardComponents/SearchFilter";
 import CustomTable from "@/app/dashboardComponents/CustomTable";
 import { FileText, CheckCircle } from "lucide-react";
+import React from "react";
 
 //  Define the structure of a payroll record
 interface PayrollRecord {
@@ -24,6 +25,8 @@ interface PayrollRecord {
   recipientId?: string;
   recipientRole?: string;
   monthYear?: string;
+  month?: string;
+  year?: string;
 }
 
 // Bank fields structure for editing
@@ -36,7 +39,22 @@ interface BankFields {
 // Student structure
 interface Student {
   id: string;
+  childId?: number;
   name: string;
+  amountPaid?: number;
+  totalSystemFee?: number;
+  totalDriverShare?: number;
+  totalOwnerShare?: number;
+  allocatedToRecipient?: number;
+  payments?: {
+    id: number;
+    amount: number;
+    systemFee: number;
+    salaryPercentageForDriver?: number | null;
+    driverShare: number;
+    ownerShare: number;
+    parentId: string;
+  }[];
   // Add other student fields as needed
 }
 
@@ -51,7 +69,17 @@ export default function PayrollPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+
+  // Helper to format amounts with two decimal places
+  const formatAmount = (value: number | undefined | null) => {
+    const num = Number(value ?? 0) || 0;
+    return new Intl.NumberFormat(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(num);
+  };
 
   // Modal states
   const [modalType, setModalType] = useState<"view" | "settle" | null>(null);
@@ -73,7 +101,7 @@ export default function PayrollPage() {
           throw new Error("Failed to fetch payroll data");
         }
         const data = await res.json();
-        console.log("-----------------------------", data);
+        // console.log("-----------------------------", data);
         setPayrolls(data); ///stores payroll data
       } catch (err) {
         console.error("Error fetching payrolls:", err);
@@ -106,20 +134,34 @@ export default function PayrollPage() {
         (p.status &&
           p.status.toLowerCase().includes(selectedStatus.toLowerCase()));
 
-      //  Check if date matches selected date filter
-      const matchesDate =
-        selectedDate === "" || (p.date && p.date === selectedDate);
+      // month & year filters
+      const matchesMonth =
+        selectedMonth === "" || (p.month && p.month === selectedMonth);
+      const matchesYear =
+        selectedYear === "" || (p.year && p.year === selectedYear);
 
       //  Return true only if ALL filters match
-      return matchesSearch && matchesRole && matchesStatus && matchesDate;
+      return (
+        matchesSearch &&
+        matchesRole &&
+        matchesStatus &&
+        matchesMonth &&
+        matchesYear
+      );
     });
-  }, [payrolls, searchTerm, selectedRole, selectedStatus, selectedDate]);
+  }, [
+    payrolls,
+    searchTerm,
+    selectedRole,
+    selectedStatus,
+    selectedMonth,
+    selectedYear,
+  ]);
 
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedRole("");
     setSelectedStatus("");
-    setSelectedDate("");
   };
 
   const columns = [
@@ -128,7 +170,8 @@ export default function PayrollPage() {
     { key: "vanServiceName", label: "Van Service" },
     { key: "totalAmount", label: "Total Amount" },
     { key: "status", label: "Status" },
-    { key: "monthYear", label: "Month" },
+    { key: "month", label: "Month" },
+    { key: "year", label: "Year" },
   ];
 
   // VIEW PAYROLL DETAILS HANDLER
@@ -138,8 +181,19 @@ export default function PayrollPage() {
 
     (async () => {
       try {
-        //  Fetch detailed payroll information
-        const res = await fetch(`/api/admin/payroll/childDetails`);
+        // Fetch detailed payroll information for this recipient and month/year
+        const month = row.month || row.monthYear?.split(" ")?.[0] || "";
+        const year = row.year || row.monthYear?.split(" ")?.[1] || "";
+        const params = new URLSearchParams({
+          recipientId: row.recipientId || "",
+          recipientRole: row.recipientRole || row.role || "",
+          month,
+          year,
+        });
+
+        const res = await fetch(
+          `/api/admin/payroll/childDetails?${params.toString()}`
+        );
         if (res.ok) {
           const data = await res.json();
           setStudentsList(data.students || []);
@@ -149,6 +203,8 @@ export default function PayrollPage() {
             bank: row.bank || "",
             branch: row.branch || "",
           });
+        } else {
+          console.error("Failed loading child details", await res.text());
         }
       } catch (err) {
         //  Log error but don't show alert (non-critical)
@@ -179,7 +235,11 @@ export default function PayrollPage() {
           // send the payroll record id (grouped payroll id), not the recipient's user id
           payrollId: selectedPayroll.id,
           // include month info so the server can settle all related transactions
-          month: (selectedPayroll.monthYear || selectedPayroll.date || "").toString(),
+          month: (
+            selectedPayroll.monthYear ||
+            selectedPayroll.date ||
+            ""
+          ).toString(),
           recipientId: selectedPayroll.recipientId,
         }),
       });
@@ -188,11 +248,15 @@ export default function PayrollPage() {
       if (!res.ok) throw new Error(data?.error || "Failed to settle payroll");
 
       // Update local state: mark all payrolls that match the recipientId and month as Settled
-      const monthToMatch = (selectedPayroll.monthYear || selectedPayroll.date || "").toString();
+      const monthToMatch = (
+        selectedPayroll.monthYear ||
+        selectedPayroll.date ||
+        ""
+      ).toString();
       setPayrolls((prev) =>
         prev.map((p) =>
           p.recipientId === selectedPayroll.recipientId &&
-          ((p.monthYear || p.date || "").toString() === monthToMatch)
+          (p.monthYear || p.date || "").toString() === monthToMatch
             ? { ...p, status: "Settled" }
             : p
         )
@@ -213,7 +277,7 @@ export default function PayrollPage() {
       // Handle errors
       console.error("Error settling payroll:", err);
 
-      // 🚨 Show error alert
+      //  Show error alert
       Swal.fire({
         icon: "error",
         title: "Failed",
@@ -285,7 +349,7 @@ export default function PayrollPage() {
 
   // LOADING STATE
 
-  // ⏳ Show loading message while data is being fetched
+  //  Show loading message while data is being fetched
   if (loading) {
     return <p className="text-center p-4">Loading payrolls...</p>;
   }
@@ -297,13 +361,15 @@ export default function PayrollPage() {
         onSearchChange={setSearchTerm}
         onRoleChange={setSelectedRole}
         onStatusChange={setSelectedStatus}
-        onDateChange={setSelectedDate}
+        onDateChange={() => {}}
+        onMonthChange={setSelectedMonth}
+        onYearChange={setSelectedYear}
         onClearFilters={handleClearFilters}
         config={{
           searchPlaceholder: "Search by name, account, or bank",
           showAddButton: false,
-          showDateFilter: true,
           showClearButton: true,
+          showDateFilter: false,
           roleOptions: [
             { value: "", label: "Role" },
             { value: "Driver", label: "Driver" },
@@ -312,9 +378,20 @@ export default function PayrollPage() {
           statusOptions: [
             { value: "", label: "Status" },
             { value: "Pending", label: "Pending" },
-            { value: "Settled", label: "Settled" },
-            { value: "Processing", label: "Processing" },
-            { value: "Failed", label: "Failed" },
+            { value: "Completed", label: "Completed" },
+          ],
+          // derive month/year options from payrolls
+          monthOptions: [
+            { value: "", label: "Month" },
+            ...Array.from(
+              new Set(payrolls.map((p) => p.month).filter(Boolean))
+            ).map((m) => ({ value: m as string, label: m as string })),
+          ],
+          yearOptions: [
+            { value: "", label: "Year" },
+            ...Array.from(
+              new Set(payrolls.map((p) => p.year).filter(Boolean))
+            ).map((y) => ({ value: y as string, label: y as string })),
           ],
         }}
       />
@@ -322,6 +399,17 @@ export default function PayrollPage() {
       <CustomTable
         columns={columns}
         data={filteredPayrolls}
+        // Render amounts with two decimal places
+        renderCell={(column, value, row) => {
+          if (column === "totalAmount" || column === "amount") {
+            const num = Number(value ?? row.amount ?? row.totalAmount ?? 0);
+            return new Intl.NumberFormat(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(num);
+          }
+          return String(value ?? "");
+        }}
         actions={[
           {
             type: "custom",
@@ -405,8 +493,9 @@ export default function PayrollPage() {
                   <span>Amount</span>
                   <span className="font-semibold">
                     LKR{" "}
-                    {selectedPayroll.totalAmount?.toLocaleString?.() ??
-                      selectedPayroll.totalAmount}
+                    {formatAmount(
+                      selectedPayroll.totalAmount ?? selectedPayroll.amount
+                    )}
                   </span>
                 </div>
 
@@ -484,7 +573,7 @@ export default function PayrollPage() {
                             })
                           }
                         />
-                        {/* 🔘 Action buttons */}
+                        {/* Action buttons */}
                         <div className="flex gap-2">
                           {/*  Save button */}
                           <button
@@ -519,8 +608,93 @@ export default function PayrollPage() {
             {/*  Children/Students count (if loaded) */}
             {studentsList.length > 0 && (
               <div className="mb-4 text-sm text-gray-700">
-                <span className="font-medium text-[#0099cc]">Children:</span>{' '}
-                <span>{studentsList.length} child(ren) included in this payroll</span>
+                <span className="font-medium text-[#0099cc]">Children:</span>{" "}
+                <span>
+                  {studentsList.length} child(ren) included in this payroll
+                </span>
+                <div className="mt-3 border rounded bg-white p-3">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-gray-600">
+                        <th className="pb-2">Child</th>
+                        <th className="pb-2 text-right">Paid Amount</th>
+                        <th className="pb-2 text-right">System Fee</th>
+                        <th className="pb-2 text-right">Allocated</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentsList.map((s: Student) => (
+                        <React.Fragment key={s.childId}>
+                          <>
+                            <tr key={s.childId} className="border-t">
+                              <td className="py-2 align-top">{s.name}</td>
+                              <td className="py-2 text-right font-semibold align-top">
+                                LKR {formatAmount(s.amountPaid)}
+                              </td>
+                              <td className="py-2 text-right font-semibold align-top">
+                                LKR {formatAmount(s.totalSystemFee)}
+                              </td>
+                              <td className="py-2 text-right font-semibold align-top">
+                                LKR {formatAmount(s.allocatedToRecipient)}
+                              </td>
+                            </tr>
+
+                            {/* Per-payment breakdown for this child */}
+                            {s.payments && s.payments.length > 0 && (
+                              <tr key={`payments-${s.childId}`}>
+                                <td colSpan={4} className="bg-gray-50">
+                                  <div className="p-3">
+                                    <div className="text-xs text-gray-600 mb-2 font-medium">
+                                      Payment breakdown
+                                    </div>
+                                    <table className="w-full text-xs">
+                                      <thead>
+                                        <tr className="text-left text-gray-500">
+                                          <th className="pb-1">Payment ID</th>
+                                          <th className="pb-1 text-right">
+                                            Amount
+                                          </th>
+                                          <th className="pb-1 text-right">
+                                            System Fee
+                                          </th>
+                                          <th className="pb-1 text-right">
+                                            Driver Share
+                                          </th>
+                                          <th className="pb-1 text-right">
+                                            Owner Share
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {s.payments.map((p) => (
+                                          <tr key={p.id} className="border-t">
+                                            <td className="py-1">{p.id}</td>
+                                            <td className="py-1 text-right">
+                                              LKR {formatAmount(p.amount)}
+                                            </td>
+                                            <td className="py-1 text-right">
+                                              LKR {formatAmount(p.systemFee)}
+                                            </td>
+                                            <td className="py-1 text-right">
+                                              LKR {formatAmount(p.driverShare)}
+                                            </td>
+                                            <td className="py-1 text-right">
+                                              LKR {formatAmount(p.ownerShare)}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -552,7 +726,7 @@ export default function PayrollPage() {
 
       {selectedPayroll && modalType === "settle" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {/* 🎭 Backdrop - clicking it closes the modal */}
+          {/*  Backdrop - clicking it closes the modal */}
           <div
             className="absolute inset-0"
             onClick={() => {
@@ -595,10 +769,9 @@ export default function PayrollPage() {
                 <span className="font-medium">Amount</span>
                 <span>
                   LKR{" "}
-                  {(
-                    selectedPayroll.totalAmount || selectedPayroll.amount
-                  )?.toLocaleString?.() ??
-                    (selectedPayroll.totalAmount || selectedPayroll.amount)}
+                  {formatAmount(
+                    selectedPayroll.totalAmount ?? selectedPayroll.amount
+                  )}
                 </span>
               </div>
               <div className="flex justify-between mt-2">

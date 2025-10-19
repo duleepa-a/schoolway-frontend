@@ -7,8 +7,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         UserProfile: true,
-        child: true,
-        van: true,
+        Child: true,
+        Van: true,
       },
     });
 
@@ -16,9 +16,15 @@ export async function GET() {
     const data = payments.map((p) => ({
       PaymentID: p.id.toString(),
       ParentID: p.parentId,
-      FullName: p.UserProfile ? `${p.UserProfile.firstname || ""} ${p.UserProfile.lastname || ""}`.trim() : "",
+      FullName: p.UserProfile
+        ? `${p.UserProfile.firstname || ""} ${
+            p.UserProfile.lastname || ""
+          }`.trim()
+        : "",
       VanID: p.vanId?.toString() ?? "",
-      Date: p.createdAt ? p.createdAt.toISOString() : null,
+      Date: p.createdAt
+        ? p.createdAt.toISOString().split("T")[0] // "2025-10-18"
+        : null,
       Status: p.status,
       Amount: p.amount,
       Month: p.month,

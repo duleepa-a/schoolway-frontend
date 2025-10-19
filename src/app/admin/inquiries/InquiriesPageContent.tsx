@@ -3,16 +3,16 @@
 import { useState, useEffect, useMemo } from "react";
 import SearchFilter from "@/app/dashboardComponents/SearchFilter";
 import DataTable from "@/app/dashboardComponents/CustomTable";
-import { inquiriesData as dummyData } from "../../../../public/dummy_data/inquiriesData";
 import { FileText, FileCheck } from "lucide-react";
 import Swal from "sweetalert2";
 
 const columns = [
   { key: "FullName", label: "Full Name" },
   { key: "Subject", label: "Subject" },
-  { key: "Status", label: "Status" },
   { key: "Role", label: "Role" },
+  { key: "Type", label: "Request Type" },
   { key: "Date", label: "Date" },
+  { key: "Status", label: "Status" },
 ];
 
 interface Inquiry {
@@ -21,6 +21,7 @@ interface Inquiry {
   Subject: string;
   Status: string;
   Role: string;
+  Type: string;
   Date: string;
   Message: string;
   Email: string;
@@ -54,6 +55,7 @@ const InquiriesPageContent = () => {
           message: string;
           email: string;
           userType: string;
+          Type: string;
           status: string;
           createdAt: string;
         };
@@ -62,7 +64,18 @@ const InquiriesPageContent = () => {
           FullName: d.name,
           Subject: d.subject,
           Status: d.status,
-          Role: d.userType,
+          Role:
+            d.userType.charAt(0).toUpperCase() +
+            d.userType.slice(1).toLowerCase(),
+          Type: d.Type
+            ? d.Type.split("_") // split into words
+                .map(
+                  (word) =>
+                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                )
+                .join(" ") // join back as normal text
+            : "",
+
           Email: d.email,
           Date: new Date(d.createdAt).toISOString().split("T")[0],
           Message: d.message,
@@ -86,7 +99,8 @@ const InquiriesPageContent = () => {
       const matchesSearch =
         searchTerm === "" ||
         inquiry.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inquiry.Subject.toLowerCase().includes(searchTerm.toLowerCase());
+        inquiry.Subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inquiry.Type.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesRole = selectedRole === "" || inquiry.Role === selectedRole;
       const matchesStatus =
@@ -138,7 +152,7 @@ const InquiriesPageContent = () => {
       setReplySubject("");
       setReplyBody("");
 
-      // ✅ SweetAlert2 success popup
+      //  SweetAlert2 success popup
       Swal.fire({
         icon: "success",
         title: "Reply Sent",
@@ -173,8 +187,9 @@ const InquiriesPageContent = () => {
         onDateChange={() => {}}
         onClearFilters={handleClearFilters}
         config={{
+          SearchBarCss: "min-w-[350px] sm:min-w-[400px]",
           showAddButton: false,
-          searchPlaceholder: "Search by name or subject",
+          searchPlaceholder: "Search by name or subject or request type...",
           addButtonText: "",
           statusOptions: [
             { value: "", label: "Status" },
@@ -281,7 +296,18 @@ const InquiriesPageContent = () => {
                   {selectedInquiry.Date}
                 </span>
               </div>
+              {/*  Request Type */}
+              <div className="flex justify-between">
+                <span className="text-[#0099cc] font-bold font-medium">
+                  Request Type:
+                </span>
+                <span className="font-semibold text-gray-900 text-right">
+                  {selectedInquiry.Type.charAt(0).toUpperCase() +
+                    selectedInquiry.Type.slice(1)}
+                </span>
+              </div>
             </div>
+
             {/* Subject */}
             <div className="mb-2">
               <h4 className="text-[#0099cc] font-bold font-medium mb-2">

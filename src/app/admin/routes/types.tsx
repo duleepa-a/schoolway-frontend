@@ -16,7 +16,8 @@ export type VanDetails = {
     fitnessCertificateUrl: string;
     insuranceCertificateUrl: string;
     photoUrl: string;
-    isApproved: string; 
+    isApproved: string;
+    createdAt?: string;
   
     ownerName: string;
     ownerDistrict: string;

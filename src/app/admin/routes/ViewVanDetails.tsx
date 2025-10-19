@@ -1,16 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  X,
-  MapPin,
-  Mail,
-  Phone,
-  FileText,
-  Truck,
-  Calendar,
-  User,
-} from "lucide-react";
+import { X, MapPin, FileText, Truck, Calendar } from "lucide-react";
 import { VanDetails } from "./types";
 
 type ViewVanDetailsProps = {
@@ -120,7 +111,9 @@ export default function ViewVanDetails({ van, onClose }: ViewVanDetailsProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar size={16} className="text-[#0099cc]" />{" "}
-                  {new Date(van.createdAt).toLocaleDateString()}
+                  {van.createdAt
+                    ? new Date(van.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </div>
                 <div className="flex items-center gap-2">
                   <FileText size={16} className="text-[#0099cc]" /> Status:{" "}
@@ -173,10 +166,6 @@ export default function ViewVanDetails({ van, onClose }: ViewVanDetailsProps) {
                 <DetailLink
                   label="Insurance Certificate"
                   url={van.insuranceCertificateUrl}
-                />
-                <DetailLink
-                  label="Business Document"
-                  url={van.businessDocument}
                 />
               </div>
             )}
