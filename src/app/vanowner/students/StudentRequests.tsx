@@ -1,10 +1,11 @@
 // components/StudentRequests.tsx
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import StudentEnrollmentCard from "./StudentEnrollmentCard";
-import { FaSearch, FaChevronDown, FaTimes, FaMapMarkerAlt, FaSchool, FaCar, FaCalendar, FaUser, FaStickyNote } from 'react-icons/fa';
+import { FaSearch, FaChevronDown, FaTimes, FaMapMarkerAlt, FaSchool, FaCar, FaCalendar, FaUser, FaStickyNote, FaMapMarked } from 'react-icons/fa';
 import TablePagination from '@/app/components/TablePagination';
 import Image from 'next/image';
+import LocationsMap from '@/app/components/LocationsMap';
 
 type RequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
 
@@ -46,6 +47,7 @@ const StudentRequests = () => {
       setLoading(true);
       setError(null);
       try {
+        console.log('Fetching student requests...');
         const res = await fetch('/api/vanowner/student-requests', {
           headers: {
             'Content-Type': 'application/json',
@@ -53,16 +55,36 @@ const StudentRequests = () => {
           },
         });
 
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body?.error || 'Failed to fetch');
+        console.log('Response status:', res.status);
+        
+        // Try to get the response body regardless of status code
+        let body;
+        try {
+          body = await res.json();
+          console.log('Response body:', body);
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+          body = {};
         }
 
-        const data: StudentRequest[] = await res.json();
+        if (!res.ok) {
+          const errorMessage = body?.error || body?.message || `Error ${res.status}: ${res.statusText}`;
+          console.error('Request failed with status', res.status, errorMessage);
+          throw new Error(errorMessage);
+        }
+
+        if (!Array.isArray(body)) {
+          console.error('Expected array response, got:', typeof body);
+          throw new Error('Invalid response format');
+        }
+
+        const data: StudentRequest[] = body;
+        console.log('Successfully fetched', data.length, 'student requests');
         setRequests(data);
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || 'Something went wrong');
+      } catch (err) {
+        console.error('Error fetching student requests:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -73,6 +95,16 @@ const StudentRequests = () => {
 
   const openDetails = (id: string) => {
     const r = requests.find((x) => x.id === id) ?? null;
+    
+    // Debug logging for the selected request
+    console.log('Selected Request Details:', {
+      id: r?.id,
+      student: r?.child.name,
+      pickupLocation: r?.child.pickupAddress,
+      school: r?.child.school?.name,
+      fullRequest: r
+    });
+    
     setSelectedRequest(r);
     setIsModalOpen(!!r);
   };
@@ -250,6 +282,38 @@ const StudentRequests = () => {
                     <h4 className="text-lg font-semibold">Request Date</h4>
                   </div>
                   <p className="text-gray-700">{formatDate(selectedRequest.createdAt)}</p>
+                </div>
+              </div>
+
+              {/* Add the map to show pickup and school locations */}
+              <div className="mt-6">
+                <div className="flex items-center text-blue-600 mb-3">
+                  <FaMapMarked className="text-xl mr-2" />
+                  <h4 className="text-lg font-semibold">Route Map</h4>
+                </div>
+                {/* Add error boundary for the map component */}
+                <div className="relative">
+                  {/* If pickup address or school is missing, display a message */}
+                  {(!selectedRequest.child.pickupAddress && !selectedRequest.child.school?.name) ? (
+                    <div className="bg-gray-100 p-4 rounded-lg text-center text-gray-600">
+                      <p>No location information available</p>
+                    </div>
+                  ) : (
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                          <p className="text-gray-600">Loading map...</p>
+                        </div>
+                      </div>
+                    }>
+                      <LocationsMap 
+                        key={`map-${selectedRequest.id}`} // Add key to force remount
+                        pickupLocation={selectedRequest.child.pickupAddress}
+                        schoolLocation={selectedRequest.child.school?.name}
+                      />
+                    </Suspense>
+                  )}
                 </div>
               </div>
 
