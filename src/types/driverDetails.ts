@@ -2,8 +2,8 @@ export interface DriverDetails {
   id: string;
   name: string;
   profilePic: string;
+  city: string;
   district: string;
-  city : string;
   contactNumber: string;
   nic: string;
   licenseNumber: string;
@@ -12,6 +12,7 @@ export interface DriverDetails {
   rating: number;
   totalReviews: number;
   email: string;
+  hasVan: boolean;  // Add this field
   documents: {
     driverLicense: string;
     policeReport: string;

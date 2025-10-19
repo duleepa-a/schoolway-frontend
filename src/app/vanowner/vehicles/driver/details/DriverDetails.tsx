@@ -81,6 +81,7 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                 }
                 
                 const data: DriverDetailsResponse = await response.json();
+                console.log('Fetched driver details:', data);
                 setDriver(data.driver);
             } catch (error) {
                 console.error('Error fetching driver details:', error);
@@ -215,41 +216,54 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
     };
 
     const renderJobOfferButton = () => {
-        if (checkingOffer) {
-            return (
-                <button 
-                disabled = {true}
-                className='w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'>
-                    <div className="flex items-center justify-center">
-                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Loading...
-                    </div>
-                </button>
-            )
-        }
-
-        if (hasExistingOffer) {
-            return (
-                <button 
-                disabled = {true}
-                className='flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg  transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center space-x-2 '>
-                    <FaCheck className="text-green-400" />
-                    <div className="flex items-center justify-center">                        
-                        Already Sent
-                    </div>
-                </button>
-            );
-        }
-
+      if (checkingOffer) {
         return (
-            <button 
-            onClick={handleSendJobOffer}
-            className="flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 items-center justify-center space-x-2 hover:cursor-pointer"
-            >
-            <FaPaperPlane />
-            <span>Send Job Offer</span>
-            </button>
+          <button 
+            disabled={true}
+            className='w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'>
+            <div className="flex items-center justify-center">
+              <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Loading...
+            </div>
+          </button>
         );
+      }
+
+      if (driver?.hasVan) {
+        return (
+          <button 
+            disabled={true}
+            className='flex w-full lg:w-auto bg-gray-900 text-white px-8 py-4 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center space-x-2'>
+            <FaCheck className="text-yellow-400" />
+            <div className="flex items-center justify-center">
+              Already Has a Van
+            </div>
+          </button>
+        );
+      }
+
+      if (hasExistingOffer) {
+        return (
+          <button 
+            disabled={true}
+            className='flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center space-x-2'>
+            <FaCheck className="text-green-400" />
+            <div className="flex items-center justify-center">                        
+              Already Sent
+            </div>
+          </button>
+        );
+      }
+
+      return (
+        <button 
+          onClick={handleSendJobOffer}
+          className="flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 items-center justify-center space-x-2 hover:cursor-pointer"
+        >
+          <FaPaperPlane />
+          <span>Send Job Offer</span>
+        </button>
+      );
     };
 
     if (loading) {

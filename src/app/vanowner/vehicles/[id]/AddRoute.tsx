@@ -35,44 +35,57 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
     useEffect(() => {
       async function fetchPath() {
         setLoading(true);
-        const res = await fetch(`/api/vans/${vehicleId}/path`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data) {
-            setPath(data);
-            // If waypoints exist, set them
-            if (Array.isArray(data.waypoints) && data.waypoints.length > 0) {
-              setWaypoints(
-                data.waypoints
-                  .sort((a, b) => a.order - b.order)
-                  .map(wp => ({
-                    name: wp.name,
-                    placeId: wp.placeId,
-                    latitude: wp.latitude,
-                    longitude: wp.longitude,
-                    order: wp.order,
-                    isStop: wp.isStop,
-                  }))
-              );
-              // Set start and end from first and last waypoint
-              const first = data.waypoints[0];
-              const last = data.waypoints[data.waypoints.length - 1];
-              setRouteStart({ lat: first.latitude, lng: first.longitude });
-              setRouteEnd({ lat: last.latitude, lng: last.longitude });
-              if (startInputRef.current) {
-                startInputRef.current.value = first.name || '';
+        try {
+          const res = await fetch(`/api/vans/${vehicleId}/path`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data) {
+              setPath(data);
+              console.log('Fetched path data:', data);
+              
+              // Set route start and end points
+              if (data.routeStart) {
+                setRouteStart(data.routeStart);
+                if (startInputRef.current) {
+                  // You'll need to reverse geocode to get the address
+                  reverseGeocode(data.routeStart, startInputRef);
+                }
               }
-              if (endInputRef.current) {
-                endInputRef.current.value = last.name || '';
+              
+              if (data.routeEnd) {
+                setRouteEnd(data.routeEnd);
+                if (endInputRef.current) {
+                  // You'll need to reverse geocode to get the address
+                  reverseGeocode(data.routeEnd, endInputRef);
+                }
+              }
+              
+              // Transform WayPoint data to match waypoint interface
+              if (Array.isArray(data.WayPoint) && data.WayPoint.length > 0) {
+                const transformedWaypoints = data.WayPoint.map(wp => ({
+                  name: wp.name,
+                  placeId: wp.placeId,
+                  latitude: wp.latitude,
+                  longitude: wp.longitude,
+                  order: wp.order,
+                  isStop: wp.isStop
+                }));
+                
+                setWaypoints(transformedWaypoints);
               }
             }
           }
+        } catch (error) {
+          console.error('Error fetching path:', error);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
-      fetchPath();
+      
+      if (vehicleId) {
+        fetchPath();
+      }
     }, [vehicleId]);
-
 
   type Waypoint = {
     name: string;
@@ -180,6 +193,24 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
       setIsSubmitting(false);
     }
   };
+
+  // Add reverse geocoding function
+const reverseGeocode = async (location: { lat: number, lng: number }, inputRef: React.RefObject<HTMLInputElement>) => {
+  if (!window.google) return;
+  
+  const geocoder = new window.google.maps.Geocoder();
+  try {
+    const result = await geocoder.geocode({
+      location: { lat: location.lat, lng: location.lng }
+    });
+    
+    if (result.results[0] && inputRef.current) {
+      inputRef.current.value = result.results[0].formatted_address;
+    }
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+  }
+};
 
   if (!isLoaded) {
     return <div>Loading Google Maps...</div>;

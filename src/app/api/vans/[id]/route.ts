@@ -3,49 +3,66 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id: idString } = await params;
-  const id = parseInt(idString);
+  console.log('Fetching van with ID:', params.id);
+  try {
+    const id = parseInt(params.id);
 
-  if (isNaN(id)) {
-    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
-  }
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
 
-  const van = await prisma.van.findUnique({
-    where: { id },
-    include: {
-      assistant: true,
-      DriverVanJobRequests: {
-        where: {
-          status: 'ACCEPTED',
+    const van = await prisma.van.findUnique({
+      where: { id },
+      include: {
+        Path: {
+          include: {
+            WayPoint: {
+              orderBy: {
+                order: 'asc',
+              },
+            },
+          },
         },
-        include: {
-          UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
+        Assistant: true,
+        DriverVanJobRequest: {
+          where: {
+            status: 'ACCEPTED',
+          },
+          include: {
+            UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!van) {
-    return NextResponse.json({ error: 'Van not found' }, { status: 404 });
+    if (!van) {
+      return NextResponse.json({ error: 'Van not found' }, { status: 404 });
+    }
+
+    const driverRequest = van.DriverVanJobRequest[0];
+    const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
+
+    // Add hasRoute flag based on Path existence
+    const transformedVan = {
+      ...van,
+      driver,
+      hasRoute: !!van.Path,  // Convert to boolean
+      routeAssigned: !!van.pathId && !!van.Path // Check both pathId and Path existence
+    };
+
+    console.log('Transformed Van:', transformedVan);
+    return NextResponse.json(transformedVan);
+  } catch (error) {
+    console.error('Error fetching van:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  // Extract driver info from the first accepted request
-  const driverRequest = van.DriverVanJobRequests[0]; // assuming only one accepted at a time
-
-  const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
-
-  return NextResponse.json({
-    ...van,
-    driver, 
-  });
 }
 
-
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id: idString } = await params;
+    const { id: idString } = params;
     const id = Number(idString);
     const data = await req.json();
 
