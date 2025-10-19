@@ -27,10 +27,11 @@ model UserProfile {
   AwarenessPost                                                   AwarenessPost[]
   BankAccount                                                     BankAccount?
   Child                                                           Child[]
-  ChildAttendance                                                 ChildAttendance[]
+  ContactUs                                                       ContactUs[]
   driverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
+  Notification                                                    Notification[]
   Payment_Payment_driverIdToUserProfile                           Payment[]             @relation("Payment_driverIdToUserProfile")
   payments                                                        Payment[]
   Payment_Payment_vanServiceIdToUserProfile                       Payment[]             @relation("Payment_vanServiceIdToUserProfile")
@@ -80,6 +81,7 @@ model DriverProfile {
   accountNo      String?
   bank           String?
   branch         String?
+  Qrcode         String?
   user           UserProfile @relation(fields: [userId], references: [id])
 }
 
@@ -141,6 +143,7 @@ model Van {
   pathId                                        String?
   endTime                                       DateTime?
   startTime                                     DateTime?
+  noOfStudentsAssigned                          Int                   @default(0)
   assistant                                     Assistant?
   Child                                         Child[]
   DriverVanJobRequest                           DriverVanJobRequest[]
@@ -179,6 +182,8 @@ model Payment {
   driverId                                      String?
   vanServiceId                                  String?
   salaryPercentageForDriver                     Float         @default(0)
+  systemFee                                     Float         @default(0)
+  systemFeePercentage                           Float         @default(0)
   child                                         Child         @relation(fields: [childId], references: [id])
   UserProfile_Payment_driverIdToUserProfile     UserProfile?  @relation("Payment_driverIdToUserProfile", fields: [driverId], references: [id])
   UserProfile                                   UserProfile   @relation(fields: [parentId], references: [id])
@@ -202,14 +207,17 @@ model School {
 }
 
 model ContactUs {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String
-  subject   String
-  message   String
-  userType  String
-  status    String   @default("Pending")
-  createdAt DateTime @default(now())
+  id          Int          @id @default(autoincrement())
+  name        String
+  email       String
+  subject     String
+  message     String
+  userType    String
+  status      String       @default("Pending")
+  createdAt   DateTime     @default(now())
+  Type        InquiryType  @default(OTHER)
+  userId      String?
+  UserProfile UserProfile? @relation(fields: [userId], references: [id])
 }
 
 model DriverVanJobRequest {
@@ -310,7 +318,7 @@ model VanRequest {
   childId       Int           @unique
   status        RequestStatus @default(PENDING)
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  updatedAt     DateTime      @default(now()) @updatedAt
   estimatedFare Float         @default(0)
   child         Child         @relation(fields: [childId], references: [id])
   van           Van           @relation(fields: [vanId], references: [id])
@@ -332,20 +340,20 @@ model PrivateHire {
   status         HireStatus  @default(PENDING)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime
+  finalFare      Float?
+  userAccepted   Boolean?
+  paymentStatus  Boolean?    @default(false)
   UserProfile    UserProfile @relation(fields: [userId], references: [id])
   Van            Van?        @relation(fields: [vanId], references: [id])
 }
 
 model ChildAttendance {
-  id          String      @id
+  id          String    @id
   childId     Int
-  absenceDate DateTime    @db.Date
+  absenceDate DateTime
   routeType   RouteType
-  reason      String?
-  markedBy    String
-  markedAt    DateTime    @default(now())
-  Child       Child       @relation(fields: [childId], references: [id], onDelete: Cascade)
-  UserProfile UserProfile @relation(fields: [markedBy], references: [id])
+  markedAt    DateTime  @default(now())
+  Child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@unique([childId, absenceDate, routeType])
   @@index([absenceDate])
@@ -478,6 +486,20 @@ model BankAccount {
   UserProfile UserProfile @relation(fields: [userId], references: [id])
 }
 
+model Notification {
+  id           String           @id
+  title        String
+  message      String
+  type         NotificationType
+  targetUserId String?
+  read         Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  UserProfile  UserProfile?     @relation(fields: [targetUserId], references: [id])
+
+  @@index([read])
+  @@index([targetUserId])
+}
+
 enum RequestStatus {
   PENDING
   ACCEPTED
@@ -567,4 +589,20 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+enum InquiryType {
+  SCHOOL_REQ
+  SUGGESTIONS
+  INQUIRIES
+  OTHER
+}
+
+enum NotificationType {
+  ALERT
+  REMINDER
+  EMERGENCY
+  PAYMENT
+  ATTENDANCE
+  ANNOUNCEMENT
 }
