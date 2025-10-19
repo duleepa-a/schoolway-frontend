@@ -14,9 +14,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const { id } = params;
   const body = await req.json().catch(() => ({}));
-  const { action } = body as { action?: 'inactive' | 'remove' };
+  const { action } = body as { action?: 'inactive' | 'remove' | 'active' };
 
-  if (!action || !['inactive', 'remove'].includes(action)) {
+  if (!action || !['inactive', 'remove', 'active'].includes(action)) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   }
 
@@ -37,6 +37,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       updatedChild = await prisma.child.update({
         where: { id: Number(id) },
         data: { status: 'NOT_ASSIGNED', vanID: null },
+      });
+    } else if (action === 'active') {
+      updatedChild = await prisma.child.update({
+        where: { id: Number(id) },
+        data: { status: 'AT_HOME'},
       });
     }
 
