@@ -6,17 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/DraftsViewer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/DraftsViewer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/EnhancedEditModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/EnhancedEditModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/ModernAlert.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/ModernAlert.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/PublishedPostsViewer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/PublishedPostsViewer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/child/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/dashboardComponents/TopBarClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/dashboardComponents/TopBarClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/vanowner/SideBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/vanowner/SideBar.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -167,7 +156,7 @@
       <workItem from="1760638245673" duration="3405000" />
       <workItem from="1760758692819" duration="7893000" />
       <workItem from="1760801360201" duration="2194000" />
-      <workItem from="1760844092699" duration="4321000" />
+      <workItem from="1760844092699" duration="7128000" />
     </task>
     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
       <option name="closed" value="true" />
