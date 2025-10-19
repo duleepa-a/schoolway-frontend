@@ -91,6 +91,8 @@ function TablePagination({ totalPages, currentPage, onPageChange }) {
 }
 function PrivatehireTable() {
   const [hires, setHires] = useState([]);
+  const [acceptedHires, setAcceptedHires] = useState([]);
+  const [acceptMsg, setAcceptMsg] = useState('');
   const [selectedVan, setSelectedVan] = useState('All');
   const [actionMenuIndex, setActionMenuIndex] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -189,7 +191,13 @@ function PrivatehireTable() {
                   <td className="px-4 py-3 text-gray-900">{hire.departureDate ? new Date(hire.departureDate).toLocaleDateString() : '-'}</td>
                   <td className="px-4 py-3 text-gray-900">{hire.returnDate ? new Date(hire.returnDate).toLocaleDateString() : '-'}</td>
                   <td className="px-4 py-3 text-gray-900">{hire.noOfPassengers}</td>
-                  <td className="px-4 py-3 font-semibold text-green-600">{hire.finalFare !== undefined && hire.finalFare !== null ? hire.finalFare : calculateFare(hire)}</td>
+                  <td className="px-4 py-3 font-semibold text-green-600">
+                    {hire.finalFare !== undefined && hire.finalFare !== null
+                      ? hire.finalFare
+                      : (hire.fare !== undefined && hire.fare !== null
+                          ? hire.fare
+                          : calculateFare(hire))}
+                  </td>
                   <td className="px-4 py-3 text-gray-900">{hire.notes}</td>
                   <td className="px-4 py-3 text-gray-900">{hire.status}</td>
                   <td className="px-4 py-3 flex justify-center align-middle relative">
@@ -209,11 +217,18 @@ function PrivatehireTable() {
                                 body: JSON.stringify({ status: 'accepted' })
                               });
                               if (res.ok) {
-                                setHires(prev => prev.map(h => h.id === hire.id ? { ...h, status: 'accepted' } : h));
-                                // Optionally, trigger a callback or state update to AcceptedhiresTable here
+                                // Remove from hires and add to acceptedHires
+                                setHires(prev => prev.filter(h => h.id !== hire.id));
+                                setAcceptedHires(prev => [...prev, { ...hire, status: 'accepted' }]);
+                                setAcceptMsg('Hire accepted and moved to Accepted Hires!');
+                                setTimeout(() => setAcceptMsg(''), 2000);
+                              } else {
+                                setAcceptMsg('Failed to accept hire.');
+                                setTimeout(() => setAcceptMsg(''), 2000);
                               }
                             } catch (err) {
-                              // Optionally show error
+                              setAcceptMsg('Error accepting hire.');
+                              setTimeout(() => setAcceptMsg(''), 2000);
                             }
                             setActionMenuIndex(null);
                           }}>Accept</button>
@@ -231,6 +246,18 @@ function PrivatehireTable() {
           </table>
         )}
       </div>
+
+      {acceptMsg && (
+        <div style={{ position: 'fixed', top: 30, right: 30, zIndex: 1000 }}>
+          <span className="px-3 py-2 rounded bg-green-100 text-green-800 text-sm shadow-lg flex items-center">
+            {acceptMsg}
+            <button
+              className="ml-2 text-green-600 hover:underline text-xs"
+              onClick={() => setAcceptMsg('')}
+            >✕</button>
+          </span>
+        </div>
+      )}
 
       {showModal && selectedHire && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4">
@@ -251,7 +278,19 @@ function PrivatehireTable() {
                   : '-'
               }</div>
               <div className="text-sm"><strong>Passengers:</strong> {selectedHire.noOfPassengers}</div>
-              <div className="text-sm"><strong>Fare:</strong> {selectedHire.fare ? selectedHire.fare.toFixed(2) : calculateFare(selectedHire)}</div>
+              <div className="text-sm"><strong>Trip Distance:</strong> {
+                (selectedHire.pickupLat && selectedHire.pickupLng && selectedHire.destinationLat && selectedHire.destinationLng)
+                  ? calculateDistance(selectedHire.pickupLat, selectedHire.pickupLng, selectedHire.destinationLat, selectedHire.destinationLng).toFixed(2) + ' km'
+                  : '-'
+              }</div>
+              {selectedHire.finalFare != null ? (
+                <>
+                  <div className="text-sm"><strong>Normal Fare:</strong> {selectedHire.fare ? selectedHire.fare.toFixed(2) : calculateFare(selectedHire)}</div>
+                  <div className="text-sm"><strong>Final Fare:</strong> {selectedHire.finalFare.toFixed(2)}</div>
+                </>
+              ) : (
+                <div className="text-sm"><strong>Fare:</strong> {selectedHire.fare ? selectedHire.fare.toFixed(2) : calculateFare(selectedHire)}</div>
+              )}
               <div className="text-sm col-span-full"><strong>Notes:</strong> {selectedHire.notes}</div>
               <div className="text-sm"><strong>Status:</strong> {selectedHire.status}</div>
               <div className="text-sm col-span-full mt-2">
@@ -265,6 +304,9 @@ function PrivatehireTable() {
                     <div className="text-xs text-gray-500">Mobile: {selectedHire.UserProfile?.mobile}</div>
                   </div>
                 </div>
+              </div>
+              <div className="text-sm col-span-full mt-2 p-3 bg-yellow-50 rounded border border-yellow-200 text-yellow-800">
+                <strong>Notice:</strong> Please review and adjust the final fare if the number of days of stay or other factors require a change. Or simply accept the Hire
               </div>
               <div className="text-sm col-span-full mt-2 flex items-center gap-2">
                 <strong>Final Fare:</strong>
@@ -300,7 +342,8 @@ function PrivatehireTable() {
                       setFareUpdateMsg('Error updating fare');
                     }
                   }}
-                >Update Fare</button>
+                >Accept Fare</button>
+               
               </div>
               {fareUpdateMsg && (
                 <div style={{ position: 'fixed', top: 30, right: 30, zIndex: 1000 }}>
