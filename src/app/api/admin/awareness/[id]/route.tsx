@@ -61,7 +61,8 @@ export async function GET(
         publishedAt: post.publishedAt,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
-        author: post.author,
+        authorId: post.authorId,
+        author: post.UserProfile,
         views: post.views + 1, // Return incremented view count
       },
     });
@@ -146,6 +147,17 @@ export async function PUT(
     const updatedPost = await prisma.awarenessPost.update({
       where: { id },
       data: updateData,
+      include: {
+        UserProfile: {
+          select: {
+            id: true,
+            email: true,
+            firstname: true,
+            lastname: true,
+            role: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({
@@ -163,7 +175,8 @@ export async function PUT(
         publishedAt: updatedPost.publishedAt,
         createdAt: updatedPost.createdAt,
         updatedAt: updatedPost.updatedAt,
-        author: updatedPost.author,
+        authorId: updatedPost.authorId,
+        author: updatedPost.UserProfile,
         views: updatedPost.views,
       },
     });

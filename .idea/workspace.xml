@@ -5,15 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
-      <change afterPath="$PROJECT_DIR$/src/app/api/vanowner/revenue/route.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/app/vanowner/revenue/RevenueChart.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/AwarenessPost.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/ScheduledPostsViewer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/ScheduledPostsViewer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/vanowner/SideBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/vanowner/SideBar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/vanowner/revenue/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/vanowner/revenue/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/vanowner/revenue/revenueTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/vanowner/revenue/revenueTable.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/vanowner/reviews/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/vanowner/reviews/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/school/components/GateManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/school/components/GateManager.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/admin/awareness/[id]/route.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/awareness/[id]/route.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -165,7 +159,7 @@
       <workItem from="1760758692819" duration="7893000" />
       <workItem from="1760801360201" duration="2194000" />
       <workItem from="1760844092699" duration="8782000" />
-      <workItem from="1760868089145" duration="8793000" />
+      <workItem from="1760868089145" duration="9875000" />
     </task>
     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
       <option name="closed" value="true" />
