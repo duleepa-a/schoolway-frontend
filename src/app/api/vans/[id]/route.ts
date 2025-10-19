@@ -5,6 +5,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('Fetching van with ID:', params.id);
   try {
     const id = parseInt(params.id);
 

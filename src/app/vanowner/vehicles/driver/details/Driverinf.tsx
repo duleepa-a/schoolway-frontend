@@ -80,6 +80,7 @@ export default function Driverinf({ driverId }: DriverDetailsProps) {
                 }
                 
                 const data: DriverDetailsResponse = await response.json();
+                console.log('Fetched driver details in driver info comp:', data);
                 setDriver(data.driver);
             } catch (error) {
                 console.error('Error fetching driver details:', error);
