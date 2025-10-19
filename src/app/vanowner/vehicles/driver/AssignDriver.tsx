@@ -8,6 +8,19 @@ import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
 import { useDrivers } from '@/hooks/useDrivers';
 
+// Add this interface at the top of your file
+interface Driver {
+    id: string;
+    name: string;
+    experience: string;
+    rating: number;
+    image: string;
+    district: string;
+    contact: string;
+    ratingCount: number;
+    hasVan: number; // Add this property
+}
+
 const AssignDriver = () => {
     const searchParams = useSearchParams();
     const vanId = searchParams.get('vanId');
@@ -36,14 +49,15 @@ const AssignDriver = () => {
                     const response = await fetch(`/api/vanowner/vans/${vanId}`);
                     if (response.ok) {
                         const data = await response.json();
-                        setVanDetails(data.van);
                         console.log("van info", data)
+                        setVanDetails(data.van);
+                        
                     }
                 } catch (error) {
                     console.error('Error fetching van details:', error);
                 }
             }
-            console.log("van reuste")
+            // console.log("van reuste")
         };
 
         fetchVanDetails();
@@ -213,6 +227,18 @@ const AssignDriver = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                         {availableDrivers.map((driver) => (
                             <div key={driver.id} className="rounded-xl p-5 shadow-card transition-shadow bg-white relative overflow-hidden">
+                                {/* Add hasVan indicator */}
+                                {driver.hasVan === 1 && (
+                                    <div className="absolute top-2 right-2 z-10">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                            </svg>
+                                            Has Van
+                                        </span>
+                                    </div>
+                                )}
+
                                 {/* Decorative element */}
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-blue-shade-light/10 rounded-bl-full"></div>
                                 
@@ -258,13 +284,19 @@ const AssignDriver = () => {
 
                                 <div className="flex space-x-2 mt-4">
                                     <button
-                                        className="flex-1 btn-primary text-xs py-2 px-2 rounded-lg min-w-[90px]"
+                                        className={`flex-1 ${
+                                            driver.hasVan === true 
+                                            ? 'btn-secondary bg-gray-900 text-white hover:bg-gray-800 justify-center' // Changed to black style
+                                            : 'btn-primary'
+                                        } text-xs py-2 px-2 rounded-lg min-w-[90px]`}
                                         onClick={() => handleAssignDriver(driver.id, driver.name)}
+                                        disabled={driver.hasVan === true}
+                                        title={driver.hasVan === true ? 'Driver already has a van assigned' : 'Request this driver'}
                                     >
-                                        Request Driver
+                                        {driver.hasVan === true ? 'Has Van' : 'Request Driver'} {/* Changed button text */}
                                     </button>
                                     <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`} className="flex-1">
-                                        <button className="btn-secondary text-xs py-2 px-2 rounded-lg min-w-[90px] w-full">
+                                        <button className="btn-secondary text-xs py-2 px-2 rounded-lg min-w-[90px] w-full justify-center">
                                             View Details
                                         </button>
                                     </Link>

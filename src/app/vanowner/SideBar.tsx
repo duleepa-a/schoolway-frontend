@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaUser ,FaUserAlt } from 'react-icons/fa';
+import { FaRoute, FaUser ,FaUserAlt } from 'react-icons/fa';
 import { HiHome } from "react-icons/hi";
 import { FaChartSimple } from "react-icons/fa6";
 import { TbBriefcase2Filled } from "react-icons/tb";
@@ -14,6 +14,7 @@ const navItems = [
   { label: 'Dashboard', icon: <HiHome />, href: '/vanowner' },
   { label: 'Students', icon: <FaUser/>, href: '/vanowner/students' },
   { label: 'Vehicles', icon: <FaBus />, href: '/vanowner/vehicles' },
+  { label: 'Daily Routes', icon: <FaRoute/>, href: '/vanowner/routes' },
   { label: 'Private hires', icon: <HiRectangleGroup/>, href: '/vanowner/private-hires' },
   { label: 'Profile', icon: <FaUserAlt />, href: '/vanowner/profile' },
   { label: 'Revenue', icon: <TbBriefcase2Filled />, href: '/vanowner/revenue' },

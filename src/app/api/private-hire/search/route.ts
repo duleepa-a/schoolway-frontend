@@ -38,9 +38,12 @@ export async function POST(request: Request) {
       v."photoUrl", 
       v."ownerId", 
       v."privateRating", 
-      ST_AsText(p."routeStart") as "routeStart"
+      ST_AsText(p."routeStart") as "routeStart",
+      vs."averageRating",
+      vs."contactNo"
     FROM "Van" v
     JOIN "Path" p ON v."pathId" = p.id
+    LEFT JOIN "VanService" vs ON v."ownerId" = vs."userId"
     WHERE p."routeStart" IS NOT NULL AND v.status = 1
   `;
   console.log('DEBUG vansWithPath (raw):', JSON.stringify(vansWithPath, null, 2));
@@ -75,6 +78,7 @@ export async function POST(request: Request) {
       return null;
     }
 
+    let warning = null;
     const vansWithDistance = vansWithPath.map((van: any) => {
       const routeStart = van.routeStart;
       const coords = extractLatLng(routeStart);
@@ -83,6 +87,10 @@ export async function POST(request: Request) {
       if (coords) {
         pickupDistance = calculateDistance(pickupLat, pickupLng, coords.lat, coords.lng);
         tripDistance = calculateDistance(pickupLat, pickupLng, destinationLat, destinationLng);
+      }
+      // Check passenger count
+      if (noOfPassengers > van.seatingCapacity) {
+        warning = `Warning: Requested passengers (${noOfPassengers}) exceed van seating capacity (${van.seatingCapacity}) for van ${van.registrationNumber}`;
       }
       return {
         ...van,
@@ -98,7 +106,7 @@ export async function POST(request: Request) {
       return a.pickupDistance - b.pickupDistance;
     });
 
-    return NextResponse.json({ vans: vansWithDistance }, { status: 200 });
+    return NextResponse.json({ vans: vansWithDistance, warning }, { status: 200 });
   } catch (error: any) {
     console.error('Search Vans Error:', error);
     return NextResponse.json({ error: error?.message || 'Server error' }, { status: 500 });

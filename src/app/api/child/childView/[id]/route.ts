@@ -25,7 +25,7 @@ export async function GET(
               email: true,
               mobile: true,
               dp: true,
-              vanService: {
+              VanService: {
                 select: {
                   id: true,
                   serviceName: true,
@@ -37,7 +37,7 @@ export async function GET(
               }
             }
           },
-          UserProfile_assignedDriverIdToUserProfile: {
+          UserProfile_Van_assignedDriverIdToUserProfile: {
             select: {
               id: true,
               firstname: true,
@@ -45,7 +45,7 @@ export async function GET(
               email: true,
               mobile: true,
               dp: true,
-              driverProfile: {
+              DriverProfile: {
                 select: {
                   id: true,
                   licenseId: true,
@@ -67,11 +67,31 @@ export async function GET(
     },
   });
 
+
   if (!child) {
     return NextResponse.json({ error: 'Child not found' }, { status: 404 });
   }
 
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0); // start of tomorrow
+
+  const dayAfterTomorrow = new Date(tomorrow);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1); // start of the next day
+
+  const attendance = await prisma.childAttendance.findFirst({
+    where: {
+      childId: id,
+      absenceDate: {
+        gte: tomorrow,       // greater than or equal to start of tomorrow
+        lt: dayAfterTomorrow // less than start of the next day
+      }
+    }
+  });
+
   return NextResponse.json({
-    ...child,
+    child: child,
+    attendance: attendance
+
   });
 }

@@ -68,7 +68,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
           in: ['ON_VAN', 'AT_HOME', 'AT_SCHOOL']
         },
         NOT: {
-          attendance: {
+          attendance : {
             some: {
               absenceDate: new Date(todayDate),
               routeType: {
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
     const vehicle = {
       model: van?.makeAndModel || "Unknown vehicle",
       license: van?.licensePlateNumber || "N/A",
-      status: van.status || "UNKNOWN",
+      status: van?.status === 1 ? "ACTIVE" : van?.status === 0 ? "PENDING" : "UNKNOWN",
     };
 
     const plan = {
@@ -104,8 +104,18 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
 
     let hasSessionDue = true;
 
-    if (recentSessions[0].routeType == routeType && recentSessions[0].status == "COMPLETED") {
-        hasSessionDue = false;
+    const createdAt = new Date(recentSessions[0].createdAt);
+
+    if (
+      recentSessions[0].routeType === routeType &&
+      recentSessions[0].status === "COMPLETED" &&
+      createdAt.getDate() === now.getDate() &&
+      createdAt.getMonth() === now.getMonth() &&
+      createdAt.getFullYear() === now.getFullYear()
+    ) {
+      console.log("now date", now.getDate());
+      console.log("recent date", createdAt.getDate());
+      hasSessionDue = false;
     }
 
     const recentActivity = recentSessions.map((s) => ({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createFirebaseSession } from '@/lib/firebase-admin';
+import { randomUUID } from 'crypto';
 
 // Define RouteType manually since it's not exported by Prisma
 type RouteType = 'MORNING_PICKUP' | 'EVENING_DROPOFF';
@@ -152,7 +153,6 @@ export async function POST(request: NextRequest) {
         startedAt: now,
       },
     });
-
     // Create session_students records
     const sessionStudents = await Promise.all(
       children.map((child, index) =>
