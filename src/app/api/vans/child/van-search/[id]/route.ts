@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const PROXIMITY_RADIUS_KM = 40; // Configurable proximity radius in km
 
 // Helper function to calculate distance between two points (Haversine formula)
 function calculateDistance(
@@ -52,6 +53,51 @@ function isDirectionMatching(
   // Child pickup should be close to van's start, and school close to van's end
   // Allowing flexibility (within 10km each for general direction check)
   return childPickupToVanStart <= 10 && schoolToVanEnd <= 10;
+}
+
+// Helper function to check if van route is within proximity radius of both pickup and dropoff
+function isVanWithinProximity(
+  childPickupLat: number,
+  childPickupLng: number,
+  schoolLat: number,
+  schoolLng: number,
+  vanPathWaypoints: any[]
+): boolean {
+  if (!vanPathWaypoints || vanPathWaypoints.length === 0) return false;
+
+  // Check if any waypoint/endpoint is within proximity radius of pickup
+  let pickupProximityMet = false;
+  for (const waypoint of vanPathWaypoints) {
+    const distanceToPickup = calculateDistance(
+      childPickupLat,
+      childPickupLng,
+      parseFloat(waypoint.latitude.toString()),
+      parseFloat(waypoint.longitude.toString())
+    );
+    if (distanceToPickup <= PROXIMITY_RADIUS_KM) {
+      pickupProximityMet = true;
+      break;
+    }
+  }
+
+  if (!pickupProximityMet) return false;
+
+  // Check if any waypoint/endpoint is within proximity radius of dropoff (school)
+  let dropoffProximityMet = false;
+  for (const waypoint of vanPathWaypoints) {
+    const distanceToDropoff = calculateDistance(
+      schoolLat,
+      schoolLng,
+      parseFloat(waypoint.latitude.toString()),
+      parseFloat(waypoint.longitude.toString())
+    );
+    if (distanceToDropoff <= PROXIMITY_RADIUS_KM) {
+      dropoffProximityMet = true;
+      break;
+    }
+  }
+
+  return pickupProximityMet && dropoffProximityMet;
 }
 
 export async function GET(
@@ -127,14 +173,13 @@ export async function GET(
           include: {
             WayPoint: {
               orderBy: { order: "asc" },
-              take: 2, // Get only start and end waypoints
             },
           },
         },
       },
     });
 
-    // 5️⃣ Filter vans based on direction matching
+    // 5️⃣ Filter vans based on direction matching AND proximity
     const qualifiedVans = [];
 
     for (const van of vans) {
@@ -158,6 +203,17 @@ export async function GET(
       );
 
       if (!isDirectionGood) continue;
+
+      // Check if van route is within proximity radius of both pickup and dropoff
+      const isWithinProximity = isVanWithinProximity(
+        pickupLat,
+        pickupLng,
+        schoolLat,
+        schoolLng,
+        van.Path.WayPoint
+      );
+
+      if (!isWithinProximity) continue;
 
       qualifiedVans.push(van);
     }
@@ -187,7 +243,7 @@ export async function GET(
         ...van,
         estimatedFare: Math.round(distanceInKm * van.studentRating * 100) / 100,
         distanceInKm,
-        requestStatus: requestStatus || null, // null if no request, otherwise PENDING/ACCEPTED/REJECTED
+        requestStatus: requestStatus || null,
       };
     });
 
