@@ -597,7 +597,7 @@ const AwarenessPostCreator: React.FC = () => {
       {/* Modern Alert */}
       <ModernAlert
         isOpen={alert.isOpen}
-        variant={alert.variant}
+        type={alert.variant}
         title={alert.title}
         message={alert.message}
         onClose={closeAlert}

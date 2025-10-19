@@ -150,7 +150,7 @@ const DraftsViewer = () => {
     return matchesSearch && matchesCategory && matchesAudience;
   });
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: 'LOW' | 'MEDIUM' | 'HIGH') => {
     switch (priority) {
       case 'HIGH': return 'text-red-600 bg-red-100';
       case 'MEDIUM': return 'text-yellow-600 bg-yellow-100';

@@ -13,7 +13,7 @@ interface ScheduledPost {
   imageUrl?: string;
   category: string;
   targetAudience: string;
-  priority: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
   scheduledDate: string;
   isPublished: boolean;
   publishedAt?: string;
@@ -192,7 +192,7 @@ const ScheduledPostsViewer = () => {
     });
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: 'LOW' | 'MEDIUM' | 'HIGH') => {
     switch (priority) {
       case 'HIGH':
         return 'bg-red-100 text-red-800';

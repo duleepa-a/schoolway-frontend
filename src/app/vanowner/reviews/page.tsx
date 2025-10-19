@@ -195,22 +195,22 @@ const ReviewsPage = () => {
   };
 
   const renderReviewCard = (review: Review, type: 'van' | 'service') => (
-    <div key={review.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+    <div key={review.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-200">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+          <div className="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
             {review.Child.UserProfile?.dp ? (
               <img
                 src={review.Child.UserProfile.dp}
                 alt="Parent"
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-12 h-12 rounded-full object-cover"
               />
             ) : (
-              <FaUser className="text-gray-500" />
+              <FaUser className="text-gray-500 text-lg" />
             )}
           </div>
           <div>
-            <h4 className="font-semibold text-gray-900">
+            <h4 className="font-semibold text-gray-900 text-lg">
               {review.Child.UserProfile ? 
                 `${review.Child.UserProfile.firstname} ${review.Child.UserProfile.lastname}` : 
                 'Anonymous Parent'
@@ -229,18 +229,22 @@ const ReviewsPage = () => {
 
       <div className="mb-4">
         <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
-          <FaBus className="text-blue-500" />
+          <div className="p-1 rounded" style={{ background: 'rgba(0, 212, 170, 0.1)' }}>
+            <FaBus className="text-sm" style={{ color: '#00d4aa' }} />
+          </div>
           <span className="font-medium">Van:</span>
           <span>{review.Van.registrationNumber} - {review.Van.makeAndModel}</span>
         </div>
         
         {type === 'van' && review.UserProfile && (
           <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
-            <FaUser className="text-green-500" />
+            <div className="p-1 rounded" style={{ background: 'rgba(79, 179, 217, 0.1)' }}>
+              <FaUser className="text-sm" style={{ color: '#4fb3d9' }} />
+            </div>
             <span className="font-medium">Driver:</span>
             <span>{review.UserProfile.firstname} {review.UserProfile.lastname}</span>
             {review.UserProfile.driverProfile?.averageRating && (
-              <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'rgba(0, 212, 170, 0.1)', color: '#00d4aa' }}>
                 Avg: {review.UserProfile.driverProfile.averageRating.toFixed(1)}/5
               </span>
             )}
@@ -248,15 +252,19 @@ const ReviewsPage = () => {
         )}
 
         <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <FaCalendarAlt className="text-purple-500" />
+          <div className="p-1 rounded" style={{ background: 'rgba(109, 213, 168, 0.1)' }}>
+            <FaCalendarAlt className="text-sm" style={{ color: '#6dd5a8' }} />
+          </div>
           <span>{formatDate(review.createdAt)}</span>
         </div>
       </div>
 
       {review.comment && (
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
           <div className="flex items-start space-x-2">
-            <FaComment className="text-gray-400 mt-1" />
+            <div className="p-1 rounded" style={{ background: 'rgba(0, 212, 170, 0.1)' }}>
+              <FaComment className="text-sm mt-1" style={{ color: '#00d4aa' }} />
+            </div>
             <p className="text-gray-700 text-sm leading-relaxed">{review.comment}</p>
           </div>
         </div>
@@ -269,7 +277,9 @@ const ReviewsPage = () => {
       <section className="p-6 md:p-10 min-h-screen w-full bg-page-background">
         <TopBarContent heading="Reviews" serverSession={null} />
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ backgroundColor: 'rgba(0, 212, 170, 0.1)' }}>
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-t-transparent" style={{ borderColor: '#00d4aa' }}></div>
+          </div>
         </div>
       </section>
     );
@@ -291,7 +301,13 @@ const ReviewsPage = () => {
       <TopBarContent heading="Reviews" serverSession={null} />
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="p-2 rounded-lg" style={{ background: 'linear-gradient(90deg, #0099cc 0%, #00bcd4 60%, #00d4aa 100%)' }}>
+            <FaSearch className="text-white text-lg" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800">Search & Filter Reviews</h3>
+        </div>
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search Input */}
           <div className="flex-1">
@@ -302,7 +318,10 @@ const ReviewsPage = () => {
                 placeholder="Search reviews by parent name, child name, driver, van, or comment..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
             </div>
           </div>
@@ -314,7 +333,10 @@ const ReviewsPage = () => {
               <select
                 value={filters.selectedVan}
                 onChange={(e) => handleFilterChange('selectedVan', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[200px]"
+                className="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white min-w-[200px]"
+                style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               >
                 <option value="">All Vans</option>
                 {reviewsData?.ownerVans.map((van) => (
@@ -333,7 +355,10 @@ const ReviewsPage = () => {
               <select
                 value={filters.selectedDriver}
                 onChange={(e) => handleFilterChange('selectedDriver', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[150px]"
+                className="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white min-w-[150px]"
+                style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               >
                 <option value="">All Drivers</option>
                 {reviewsData?.vanReviews
@@ -353,7 +378,7 @@ const ReviewsPage = () => {
           {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold border border-gray-200"
           >
             <FaFilter className="text-gray-600" />
             <span className="text-sm font-medium">Filters</span>
@@ -369,7 +394,10 @@ const ReviewsPage = () => {
                 handleFilterChange('sortBy', sortBy);
                 handleFilterChange('sortOrder', sortOrder);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+              style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+              onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             >
               <option value="createdAt-desc">Newest First</option>
               <option value="createdAt-asc">Oldest First</option>
@@ -385,11 +413,14 @@ const ReviewsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Rating Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Min Rating</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Min Rating</label>
                 <select
                   value={filters.minRating || ''}
                   onChange={(e) => handleFilterChange('minRating', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 >
                   <option value="">Any</option>
                   <option value="1">1 Star</option>
@@ -401,11 +432,14 @@ const ReviewsPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Max Rating</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Max Rating</label>
                 <select
                   value={filters.maxRating || ''}
                   onChange={(e) => handleFilterChange('maxRating', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 >
                   <option value="">Any</option>
                   <option value="1">1 Star</option>
@@ -418,22 +452,28 @@ const ReviewsPage = () => {
 
               {/* Date Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
                 <input
                   type="date"
                   value={filters.startDate}
                   onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
                 <input
                   type="date"
                   value={filters.endDate}
                   onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 />
               </div>
             </div>
@@ -442,7 +482,7 @@ const ReviewsPage = () => {
             <div className="mt-4 flex justify-end">
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 underline"
+                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold border border-gray-200"
               >
                 Clear All Filters
               </button>
@@ -453,76 +493,81 @@ const ReviewsPage = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Van Reviews</p>
-              <p className="text-2xl font-bold text-blue-600">{reviewsData.totalVanReviews}</p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <FaBus className="text-blue-600 text-xl" />
-            </div>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
+          <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
+            <FaBus className="text-xl text-white" />
           </div>
-          <div className="mt-2 flex items-center">
-            {renderStars(Math.round(reviewsData.averageVanRating))}
-            <span className="ml-2 text-sm text-gray-600">
-              {reviewsData.averageVanRating.toFixed(1)}/5
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Service Reviews</p>
-              <p className="text-2xl font-bold text-green-600">{reviewsData.totalVanServiceReviews}</p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <FaStar className="text-green-600 text-xl" />
-            </div>
-          </div>
-          <div className="mt-2 flex items-center">
-            {renderStars(Math.round(reviewsData.averageVanServiceRating))}
-            <span className="ml-2 text-sm text-gray-600">
-              {reviewsData.averageVanServiceRating.toFixed(1)}/5
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Reviews</p>
-              <p className="text-2xl font-bold text-purple-600">
-                {reviewsData.totalVanReviews + reviewsData.totalVanServiceReviews}
-              </p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-full">
-              <FaComment className="text-purple-600 text-xl" />
+          <div>
+            <p className="text-gray-500 text-sm">Van Reviews</p>
+            <p className="font-semibold text-lg text-gray-800">{reviewsData.totalVanReviews}</p>
+            <div className="mt-1 flex items-center">
+              {renderStars(Math.round(reviewsData.averageVanRating))}
+              <span className="ml-2 text-xs text-gray-600">
+                {reviewsData.averageVanRating.toFixed(1)}/5
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Your Vans</p>
-              <p className="text-2xl font-bold text-orange-600">{reviewsData.ownerVans.length}</p>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
+          <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
+            <FaStar className="text-xl text-white" />
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm">Service Reviews</p>
+            <p className="font-semibold text-lg text-gray-800">{reviewsData.totalVanServiceReviews}</p>
+            <div className="mt-1 flex items-center">
+              {renderStars(Math.round(reviewsData.averageVanServiceRating))}
+              <span className="ml-2 text-xs text-gray-600">
+                {reviewsData.averageVanServiceRating.toFixed(1)}/5
+              </span>
             </div>
-            <div className="p-3 bg-orange-100 rounded-full">
-              <FaBus className="text-orange-600 text-xl" />
-            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
+          <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
+            <FaComment className="text-xl text-white" />
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm">Total Reviews</p>
+            <p className="font-semibold text-lg text-gray-800">
+              {reviewsData.totalVanReviews + reviewsData.totalVanServiceReviews}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex items-center gap-4 hover:shadow-xl transition-all duration-200">
+          <div className="p-3 rounded-full" style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}>
+            <FaBus className="text-xl text-white" />
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm">Your Vans</p>
+            <p className="font-semibold text-lg text-gray-800">{reviewsData.ownerVans.length}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Reviews Management</h2>
+              <p className="text-sm text-gray-600 mt-1">View and manage all reviews for your vans and service</p>
+            </div>
+            <div className="bg-white p-2 rounded-lg shadow-sm">
+              <FaStar style={{ color: '#00d4aa' }} size={24} />
+            </div>
+          </div>
+        </div>
+
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
             <button
               onClick={() => handleTabChange('van')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'van'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -532,7 +577,7 @@ const ReviewsPage = () => {
             </button>
             <button
               onClick={() => handleTabChange('service')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'service'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
