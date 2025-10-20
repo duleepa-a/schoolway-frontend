@@ -63,7 +63,11 @@ async function getDriverVehicleInfo(driverId: string) {
         assignedDriverId: driverId
       },
       include: {
-        UserProfile: true,
+        UserProfile_Van_ownerIdToUserProfile: {
+          include: {
+            VanService: true
+          }
+        },
         Child: {
           include: {
             School: true
@@ -78,13 +82,7 @@ async function getDriverVehicleInfo(driverId: string) {
             }
           }
         },
-        Assistant: true,
-        // Include the van owner's VanService
-        UserProfile: {
-          include: {
-            VanService: true
-          }
-        }
+        Assistant: true
       }
     });
 
@@ -115,13 +113,16 @@ async function getDriverVehicleInfo(driverId: string) {
       return acc;
     }, [] as any[]);
 
+    // Update the reference from van.UserProfile to van.UserProfile_Van_ownerIdToUserProfile
+    const ownerProfile = van.UserProfile_Van_ownerIdToUserProfile;
+    
     return {
       id: van.registrationNumber,
       model: van.makeAndModel,
       licensePlate: van.licensePlateNumber,
       status: van.status === 1 ? 'active' : 'inactive',
       image: van.photoUrl || null,
-      ownerName: `${van.UserProfile.firstname || ''} ${van.UserProfile.lastname || ''}`.trim() || 'Unknown Owner',
+      ownerName: `${ownerProfile.firstname || ''} ${ownerProfile.lastname || ''}`.trim() || 'Unknown Owner',
       capacity: van.seatingCapacity,
       year: new Date(van.createdAt).getFullYear(),
       fuelType: 'Diesel',
@@ -132,7 +133,7 @@ async function getDriverVehicleInfo(driverId: string) {
       stats: {
         studentCount: van.Child.length,
         schoolCount: schools.length,
-        rating: van.UserProfile.VanService?.averageRating || 0.0
+        rating: ownerProfile.VanService?.averageRating || 0.0
       }
     };
   } catch (error) {
