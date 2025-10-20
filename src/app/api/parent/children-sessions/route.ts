@@ -20,7 +20,7 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 const ETA_THRESHOLD_MINUTES = 25; // Trigger alert when ETA < 5 minutes
-const NOTIFICATION_COOLDOWN_MINUTES = 15;
+const NOTIFICATION_COOLDOWN_MINUTES = 5;
 
 export async function GET(req: NextRequest) {
   try {
