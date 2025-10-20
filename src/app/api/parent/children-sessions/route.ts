@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
                       targetUserId: parentId,
                       title,
                       message,
-                      type: "REMINDER",
+                      type: "ALERT",
                       createdAt : new Date()
                     },
                   });
