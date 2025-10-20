@@ -12,7 +12,7 @@ export async function GET() {
             contact: true,
           },
         },
-        userProfile: {
+        UserProfile: {
           select: {
             id: true,
             email: true,

@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
             schoolName: true,
           },
         },
-        userProfile: {
+        UserProfile: {
           select: {
             id: true,
             email: true,
@@ -161,7 +161,7 @@ export async function GET(req: NextRequest) {
             schoolName: true,
           },
         },
-        userProfile: {
+        UserProfile: {
           select: {
             id: true,
             email: true,
@@ -219,7 +219,7 @@ export async function PUT(req: NextRequest) {
     // Check if guardian exists
     const existingGuardian = await prisma.schoolGuardian.findUnique({
       where: { id: parseInt(id) },
-      include: { userProfile: true }
+      include: { UserProfile: true }
     });
 
     if (!existingGuardian) {
@@ -273,7 +273,7 @@ export async function PUT(req: NextRequest) {
             schoolName: true,
           },
         },
-        userProfile: {
+        UserProfile: {
           select: {
             id: true,
             email: true,
@@ -287,9 +287,9 @@ export async function PUT(req: NextRequest) {
     });
 
     // Update associated user profile
-    if (existingGuardian.userProfile) {
+    if (existingGuardian.UserProfile) {
       await prisma.userProfile.update({
-        where: { id: existingGuardian.userProfile.id },
+        where: { id: existingGuardian.UserProfile.id },
         data: {
           email,
           firstname: firstName,
@@ -341,7 +341,7 @@ export async function DELETE(req: NextRequest) {
     // Find the guardian to get the user profile ID
     const guardian = await prisma.schoolGuardian.findUnique({
       where: { id: parseInt(guardianId) },
-      include: { userProfile: true }
+      include: { UserProfile: true }
     });
 
     if (!guardian) {
@@ -357,9 +357,9 @@ export async function DELETE(req: NextRequest) {
     });
 
     // Delete the associated user profile
-    if (guardian.userProfile) {
+    if (guardian.UserProfile) {
       await prisma.userProfile.delete({
-        where: { id: guardian.userProfile.id }
+        where: { id: guardian.UserProfile.id }
       });
     }
 

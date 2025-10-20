@@ -52,17 +52,18 @@ model Child {
 }
 
 model ContactUs {
-  id          Int          @id @default(autoincrement())
-  name        String
-  email       String
-  subject     String
-  message     String
-  userType    String
-  status      String       @default("Pending")
-  createdAt   DateTime     @default(now())
-  Type        InquiryType  @default(OTHER)
-  userId      String?
-  UserProfile UserProfile? @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  userType  String
+  userId    String?
+  Type      InquiryType @default(OTHER)
+  status    String   @default("Pending")
+  User      UserProfile?     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 model DriverProfile {
@@ -241,12 +242,12 @@ model UserProfile {
   AwarenessPost                                                   AwarenessPost[]
   BankAccount                                                     BankAccount?
   Child                                                           Child[]
-  ContactUs                                                       ContactUs[]
   DriverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
   Payment_Payment_driverIdToUserProfile                           Payment[]             @relation("Payment_driverIdToUserProfile")
   Payment                                                         Payment[]
+  ContactUs                                                       ContactUs[]
   Payment_Payment_vanServiceIdToUserProfile                       Payment[]             @relation("Payment_vanServiceIdToUserProfile")
   Payroll                                                         Payroll[]
   PrivateHire                                                     PrivateHire[]
@@ -255,6 +256,7 @@ model UserProfile {
   TransportSession                                                TransportSession[]
   Van_Van_assignedDriverIdToUserProfile                           Van[]                 @relation("Van_assignedDriverIdToUserProfile")
   Van                                                             Van[]
+  Notification                                                    Notification[]
   VanService                                                      VanService?
 }
 
@@ -273,6 +275,7 @@ model Van {
   createdAt                                     DateTime              @default(now())
   ownerId                                       String
   hasDriver                                     Boolean               @default(false)
+  noOfStudentsAssigned                          Int                   @default(0)
   assignedDriverId                              String?
   salaryPercentage                              Float?                @default(25.0)
   shiftDetails                                  String?
@@ -283,7 +286,6 @@ model Van {
   pathId                                        String?
   endTime                                       DateTime?
   startTime                                     DateTime?
-  noOfStudentsAssigned                          Int                   @default(0)
   Assistant                                     Assistant?
   Child                                         Child[]
   DriverVanJobRequest                           DriverVanJobRequest[]
@@ -471,6 +473,30 @@ model AwarenessPost {
   @@index([scheduledDate])
   @@index([targetAudience])
 }
+
+model Notification {
+  id           String       @id @default(cuid())
+  title        String
+  message      String
+  type         NotificationType
+  targetUserId String?      
+  read         Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  UserProfile  UserProfile? @relation(fields: [targetUserId], references: [id])
+
+  @@index([targetUserId])
+  @@index([read])
+}
+
+enum NotificationType {
+  ALERT          // urgent notification
+  REMINDER       // e.g., payment or attendance reminder
+  EMERGENCY      // e.g., child missing, van breakdown
+  PAYMENT        // payment related
+  ATTENDANCE     // attendance related
+  ANNOUNCEMENT   // school announcements or posts
+}
+
 
 model BankAccount {
   id          String      @id

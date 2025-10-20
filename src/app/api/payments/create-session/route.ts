@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const payment = await prisma.payment.findUnique({
       where: { id: paymentId },
-      include: { child: true },
+      include: { Child: true },
     });
 
     if (!payment) {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: "lkr",
             product_data: {
-              name: `Van Fee - ${payment.child.name}`,
+              name: `Van Fee - ${payment.Child.name}`,
               description: `Month: ${payment.month}`,
             },
             unit_amount: Math.round(payment.amount * 100),

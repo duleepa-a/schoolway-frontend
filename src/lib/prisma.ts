@@ -1,18 +1,3 @@
-// import { PrismaClient } from '../generated/prisma/client'
-// const prisma = new PrismaClient()
-
-// export default prisma;
-// // use `prisma` in your application to read and write data in your DB
-
-// import { PrismaClient } from "@/generated/prisma";
-// const prisma = new PrismaClient();
-
-// export default prisma;
-
-
-
-
-// lib/prisma.ts
 import { PrismaClient } from '../generated/prisma/index'
 
 const globalForPrisma = globalThis as unknown as {

@@ -1,5 +1,6 @@
 
 import HeroSection from "./homeComponents/HeroSection";
+import AwarenessPostsSection from "./homeComponents/AwarenessPostsSection";
 import WhatWeOffer from "./homeComponents/WhatWeOffer";
 import AppDetails from "./homeComponents/AppDetails";
 import HomeInsightBanner from "./homeComponents/HomeInsightBanner";
@@ -22,6 +23,7 @@ export default function Home() {
         <Navbar/>
       </Authprovider>
       <HeroSection />
+      <AwarenessPostsSection />
       <WhatWeOffer/>
       <AppDetails/>
       <HomeInsightBanner/>

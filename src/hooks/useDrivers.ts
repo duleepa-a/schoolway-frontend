@@ -28,17 +28,16 @@ export const useDrivers = () => {
         ...(searchQuery && { search: searchQuery }),
         ...(selectedDistrict !== 'All' && { district: selectedDistrict })
       });
-      // console.log('Fetching drivers with params:', params.toString());
+
       const response = await fetch(`/api/van_service/drivers?${params}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch drivers');
       }
 
-      
       const data: DriverResponse = await response.json();
-      
-      // console.log('Fetching drivers with params:', data);
+      console.log('Received driver data:', data); // Move the console.log here
+
       setAvailableDrivers(data.drivers);
       setPagination(data.pagination);
       setAvailableDistricts(data.availableDistricts);

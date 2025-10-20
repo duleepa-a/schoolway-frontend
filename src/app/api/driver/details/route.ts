@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       const driver = await prisma.userProfile.findUnique({
         where: { id: driverId },
         include: {
-          driverProfile: {
+          DriverProfile: {
             select: {
               id: true,
               licenseId: true,
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         }
       });
 
-      if (!driver || !driver.driverProfile) {
+      if (!driver || !driver.DriverProfile) {
         return NextResponse.json(
           { error: 'Driver not found' },
           { status: 404 }
@@ -59,24 +59,24 @@ export async function GET(request: NextRequest) {
         mobile: driver.mobile,
         profilePicture: driver.dp,
         driverProfile: {
-          id: driver.driverProfile.id,
-          licenseId: driver.driverProfile.licenseId,
-          licenseExpiry: driver.driverProfile.licenseExpiry,
-          licenseFront: driver.driverProfile.licenseFront,
-          licenseBack: driver.driverProfile.licenseBack,
-          policeReport: driver.driverProfile.policeReport,
-          startedDriving: driver.driverProfile.startedDriving,
-          status: driver.driverProfile.status,
-          bio: driver.driverProfile.bio,
-          languages: driver.driverProfile.languages,
-          licenseType: driver.driverProfile.licenseType,
-          medicalReport: driver.driverProfile.medicalReport,
-          relocate: driver.driverProfile.relocate,
-          hasVan: driver.driverProfile.hasVan,
-          averageRating: driver.driverProfile.averageRating,
-          totalReviews: driver.driverProfile.totalReviews,
-          experience: driver.driverProfile.startedDriving 
-            ? `${new Date().getFullYear() - new Date(driver.driverProfile.startedDriving).getFullYear()} years`
+          id: driver.DriverProfile.id,
+          licenseId: driver.DriverProfile.licenseId,
+          licenseExpiry: driver.DriverProfile.licenseExpiry,
+          licenseFront: driver.DriverProfile.licenseFront,
+          licenseBack: driver.DriverProfile.licenseBack,
+          policeReport: driver.DriverProfile.policeReport,
+          startedDriving: driver.DriverProfile.startedDriving,
+          status: driver.DriverProfile.status,
+          bio: driver.DriverProfile.bio,
+          languages: driver.DriverProfile.languages,
+          licenseType: driver.DriverProfile.licenseType,
+          medicalReport: driver.DriverProfile.medicalReport,
+          relocate: driver.DriverProfile.relocate,
+          hasVan: driver.DriverProfile.hasVan,
+          averageRating: driver.DriverProfile.averageRating,
+          totalReviews: driver.DriverProfile.totalReviews,
+          experience: driver.DriverProfile.startedDriving 
+            ? `${new Date().getFullYear() - new Date(driver.DriverProfile.startedDriving).getFullYear()} years`
             : 'Not specified'
         }
       };
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       const van = await prisma.van.findUnique({
         where: { id: parseInt(vanId) },
         include: {
-          UserProfile_assignedDriverIdToUserProfile: {
+          UserProfile_Van_assignedDriverIdToUserProfile: {
             select: {
               id: true,
               firstname: true,
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
               email: true,
               mobile: true,
               dp: true,
-              driverProfile: {
+              DriverProfile: {
                 select: {
                   id: true,
                   licenseId: true,
@@ -125,14 +125,14 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      if (!van.UserProfile_assignedDriverIdToUserProfile) {
+      if (!van.UserProfile_Van_assignedDriverIdToUserProfile) {
         return NextResponse.json(
           { error: 'No driver assigned to this van' },
           { status: 404 }
         );
       }
 
-      const driver = van.UserProfile_assignedDriverIdToUserProfile;
+      const driver = van.UserProfile_Van_assignedDriverIdToUserProfile;
 
       driverData = {
         id: driver.id,
@@ -142,24 +142,24 @@ export async function GET(request: NextRequest) {
         mobile: driver.mobile,
         profilePicture: driver.dp,
         driverProfile: {
-          id: driver.driverProfile.id,
-          licenseId: driver.driverProfile.licenseId,
-          licenseExpiry: driver.driverProfile.licenseExpiry,
-          licenseFront: driver.driverProfile.licenseFront,
-          licenseBack: driver.driverProfile.licenseBack,
-          policeReport: driver.driverProfile.policeReport,
-          startedDriving: driver.driverProfile.startedDriving,
-          status: driver.driverProfile.status,
-          bio: driver.driverProfile.bio,
-          languages: driver.driverProfile.languages,
-          licenseType: driver.driverProfile.licenseType,
-          medicalReport: driver.driverProfile.medicalReport,
-          relocate: driver.driverProfile.relocate,
-          hasVan: driver.driverProfile.hasVan,
-          averageRating: driver.driverProfile.averageRating,
-          totalReviews: driver.driverProfile.totalReviews,
-          experience: driver.driverProfile.startedDriving 
-            ? `${new Date().getFullYear() - new Date(driver.driverProfile.startedDriving).getFullYear()} years`
+          id: driver.DriverProfile?.id,
+          licenseId: driver.DriverProfile?.licenseId,
+          licenseExpiry: driver.DriverProfile?.licenseExpiry,
+          licenseFront: driver.DriverProfile?.licenseFront,
+          licenseBack: driver.DriverProfile?.licenseBack,
+          policeReport: driver.DriverProfile?.policeReport,
+          startedDriving: driver.DriverProfile?.startedDriving,
+          status: driver.DriverProfile?.status,
+          bio: driver.DriverProfile?.bio,
+          languages: driver.DriverProfile?.languages,
+          licenseType: driver.DriverProfile?.licenseType,
+          medicalReport: driver.DriverProfile?.medicalReport,
+          relocate: driver.DriverProfile?.relocate,
+          hasVan: driver.DriverProfile?.hasVan,
+          averageRating: driver.DriverProfile?.averageRating,
+          totalReviews: driver.DriverProfile?.totalReviews,
+          experience: driver.DriverProfile?.startedDriving 
+            ? `${new Date().getFullYear() - new Date(driver.DriverProfile?.startedDriving).getFullYear()} years`
             : 'Not specified'
         },
         van: {
@@ -186,4 +186,12 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+
+
+
+
+
+
+
 

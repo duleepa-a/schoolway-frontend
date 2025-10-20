@@ -17,7 +17,7 @@ type StudentRow = {
 };
 
 const statusColors: Record<string, string> = {
-  Active: 'bg-[var(--green-shade-light)] text-[var(--green-shade-dark)] border-[var(--green-shade-dark)]',
+  Active: 'text-[var(--green-shade-dark)] border-[var(--green-shade-dark)]',
   Inactive: 'bg-gray-100 text-gray-600 border-gray-400',
   AT_HOME: 'bg-yellow-100 text-yellow-700 border-yellow-400', // Example for extra status
 };
@@ -28,8 +28,7 @@ export default function EnrolledTable() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
+  const fetchStudents = async () => {
       setLoading(true);
       setError(null);
       try {
@@ -47,11 +46,12 @@ export default function EnrolledTable() {
         setLoading(false);
       }
     };
-
+    
+  useEffect(() => {
     fetchStudents();
   }, [page]);
 
-  const handleAction = async (childId: number, action: 'inactive' | 'remove') => {
+  const handleAction = async (childId: number, action: 'inactive' | 'remove' | 'active') => {
     try {
       const res = await fetch(`/api/vanowner/enrolled-students/${childId}`, {
         method: 'PATCH',
@@ -61,8 +61,8 @@ export default function EnrolledTable() {
 
       const data = await res.json();
       if (res.ok) {
-        alert(`Child ${action === 'inactive' ? 'set to INACTIVE' : 'removed from van'}`);
-        // optionally refresh list or update UI state
+        alert(`Child ${action === 'inactive' ? 'set to INACTIVE' : action === 'active' ? 'set to ACTIVE' : 'removed from van'}`);
+        fetchStudents();
       } else {
         alert(data.error || 'Failed to update child');
       }
@@ -148,12 +148,21 @@ export default function EnrolledTable() {
                         Inactive
                       </button>
                     ) : (
-                      <button
-                        onClick={() => handleAction(s.id, 'remove')}
-                        className="text-white bg-[var(--red-shade-dark)] px-3 py-1 rounded-lg hover:bg-red-700 cursor-pointer items-center"
-                      >
-                        Remove
-                      </button>
+                      <div>
+                        <button
+                          onClick={() => handleAction(s.id, 'active')}
+                          className="text-white bg-[var(--green-shade-dark)] px-5 py-1 rounded-lg hover:bg-[var(--blue-shade-dark)] cursor-pointer items-center"
+                        >
+                          Active
+                        </button>
+                        <button
+                          onClick={() => handleAction(s.id, 'remove')}
+                          className="text-white bg-[var(--red-shade-dark)] ml-1 px-3 py-1 rounded-lg hover:bg-red-700 cursor-pointer items-center"
+                        >
+                          Remove
+                        </button>
+                        
+                      </div>
                     )}
                   </td>
                 </tr>

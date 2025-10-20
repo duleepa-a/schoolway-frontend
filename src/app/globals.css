@@ -57,6 +57,7 @@
   --dark-blue: #005672;
   --blue-shade-dark: #0099cc;
   --blue-shade-light: #00bcd4;
+  --red-shade-dark: #CC3333;
   --green-shade-light: #00d4aa;
   --green-shade-dark: #029779;
   --color-background: #FAF8F8;
@@ -249,6 +250,26 @@ h1 , h2 {
 
   .activeBtn {
     @apply bg-yellow-100 text-yellow-700 border-yellow-400;
+  }
+
+  /* List styles for TipTap editor */
+  .tiptapEditorWrapper ul {
+    @apply list-disc pl-6 my-2;
+  }
+
+  .tiptapEditorWrapper ol {
+    @apply list-decimal pl-6 my-2;
+  }
+
+  .tiptapEditorWrapper li {
+    @apply my-1;
+  }
+
+  .tiptapEditorWrapper ul ul,
+  .tiptapEditorWrapper ol ol,
+  .tiptapEditorWrapper ul ol,
+  .tiptapEditorWrapper ol ul {
+    @apply my-0;
   }
 
 

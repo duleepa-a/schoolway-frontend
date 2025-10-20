@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
             child: {
             include: {
                 UserProfile: true, 
-                School: true, // Include parent here
+                School: true, 
             },
             },
         },
@@ -46,6 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
       pickupLocation: ss.child.pickupAddress,
       pickupTime: ss.estimatedPickup ? new Date(ss.estimatedPickup).toLocaleTimeString() : '',
       DropoffLocation: ss.child.School?.address || '',
+      parentId: ss.child.UserProfile?.id || '',
       parentContact: ss.child.UserProfile?.mobile || '',
       profileImage: ss.child.profilePicture || '',
       pickupStatus: ss.pickupStatus,

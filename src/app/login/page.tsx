@@ -68,17 +68,40 @@ export default function LoginPage() {
   
         const handleSignIn = async (data : {email:String, password:String}) => {
           
-          const signInData  = await signIn('credentials', {
-            email: data.email,
-            password: data.password,
-            redirect:false,
-          });
-  
-          if(signInData?.status===401){
-            console.log("Error is : ", signInData)            
-            newErrors.credentials = 'Your credentials do not seem to match with ours! Check again?';
-            setErrors(newErrors);
-          }else{
+          // First check if user exists and is active
+          try {
+            const userCheckResponse = await fetch('/api/auth/check-user-status', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email: data.email }),
+            });
+
+            if (userCheckResponse.ok) {
+              const userStatus = await userCheckResponse.json();
+              if (!userStatus.isActive) {
+                newErrors.credentials = 'User account is deactivated, please contact the admin';
+                setErrors(newErrors);
+                return;
+              }
+            }
+          } catch (error) {
+            console.log('User status check failed, proceeding with normal login');
+          }
+
+          try {
+            const signInData  = await signIn('credentials', {
+              email: data.email,
+              password: data.password,
+              redirect:false,
+            });
+    
+            if(signInData?.status===401){
+              console.log("Error is : ", signInData)            
+              newErrors.credentials = 'Your credentials do not seem to match with ours! Check again?';
+              setErrors(newErrors);
+            }else{
 
             const session = await fetch('/api/auth/session').then(res => res.json());
             const userRole = session?.user?.role;
@@ -97,11 +120,16 @@ export default function LoginPage() {
               email: '',
               password: ''
             });             
-        }    
+            }
+          } catch (signInError: any) {
+            console.log("Sign in error: ", signInError);
+            newErrors.credentials = 'Your credentials do not seem to match with ours! Check again?';
+            setErrors(newErrors);
+          }
         };
         const signInData_ = await handleSignIn(formData);
     
-      } catch (error) {
+      } catch (error: any) {
         console.error('Login error:', error);
         alert('Login failed. Please try again.');
       } finally {
