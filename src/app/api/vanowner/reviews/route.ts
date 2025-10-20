@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
             firstname: true,
             lastname: true,
             dp: true,
-            driverProfile: {
+            DriverProfile: {
               select: {
                 averageRating: true
               }

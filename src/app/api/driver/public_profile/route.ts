@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     const van = await prisma.van.findFirst({
       where: { assignedDriverId: driverId },
       include: {
-        UserProfile_Van_ownerIdToUserProfile: {
+        UserProfile: {
           include: {
             VanService: true,
           },
@@ -139,19 +139,19 @@ export async function GET(request: NextRequest) {
                 reviews: vanReviews,
               }
             : null,
-          vanService: van?.UserProfile_Van_ownerIdToUserProfile?.VanService
+          vanService: van?.UserProfile?.VanService
             ? {
-                id: van.UserProfile_Van_ownerIdToUserProfile.VanService.id,
+                id: van.UserProfile.VanService.id,
                 serviceName:
-                  van.UserProfile_Van_ownerIdToUserProfile.VanService
+                  van.UserProfile.VanService
                     .serviceName,
                 contactNo:
-                  van.UserProfile_Van_ownerIdToUserProfile.VanService.contactNo,
+                  van.UserProfile.VanService.contactNo,
                 averageRating:
-                  van.UserProfile_Van_ownerIdToUserProfile.VanService
+                  van.UserProfile.VanService
                     .averageRating,
                 totalReviews:
-                  van.UserProfile_Van_ownerIdToUserProfile.VanService
+                  van.UserProfile.VanService
                     .totalReviews,
               }
             : null,
