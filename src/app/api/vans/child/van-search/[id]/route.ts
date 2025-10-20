@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-const PROXIMITY_RADIUS_KM = 40; // Configurable proximity radius in km
+const PROXIMITY_RADIUS_KM = 45; // Configurable proximity radius in km
 
 // Helper function to calculate distance between two points (Haversine formula)
 function calculateDistance(
@@ -151,11 +151,11 @@ export async function GET(
 
     // 4️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers and their paths
     const vans = await prisma.van.findMany({
-      // where: {
-      //   hasDriver: true,
-      //   status: 1,
-      //   assignedDriverId: { not: null },
-      // },
+      where: {
+        hasDriver: true,
+        status: 1,
+        assignedDriverId: { not: null },
+      },
       include: {
         UserProfile_Van_ownerIdToUserProfile: {
           select: {
