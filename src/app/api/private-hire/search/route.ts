@@ -3,6 +3,28 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { calculateDistance } from '@/utils/calculateDistance';
 
+// Define TypeScript interfaces for the vans
+interface VanFromDB {
+  id: number;
+  registrationNumber: string;
+  licensePlateNumber: string;
+  makeAndModel: string;
+  seatingCapacity: number;
+  acCondition: boolean;
+  photoUrl: string | null;
+  ownerId: string;
+  privateRating: number | null;
+  routeStart: string | null;
+  averageRating: number | null;
+  contactNo: string | null;
+}
+
+interface VanWithDistance extends VanFromDB {
+  pickupDistance: number | null;
+  tripDistance: number | null;
+  warning: string | null;
+}
+
 export async function POST(request: Request) {
   try {
     const {
@@ -11,7 +33,7 @@ export async function POST(request: Request) {
       destinationLat,
       destinationLng,
       departureDate,
-      returnDate,
+      returnDate, // We're extracting this but not using it in validation currently
       noOfPassengers,
     } = await request.json();
 
@@ -27,7 +49,7 @@ export async function POST(request: Request) {
     }
 
   // Use a raw query to fetch vans and their path's routeStart geometry
-  const vansWithPath = await prisma.$queryRaw`\
+  const vansWithPath = await prisma.$queryRaw<VanFromDB[]>`\
     SELECT 
       v.id, 
       v."registrationNumber", 
@@ -48,38 +70,49 @@ export async function POST(request: Request) {
   `;
   console.log('DEBUG vansWithPath (raw):', JSON.stringify(vansWithPath, null, 2));
 
-    function extractLatLng(geometry: any): { lat: number; lng: number } | null {
+    function extractLatLng(geometry: unknown): { lat: number; lng: number } | null {
       if (!geometry) return null;
-      let geomStr = geometry;
-      // If Buffer, convert to string
-      if (typeof geometry === 'object' && geometry !== null && Buffer.isBuffer?.(geometry)) {
+      
+      // For GeoJSON Point objects
+      if (typeof geometry === 'object' && geometry !== null && !Buffer.isBuffer(geometry) &&
+          'type' in geometry && 'coordinates' in geometry &&
+          geometry.type === 'Point' && Array.isArray(geometry.coordinates)) {
+        const point = geometry as { type: string; coordinates: number[] };
+        return { lat: point.coordinates[1], lng: point.coordinates[0] };
+      }
+      
+      // Convert Buffer to string if needed
+      let geomStr: string;
+      if (typeof geometry === 'object' && geometry !== null && Buffer.isBuffer(geometry)) {
         geomStr = geometry.toString('utf8');
+      } else if (typeof geometry === 'string') {
+        geomStr = geometry;
+      } else {
+        return null; // Unsupported type
       }
-      // GeoJSON Point object
-      if (geomStr.type === 'Point' && Array.isArray(geomStr.coordinates)) {
-        return { lat: geomStr.coordinates[1], lng: geomStr.coordinates[0] };
-      }
+      
       // WKT string POINT(lng lat)
-      if (typeof geomStr === 'string' && geomStr.startsWith('POINT(')) {
+      if (geomStr.startsWith('POINT(')) {
         const match = geomStr.match(/POINT\(([-\d.]+) ([-\d.]+)\)/);
         if (match) {
           return { lat: parseFloat(match[2]), lng: parseFloat(match[1]) };
         }
       }
+      
       // Try parsing as JSON string
-      if (typeof geomStr === 'string') {
-        try {
-          const obj = JSON.parse(geomStr);
-          if (obj.type === 'Point' && Array.isArray(obj.coordinates)) {
-            return { lat: obj.coordinates[1], lng: obj.coordinates[0] };
-          }
-        } catch (e) {}
+      try {
+        const obj = JSON.parse(geomStr);
+        if (obj && typeof obj === 'object' && obj.type === 'Point' && Array.isArray(obj.coordinates)) {
+          return { lat: obj.coordinates[1], lng: obj.coordinates[0] };
+        }
+      } catch {
+        // Parsing failed, ignore and continue
       }
+      
       return null;
     }
 
-    let warning = null;
-    const vansWithDistance = vansWithPath.map((van: any) => {
+    const vansWithDistance: VanWithDistance[] = vansWithPath.map((van: VanFromDB) => {
       const routeStart = van.routeStart;
       const coords = extractLatLng(routeStart);
       let pickupDistance = null;
@@ -88,14 +121,18 @@ export async function POST(request: Request) {
         pickupDistance = calculateDistance(pickupLat, pickupLng, coords.lat, coords.lng);
         tripDistance = calculateDistance(pickupLat, pickupLng, destinationLat, destinationLng);
       }
-      // Check passenger count
+      
+      // Check passenger count and add warning directly to each van object
+      let capacityWarning = null;
       if (noOfPassengers > van.seatingCapacity) {
-        warning = `Warning: Requested passengers (${noOfPassengers}) exceed van seating capacity (${van.seatingCapacity}) for van ${van.registrationNumber}`;
+        capacityWarning = `Requested passengers (${noOfPassengers}) exceed van seating capacity (${van.seatingCapacity})`;
       }
+      
       return {
         ...van,
         pickupDistance,
-        tripDistance
+        tripDistance,
+        warning: capacityWarning // Add warning to each van object
       };
     });
 
@@ -106,9 +143,10 @@ export async function POST(request: Request) {
       return a.pickupDistance - b.pickupDistance;
     });
 
-    return NextResponse.json({ vans: vansWithDistance, warning }, { status: 200 });
-  } catch (error: any) {
+    return NextResponse.json({ vans: vansWithDistance }, { status: 200 });
+  } catch (error: unknown) {
     console.error('Search Vans Error:', error);
-    return NextResponse.json({ error: error?.message || 'Server error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
