@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/PublishedPostsViewer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/PublishedPostsViewer.tsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="Dev_Stage" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;dineththeekshana&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/duleepa-a/schoolway-frontend.git&quot;,
+    &quot;accountId&quot;: &quot;87208401-7604-4e50-9470-80073ae21791&quot;
+  },
+  &quot;recentNewPullRequestHead&quot;: {
+    &quot;server&quot;: {
+      &quot;useHttp&quot;: false,
+      &quot;host&quot;: &quot;github.com&quot;,
+      &quot;port&quot;: null,
+      &quot;suffix&quot;: null
+    },
+    &quot;owner&quot;: &quot;duleepa-a&quot;,
+    &quot;repository&quot;: &quot;schoolway-frontend&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2yqelcQUhIYmc2gdOiWOhT3BwZH" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dineth&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Dineth/Desktop/schoolway-frontend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Dineth\Desktop\schoolway-frontend\src\app\vanowner\vehicles\driver" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Dineth\Desktop\schoolway-frontend\src\app\vanowner\vehicles\driver\details" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="schoolway-frontend" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="schoolway-frontend" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="schoolway-frontend" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="schoolway-frontend" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.117" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.117" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="" />
+      <created>1750566682959</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750566682959</updated>
+      <workItem from="1750566684078" duration="2082000" />
+      <workItem from="1751870444842" duration="17614000" />
+      <workItem from="1752083542324" duration="1210000" />
+      <workItem from="1752466014647" duration="1610000" />
+      <workItem from="1752571774278" duration="1224000" />
+      <workItem from="1752640569668" duration="32000" />
+      <workItem from="1752640609754" duration="1174000" />
+      <workItem from="1753127029499" duration="58000" />
+      <workItem from="1753127102436" duration="106000" />
+      <workItem from="1753127218296" duration="72000" />
+      <workItem from="1753127303949" duration="33000" />
+      <workItem from="1753127348760" duration="4781000" />
+      <workItem from="1753285661804" duration="634000" />
+      <workItem from="1753351234348" duration="2124000" />
+      <workItem from="1753378887435" duration="1979000" />
+      <workItem from="1753380904288" duration="617000" />
+      <workItem from="1753463149710" duration="1675000" />
+      <workItem from="1753500050239" duration="621000" />
+      <workItem from="1753726107576" duration="306000" />
+      <workItem from="1753726432676" duration="263000" />
+      <workItem from="1753726710728" duration="280000" />
+      <workItem from="1753727014361" duration="145000" />
+      <workItem from="1753727297742" duration="1332000" />
+      <workItem from="1753732369396" duration="86000" />
+      <workItem from="1753732463439" duration="3593000" />
+      <workItem from="1753861948318" duration="5000" />
+      <workItem from="1754798925286" duration="4600000" />
+      <workItem from="1754803889345" duration="4332000" />
+      <workItem from="1754814604283" duration="6227000" />
+      <workItem from="1755838427184" duration="362000" />
+      <workItem from="1757220309873" duration="7315000" />
+      <workItem from="1759726699282" duration="32000" />
+      <workItem from="1759729556911" duration="263000" />
+      <workItem from="1759730535216" duration="1632000" />
+      <workItem from="1760552068783" duration="3555000" />
+      <workItem from="1760638245673" duration="3405000" />
+      <workItem from="1760758692819" duration="7893000" />
+      <workItem from="1760801360201" duration="2194000" />
+      <workItem from="1760844092699" duration="8782000" />
+      <workItem from="1760868089145" duration="11354000" />
+      <workItem from="1760945621949" duration="3030000" />
+    </task>
+    <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
+      <option name="closed" value="true" />
+      <created>1751893144835</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1751893144835</updated>
+    </task>
+    <task id="LOCAL-00002" summary="guardian registration">
+      <option name="closed" value="true" />
+      <created>1752466409356</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1752466409356</updated>
+    </task>
+    <task id="LOCAL-00003" summary="notifications page added">
+      <option name="closed" value="true" />
+      <created>1753127771301</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1753127771301</updated>
+    </task>
+    <task id="LOCAL-00004" summary="add admin page">
+      <option name="closed" value="true" />
+      <created>1753130212958</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1753130212958</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="van driver assign &amp; driver details pages" />
+    <MESSAGE value="guardian registration" />
+    <MESSAGE value="notifications page added" />
+    <MESSAGE value="add admin page" />
+    <option name="LAST_COMMIT_MESSAGE" value="add admin page" />
+  </component>
+</project>

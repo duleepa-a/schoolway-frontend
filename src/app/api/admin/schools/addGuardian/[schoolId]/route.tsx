@@ -11,9 +11,10 @@ interface GuardianRequestBody {
 }
 
 export async function POST(req: NextRequest, 
-  { params }: { params: { schoolId: string } }) {
+  { params }: { params: Promise<{ schoolId: string }> }) {
   try {
-    const schoolId = parseInt(params.schoolId);
+    const resolvedParams = await params;
+    const schoolId = parseInt(resolvedParams.schoolId);
     const body = await req.json();
     const { firstname, lastname, email, phone, password } = body as GuardianRequestBody;
 
@@ -74,6 +75,10 @@ export async function POST(req: NextRequest,
       data: {
         schoolId: schoolId,
         guardianId: newUser.id,
+        email: email,
+        firstName: firstname,
+        lastName: lastname,
+        phone: phone || null,
       },
     });
 

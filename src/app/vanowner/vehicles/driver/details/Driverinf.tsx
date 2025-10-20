@@ -80,6 +80,7 @@ export default function Driverinf({ driverId }: DriverDetailsProps) {
                 }
                 
                 const data: DriverDetailsResponse = await response.json();
+                console.log('Fetched driver details in driver info comp:', data);
                 setDriver(data.driver);
             } catch (error) {
                 console.error('Error fetching driver details:', error);
@@ -117,8 +118,8 @@ export default function Driverinf({ driverId }: DriverDetailsProps) {
     useEffect(() => {
         const checkExistingOffer = async () => {
             
-            console.log('Checking existing job offer for driver:', driver.id, 'and van:', vanId);
             if (!driver?.id || !vanId) return;
+            console.log('Checking existing job offer for driver:', driver.id, 'and van:', vanId);
 
             try {
                 setCheckingOffer(true);
@@ -361,7 +362,7 @@ export default function Driverinf({ driverId }: DriverDetailsProps) {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                            <p className="text-gray-600">{driver.address}</p>
+                            <p className="text-gray-600">{driver.district}, {driver.city}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
@@ -469,7 +470,7 @@ export default function Driverinf({ driverId }: DriverDetailsProps) {
                 onClose={handleCloseModal}
                 onConfirm={handleConfirmJobOffer}
                 driverName={driver?.name || ''}
-                vanModel={vanMakeAndModel}
+                vanModel={vanMakeAndModel || ''}
                 isLoading={requestLoading}
             />
         </div>

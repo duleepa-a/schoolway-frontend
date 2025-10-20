@@ -57,21 +57,24 @@ interface FormData {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const resolvedParams = await params;
+    const userId = resolvedParams.id;
     console.log("Getting profile for user:", userId);
     
     const user = await prisma.userProfile.findUnique({
       where: { id: userId },
-      include: { driverProfile: true },
+      include: { DriverProfile: true },
     });
 
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
-
+     
+    console.log("Fetched user profile:", user);
+    
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -81,10 +84,11 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const resolvedParams = await params;
+    const userId = resolvedParams.id;
     console.log('Processing update for user:', userId);
     
     const data = await req.json() as FormData;

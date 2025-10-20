@@ -8,6 +8,27 @@ import { CheckCircle } from 'lucide-react';
 import { DriverDetails as DriverDetailsType, DriverDetailsResponse } from '@/types/driverDetails';
 import JobOfferModal from '@/app/dashboardComponents/JobOfferModal';
 
+interface Review {
+  id: string;
+  childId: number;
+  reviewType: string;
+  targetId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  updatedAt: string;
+  vanId: number;
+  Child?: {
+    id: number;
+    name: string;
+  };
+  Van?: {
+    id: number;
+    makeAndModel: string;
+    licensePlateNumber: string;
+  };
+}
+
 interface DriverDetailsProps {
   driverId: string;
 }
@@ -26,8 +47,13 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
     const [showJobOfferModal, setShowJobOfferModal] = useState(false);
     const [hasExistingOffer, setHasExistingOffer] = useState(false);
     const [checkingOffer, setCheckingOffer] = useState(true);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [reviewsError, setReviewsError] = useState<string | null>(null);
+    const [averageRating, setAverageRating] = useState(0);
+    const [totalReviews, setTotalReviews] = useState(0);
 
-    // Mock data for fields not in database
+    // Mock data for fields not in database (keeping only past experience)
     const mockData = {
         pastExperience: [
             {
@@ -41,26 +67,6 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                 position: 'Tour Guide Driver',
                 duration: '2017 - 2019',
                 description: 'Provided transportation services for tourists and conducted city tours'
-            }
-        ],
-        reviews: [
-            {
-                customerName: 'Saman Perera',
-                rating: 5,
-                comment: 'Excellent driver! Very punctual and friendly with children.',
-                date: 'June 15, 2025'
-            },
-            {
-                customerName: 'Priya Fernando',
-                rating: 4,
-                comment: 'Good driving skills and maintains the vehicle well.',
-                date: 'May 20, 2025'
-            },
-            {
-                customerName: 'Ravi Silva',
-                rating: 5,
-                comment: 'Highly recommended! Safe driver and very reliable.',
-                date: 'April 10, 2025'
             }
         ]
     };
@@ -81,6 +87,7 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                 }
                 
                 const data: DriverDetailsResponse = await response.json();
+                console.log('Fetched driver details:', data);
                 setDriver(data.driver);
             } catch (error) {
                 console.error('Error fetching driver details:', error);
@@ -115,6 +122,41 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
     }, [vanId]);
 
     // Check for existing job offer
+    // Fetch reviews for the driver
+    useEffect(() => {
+        const fetchDriverReviews = async () => {
+            if (!driver?.id) return;
+            
+            try {
+                setReviewsLoading(true);
+                setReviewsError(null);
+                
+                const response = await fetch(`/api/van_service/drivers/${driver.id}/get-reviews`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch driver reviews');
+                }
+                
+                const data = await response.json();
+                console.log('Fetched driver reviews:', data);
+                
+                setReviews(data.reviews || []);
+                setAverageRating(data.averageRating || 0);
+                setTotalReviews(data.totalReviews || 0);
+                
+            } catch (error) {
+                console.error('Error fetching driver reviews:', error);
+                setReviewsError(error instanceof Error ? error.message : 'Failed to load reviews');
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
+        if (driver?.id) {
+            fetchDriverReviews();
+        }
+    }, [driver?.id]);
+
     useEffect(() => {
         const checkExistingOffer = async () => {
             if (!driver?.id || !vanId) return;
@@ -139,11 +181,7 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
         checkExistingOffer();
     }, [driver?.id, vanId]);
 
-    const handleDownload = (documentType: string, filePath: string) => {
-        // Handle document download logic here
-        console.log(`Downloading ${documentType} from ${filePath}`);
-        // You can implement actual download functionality here
-    };
+    // Document download functionality can be implemented if needed
 
     const handleBackClick = () => {
         router.back();
@@ -215,41 +253,54 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
     };
 
     const renderJobOfferButton = () => {
-        if (checkingOffer) {
-            return (
-                <button 
-                disabled = {true}
-                className='w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'>
-                    <div className="flex items-center justify-center">
-                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Loading...
-                    </div>
-                </button>
-            )
-        }
-
-        if (hasExistingOffer) {
-            return (
-                <button 
-                disabled = {true}
-                className='flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg  transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center space-x-2 '>
-                    <FaCheck className="text-green-400" />
-                    <div className="flex items-center justify-center">                        
-                        Already Sent
-                    </div>
-                </button>
-            );
-        }
-
+      if (checkingOffer) {
         return (
-            <button 
-            onClick={handleSendJobOffer}
-            className="flex w-full lg:w-auto bg-primary text-white px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 items-center justify-center space-x-2 hover:cursor-pointer"
-            >
-            <FaPaperPlane />
-            <span>Send Job Offer</span>
-            </button>
+          <button 
+            disabled={true}
+            className='btn btn-primary'>
+            <div className="flex items-center justify-center">
+              <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Loading...
+            </div>
+          </button>
         );
+      }
+
+      if (driver?.hasVan) {
+        return (
+          <button 
+            disabled={true}
+            className='btn btn-primary'>
+            <FaCheck className="text-yellow-400" />
+            <div className="flex items-center justify-center">
+              Already Has a Van
+            </div>
+          </button>
+        );
+      }
+
+      if (hasExistingOffer) {
+        return (
+          <button 
+            disabled={true}
+            className='btn btn-primary'>
+            <FaCheck className="text-green-400" />
+            <div className="flex items-center justify-center">                        
+              Already Sent
+            </div>
+          </button>
+        );
+      }
+
+      return (
+        <button 
+          onClick={handleSendJobOffer}
+          className="btn btn-primary"
+        >
+          
+          <span>Send Job Offer</span>
+        </button>
+      );
     };
 
     if (loading) {
@@ -336,10 +387,11 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                             <p className="text-gray-600 mb-2">Driver ID: {driver.id}</p>
                             <div className="flex items-center justify-center md:justify-start space-x-2 mb-4">
                                 <div className="flex space-x-1">
-                                    {renderStars(driver.rating)}
+                                    {renderStars(reviewsLoading ? driver.rating : averageRating || driver.rating)}
                                 </div>
                                 <span className="text-gray-600">
-                                    {driver.rating} ({driver.totalReviews} reviews)
+                                    {reviewsLoading ? driver.rating : averageRating.toFixed(1)} 
+                                    ({reviewsLoading ? driver.totalReviews : totalReviews} reviews)
                                 </span>
                             </div>
                             <p className="text-gray-600 mb-2">Experience: {driver.experience}</p>
@@ -416,7 +468,7 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
             </div>
 
             {/* Past Experience - Keep as mock data */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
+            {/* <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h2 className="text-lg font-semibold mb-4 text-gray-800">Past Experience</h2>
                 <div className="space-y-4">
                     {mockData.pastExperience.map((exp, index) => (
@@ -430,28 +482,64 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                         </div>
                     ))}
                 </div>
-            </div>
+            </div> */}
 
-            {/* Reviews - Keep as mock data */}
+            {/* Reviews - From API */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <h2 className="text-lg font-semibold mb-4 text-gray-800">Customer Reviews</h2>
-                <div className="space-y-4">
-                    {mockData.reviews.map((review, index) => (
-                        <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center space-x-3">
-                                    <span className="font-medium text-gray-800">{review.customerName}</span>
-                                    
+                <h2 className="text-lg font-semibold mb-4 text-gray-800">
+                    Customer Reviews 
+                    {!reviewsLoading && (
+                        <span className="ml-2 text-sm text-gray-500">({totalReviews})</span>
+                    )}
+                </h2>
+                
+                {reviewsLoading && (
+                    <div className="flex items-center justify-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <p className="ml-2 text-gray-500">Loading reviews...</p>
+                    </div>
+                )}
+                
+                {reviewsError && (
+                    <div className="text-center py-4">
+                        <p className="text-red-500">{reviewsError}</p>
+                    </div>
+                )}
+                
+                {!reviewsLoading && !reviewsError && reviews.length === 0 && (
+                    <div className="text-center py-6">
+                        <p className="text-gray-500">No reviews available for this driver</p>
+                    </div>
+                )}
+                
+                {!reviewsLoading && !reviewsError && reviews.length > 0 && (
+                    <div className="space-y-4">
+                        {reviews.map((review, index) => (
+                            <div key={review.id || index} className="border-b border-gray-200 pb-4 last:border-b-0">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-3">
+                                        <span className="font-medium text-gray-800">{review.Child?.name || 'Anonymous'}</span>
+                                    </div>
+                                    <span className="text-sm text-gray-500">
+                                        {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </span>
                                 </div>
-                                <span className="text-sm text-gray-500">{review.date}</span>
+                                {/* <div className="flex items-center space-x-3 text-sm text-gray-600 mb-2">
+                                    <span>Van: {review.Van?.makeAndModel || 'Unknown'}</span>
+                                    <span>({review.Van?.licensePlateNumber || 'No plate'})</span>
+                                </div> */}
+                                <div className="flex space-x-1 mt-0 mb-3">
+                                    {renderStars(review.rating)}
+                                </div>
+                                <p className="text-gray-600 text-sm">{review.comment || 'No comment provided'}</p>
                             </div>
-                            <div className="flex space-x-1 mt-0 mb-3">
-                                {renderStars(review.rating)}
-                            </div>
-                            <p className="text-gray-600 text-sm">{review.comment}</p>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Job Offer Modal */}
@@ -460,7 +548,7 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                 onClose={handleCloseModal}
                 onConfirm={handleConfirmJobOffer}
                 driverName={driver?.name || ''}
-                vanModel={vanMakeAndModel}
+                vanModel={vanMakeAndModel || ''}
                 isLoading={requestLoading}
             />
         </div>

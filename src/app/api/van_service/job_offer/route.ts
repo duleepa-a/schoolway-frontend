@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
@@ -46,16 +46,16 @@ export async function POST(req: NextRequest) {
       where: {
         id: driverId,
         role: 'DRIVER',
-        driverProfile: {
+        DriverProfile: {
           isNot: null
         }
       },
       include: {
-        driverProfile: true
+        DriverProfile: true
       }
     });
 
-    if (!driver) {
+    if (!driver || !driver.DriverProfile) {
       return NextResponse.json(
         { error: 'Driver not found or invalid driver profile' }, 
         { status: 404 }
@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
     // Create the job request
     const jobRequest = await prisma.driverVanJobRequest.create({
       data: {
+        id: `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Generate unique ID
         driverId,
         vanId: parseInt(vanId),
         vanOwnerId,

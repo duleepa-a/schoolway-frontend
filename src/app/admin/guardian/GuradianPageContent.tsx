@@ -6,15 +6,16 @@ import { MdOutlineClose, MdEmail, MdLocationOn } from "react-icons/md";
 import FormInput from '@/app/components/FormInput';
 import DataTable from '@/app/dashboardComponents/CustomTable';
 import ConfirmationBox from '@/app/dashboardComponents/ConfirmationBox';
+import EditGuardianModal from '../school/components/EditGuardianModal';
 
 interface Guardian {
-    id: string;
-    firstname: string;
-    lastname: string;
+    id: number;
+    firstName: string;
+    lastName: string;
     email: string;
     schoolName: string;
     phone?: string;
-    activeStatus: boolean;
+    schoolId: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -28,13 +29,15 @@ interface SchoolData {
 
 // API data structure for guardians
 interface GuardianInfoApi {
-    guardianId: string;
-    firstname: string;
-    lastname: string;
+    id: number;
+    firstName: string;
+    lastName: string;
     email: string;
-    contact: string;
+    phone?: string;
     schoolName: string;
     schoolId: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 const GuradianPageContent = () => {
@@ -42,11 +45,33 @@ const GuradianPageContent = () => {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
-    // Stub for confirmDelete function (no guardian logic)
-    const confirmDelete = () => {
-        setShowDeleteConfirmation(false);
-        setConfirmationMessage('Delete functionality is not implemented.');
-        setShowErrorConfirmation(true);
+    // Actual delete function
+    const confirmDelete = async () => {
+        if (!guardianToDelete) return;
+        
+        try {
+            const response = await fetch(`/api/admin/guardian?id=${guardianToDelete.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
+            // Remove the guardian from the local state
+            setGuardiansInfo(prev => prev.filter(guardian => guardian.id !== guardianToDelete.id));
+            
+            setShowDeleteConfirmation(false);
+            setGuardianToDelete(null);
+            setConfirmationMessage('Guardian deleted successfully!');
+            setShowSuccessConfirmation(true);
+        } catch (error) {
+            console.error('Failed to delete guardian:', error);
+            setShowDeleteConfirmation(false);
+            setGuardianToDelete(null);
+            setConfirmationMessage(`Failed to delete guardian: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setShowErrorConfirmation(true);
+        }
     };
     const [searchTerm, setSearchTerm] = useState('');
     const [showForm, setShowForm] = useState(false);
@@ -62,15 +87,18 @@ const GuradianPageContent = () => {
     const [showErrorConfirmation, setShowErrorConfirmation] = useState(false);
     const [confirmationMessage, setConfirmationMessage] = useState('');
     const [guardianToDelete, setGuardianToDelete] = useState<Guardian | null>(null);
+    
+    // Edit modal states
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedGuardianForEdit, setSelectedGuardianForEdit] = useState<Guardian | null>(null);
 
     const [formData, setFormData] = useState({
-        firstname: '',
-        lastname: '',
+        firstName: '',
+        lastName: '',
         email: '',
         schoolName: '',
         schoolId: '',
-        phone: '',
-        activeStatus: true
+        phone: ''
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -93,8 +121,8 @@ const GuradianPageContent = () => {
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.firstname.trim()) newErrors.firstname = 'First name is required';
-        if (!formData.lastname.trim()) newErrors.lastname = 'Last name is required';
+        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
         if (!formData.email.trim()) newErrors.email = 'Email is required';
         if (!selectedSchoolId) newErrors.schoolName = 'Please select a school';
 
@@ -112,31 +140,27 @@ const GuradianPageContent = () => {
         e.preventDefault();
         if (validateForm()) {
             try {
-                // Create request payload with default password 'guardian' to match backend implementation
+                // Create request payload for new API
                 const requestPayload = {
-                    firstname: formData.firstname,
-                    lastname: formData.lastname,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
                     email: formData.email,
                     phone: formData.phone || '',
-                    password: 'guardian' // Backend hashes this default password
+                    schoolId: parseInt(selectedSchoolId)
                 };
 
-                const response = await fetch(`/api/admin/schools/addGuardian/${selectedSchoolId}`, {
+                const response = await fetch('/api/admin/guardian', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestPayload)
                 });
 
-                // Get response text for parsing
-                const responseText = await response.text();
-
                 if (!response.ok) {
-                    throw new Error(`Failed to create guardian: ${responseText}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create guardian');
                 }
 
                 // Process the response
-                // No need to update guardians list or refresh trigger here
-
                 setShowForm(false);
                 resetForm();
 
@@ -158,13 +182,12 @@ const GuradianPageContent = () => {
 
     const resetForm = () => {
         setFormData({
-            firstname: '',
-            lastname: '',
+            firstName: '',
+            lastName: '',
             email: '',
             schoolName: '',
             schoolId: '',
-            phone: '',
-            activeStatus: true
+            phone: ''
         });
         setSelectedSchoolId('');
         setErrors({});
@@ -209,7 +232,7 @@ const GuradianPageContent = () => {
     const fetchGuardians = async () => {
         setIsLoadingGuardians(true);
         try {
-            const response = await fetch('http://localhost:3000/api/admin/schools/getGuardians');
+            const response = await fetch('/api/admin/guardian');
             if (!response.ok) throw new Error('Failed to fetch guardians');
             const data = await response.json();
             if (Array.isArray(data)) {
@@ -249,6 +272,12 @@ const GuradianPageContent = () => {
     };
 
     const handleAddGuardianClick = () => setShowForm(true);
+    
+    const handleCancelForm = () => {
+        setShowForm(false);
+        resetForm();
+    };
+    
     const handleCloseForm = () => {
                 setShowForm(false);
                 resetForm();
@@ -261,14 +290,28 @@ const GuradianPageContent = () => {
                 setShowSuccessConfirmation(true);
     };
 
-    // Table actions (edit/delete) can be stubs for now
+    // Table actions (edit/delete) implementation
     const handleEdit = (guardian: GuardianInfoApi) => {
-        setConfirmationMessage('Edit functionality is not implemented.');
-        setShowErrorConfirmation(true);
+        setSelectedGuardianForEdit(guardian);
+        setShowEditModal(true);
     };
+    
     const handleDelete = (guardian: GuardianInfoApi) => {
-        setConfirmationMessage('Delete functionality is not implemented.');
-        setShowErrorConfirmation(true);
+        setGuardianToDelete(guardian as Guardian);
+        setShowDeleteConfirmation(true);
+    };
+    
+    const handleEditSuccess = () => {
+        setShowEditModal(false);
+        setSelectedGuardianForEdit(null);
+        fetchGuardians(); // Refresh the guardians list
+        setConfirmationMessage('Guardian updated successfully!');
+        setShowSuccessConfirmation(true);
+    };
+    
+    const handleEditClose = () => {
+        setShowEditModal(false);
+        setSelectedGuardianForEdit(null);
     };
 
 
@@ -297,10 +340,10 @@ const GuradianPageContent = () => {
             <div className="mt-4">
                 <DataTable
                     columns={[
-                        { key: 'firstname', label: 'First Name' },
-                        { key: 'lastname', label: 'Last Name' },
+                        { key: 'firstName', label: 'First Name' },
+                        { key: 'lastName', label: 'Last Name' },
                         { key: 'email', label: 'Email' },
-                        { key: 'contact', label: 'Contact' },
+                        { key: 'phone', label: 'Phone' },
                         { key: 'schoolName', label: 'School' }
                     ]}
                     data={guardiansInfo}
@@ -351,7 +394,7 @@ const GuradianPageContent = () => {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto">
                         {/* Close Button */}
                         <button
-                            onClick={handleCloseForm}
+                            onClick={handleCancelForm}
                             className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
                         >
                             <MdOutlineClose className='hover:text-error-color'/>
@@ -366,19 +409,19 @@ const GuradianPageContent = () => {
                                 <div className="grid grid-cols-1 gap-4">
                                     <FormInput
                                         label="First Name"
-                                        name="firstname"
+                                        name="firstName"
                                         placeholder="Enter guardian's first name"
-                                        value={formData.firstname}
+                                        value={formData.firstName}
                                         onChange={handleInputChange}
-                                        error={errors.firstname}
+                                        error={errors.firstName}
                                     />
                                     <FormInput
                                         label="Last Name"
-                                        name="lastname"
+                                        name="lastName"
                                         placeholder="Enter guardian's last name"
-                                        value={formData.lastname}
+                                        value={formData.lastName}
                                         onChange={handleInputChange}
-                                        error={errors.lastname}
+                                        error={errors.lastName}
                                     />
                                     <FormInput
                                         label="Email Address"
@@ -424,7 +467,7 @@ const GuradianPageContent = () => {
                             <div className="flex justify-center space-x-4">
                                 <button
                                     type="button"
-                                    onClick={handleCloseForm}
+                                    onClick={handleCancelForm}
                                     className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                                 >
                                     Cancel
@@ -473,12 +516,21 @@ const GuradianPageContent = () => {
                 title="Confirm Deletion"
                 variant='warning'
                 confirmationMessage="Are you sure you want to delete this guardian? This action cannot be undone."
-                objectName={guardianToDelete ? `${guardianToDelete.firstname} ${guardianToDelete.lastname}` : ''}
+                objectName={guardianToDelete ? `${guardianToDelete.firstName} ${guardianToDelete.lastName}` : ''}
                 onConfirm={confirmDelete}
                 onCancel={() => setShowDeleteConfirmation(false)}
                 confirmText="Delete"
                 cancelText="Cancel"
             />
+
+            {/* Edit Guardian Modal */}
+            {showEditModal && selectedGuardianForEdit && (
+                <EditGuardianModal
+                    onClose={handleEditClose}
+                    onSuccess={handleEditSuccess}
+                    guardian={selectedGuardianForEdit}
+                />
+            )}
         </>
     );
 };

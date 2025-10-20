@@ -4,11 +4,11 @@ import TopBar from '@/app/dashboardComponents/TopBar';
 // import Driverinf from '../Driverinf';
 
 interface DriverDetailsPageProps {
-  params: {
+  params: Promise<{
     id: string;
     vanId?: string;
     vanMakeAndModel?: string;
-  };
+  }>;
 }
 
 const DriverDetailsPage = async ({ params }: DriverDetailsPageProps) => {

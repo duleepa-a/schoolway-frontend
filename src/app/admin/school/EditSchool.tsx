@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { School as SchoolIcon, MapPin, X } from 'lucide-react';
-import MapLocationPicker from '@/app/components/MapLocationPicker';
+import { School as SchoolIcon, X } from 'lucide-react';
+import ConfirmationBox from '@/app/dashboardComponents/ConfirmationBox';
 
 interface Location {
   lat: number;
@@ -28,13 +28,17 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Confirmation dialog states
+  const [showSuccessConfirmation, setShowSuccessConfirmation] = useState(false);
+  const [showErrorConfirmation, setShowErrorConfirmation] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  
   // Form state
   const [formData, setFormData] = useState({
     schoolName: '',
     email: '',
     contact: '',
-    schoolAddress: '',
-    schoolLocation: { lat: 7.8731, lng: 80.7718 } // Default to Sri Lanka center
+    schoolAddress: ''
   });
 
   useEffect(() => {
@@ -45,8 +49,7 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
           schoolName: initialData.schoolName || '',
           email: initialData.email || '',
           contact: initialData.contact || '',
-          schoolAddress: initialData.address || '',
-          schoolLocation: initialData.location || { lat: 7.8731, lng: 80.7718 }
+          schoolAddress: initialData.address || ''
         });
         return;
       }
@@ -56,7 +59,7 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch(`http://localhost:3000/api/admin/schools/getSchool?id=${schoolId}`);
+        const response = await fetch(`/api/admin/schools/getSchool?id=${schoolId}`);
         
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -68,8 +71,7 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
           schoolName: data.schoolName || '',
           email: data.email || '',
           contact: data.contact || '',
-          schoolAddress: data.address || '',
-          schoolLocation: data.location || { lat: 7.8731, lng: 80.7718 }
+          schoolAddress: data.address || ''
         });
       } catch (err) {
         console.error('Failed to fetch school details:', err);
@@ -96,19 +98,22 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      alert("Please enter a valid email address.");
+      setConfirmationMessage("Please enter a valid email address.");
+      setShowErrorConfirmation(true);
       return;
     }
 
     // Phone validation with more flexibility for international formats
     const phoneRegex = /^(\+?[0-9]{1,3}[-\s.]?)?([0-9]{3,}[-\s.]?){1,2}[0-9]{3,}$/;
     if (!phoneRegex.test(formData.contact)) {
-      alert("Please enter a valid contact number.");
+      setConfirmationMessage("Please enter a valid contact number.");
+      setShowErrorConfirmation(true);
       return;
     }
 
     if (!schoolId) {
-      alert("School ID is missing.");
+      setConfirmationMessage("School ID is missing.");
+      setShowErrorConfirmation(true);
       return;
     }
 
@@ -122,12 +127,11 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
         schoolName: formData.schoolName,
         email: formData.email,
         contact: formData.contact,
-        address: formData.schoolAddress,
-        location: formData.schoolLocation
+        address: formData.schoolAddress
       };
 
       // Send PUT request to the API
-      const response = await fetch('http://localhost:3000/api/admin/schools/updateSchool', {
+      const response = await fetch('/api/admin/schools/updateSchool', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -141,32 +145,46 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
       }
 
       await response.json();
-      alert("School information updated successfully!");
-      onSuccess();
+      setConfirmationMessage("School information updated successfully!");
+      setShowSuccessConfirmation(true);
+      
+      // Close the edit modal after a short delay to show success message
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
     } catch (err) {
       console.error("Failed to update school:", err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to update school';
       setError(errorMessage);
-      alert(`Failed to update school: ${errorMessage}`);
+      setConfirmationMessage(`Failed to update school: ${errorMessage}`);
+      setShowErrorConfirmation(true);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center">
-            <SchoolIcon className="mr-2 text-yellow-400" size={24} />
-            <h2 className="text-xl font-semibold text-gray-800">Edit School Information</h2>
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="px-6 py-4 rounded-t-xl" style={{ background: 'linear-gradient(90deg, #0099cc 0%, #00bcd4 60%, #00d4aa 100%)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="bg-white/20 p-2 rounded-lg mr-3">
+                <SchoolIcon className="text-white" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Edit School Information</h2>
+                <p className="text-white/80 text-sm">Update school details</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-all duration-200"
+            >
+              <X size={24} />
+            </button>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none"
-          >
-            <X size={24} />
-          </button>
         </div>
 
         {isLoading ? (
@@ -189,9 +207,9 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
           </div>
         ) : (
           <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="schoolName" className="block text-sm font-medium text-gray-700 mb-1">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="schoolName" className="block text-sm font-semibold text-gray-700">
                   School Name *
                 </label>
                 <input
@@ -201,13 +219,16 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
                   value={formData.schoolName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                   placeholder="Enter school name"
                 />
               </div>
 
-              <div>
-                <label htmlFor="schoolAddress" className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="space-y-2">
+                <label htmlFor="schoolAddress" className="block text-sm font-semibold text-gray-700">
                   School Address *
                 </label>
                 <input
@@ -217,13 +238,16 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
                   value={formData.schoolAddress}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                   placeholder="Enter school address"
                 />
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
                   Email *
                 </label>
                 <input
@@ -233,13 +257,16 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                   placeholder="Enter email address"
                 />
               </div>
 
-              <div>
-                <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="space-y-2">
+                <label htmlFor="contact" className="block text-sm font-semibold text-gray-700">
                   Contact Number *
                 </label>
                 <input
@@ -249,44 +276,30 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
                   value={formData.contact}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  style={{ '--tw-ring-color': '#00d4aa' } as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                   placeholder="Enter contact number"
                 />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <span className="flex items-center">
-                    <MapPin size={16} className="mr-1 text-yellow-400" />
-                    School Location *
-                  </span>
-                </label>
-                <div className="border border-gray-300 rounded-md" style={{ height: '250px' }}>
-                  <MapLocationPicker 
-                    onLocationSelect={(location) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        schoolLocation: location
-                      }));
-                    }}
-                    initialLocation={formData.schoolLocation}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">Search for a location or click on the map to select the exact school location</p>
               </div>
 
               <div className="flex space-x-3 pt-4">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-amber-500 transition-colors flex items-center justify-center disabled:bg-yellow-200 disabled:cursor-not-allowed"
+                  className="flex-1 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center justify-center font-semibold shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+                        style={{ background: 'linear-gradient(90deg, #4fb3d9 0%, #5bc0de 60%, #6dd5a8 100%)' }}
+                  onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.filter = 'brightness(0.95)')}
+                  onMouseLeave={(e) => e.currentTarget.style.filter = 'brightness(1)'}
                 >
+                  <SchoolIcon className="mr-2" size={18} />
                   {isLoading ? 'Updating...' : 'Update School'}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
+                  className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold border border-gray-200"
                 >
                   Cancel
                 </button>
@@ -294,6 +307,32 @@ const EditSchool = ({ schoolId, initialData, onClose, onSuccess }: EditSchoolPro
             </form>
           </div>
         )}
+
+        {/* Success Confirmation Dialog */}
+        <ConfirmationBox
+          isOpen={showSuccessConfirmation}
+          variant='success'
+          title="Success"
+          confirmationMessage={confirmationMessage}
+          objectName=""
+          onConfirm={() => setShowSuccessConfirmation(false)}
+          onCancel={() => setShowSuccessConfirmation(false)}
+          confirmText="OK"
+          cancelText="Close"
+        />
+
+        {/* Error Confirmation Dialog */}
+        <ConfirmationBox
+          isOpen={showErrorConfirmation}
+          title="Error"
+          variant='error'
+          confirmationMessage={confirmationMessage}
+          objectName=""
+          onConfirm={() => setShowErrorConfirmation(false)}
+          onCancel={() => setShowErrorConfirmation(false)}
+          confirmText="OK"
+          cancelText="Close"
+        />
       </div>
     </div>
   );

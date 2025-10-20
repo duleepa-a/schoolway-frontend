@@ -4,11 +4,12 @@ import AssignDriver from './AssignDriver';
 import TopBar from '@/app/dashboardComponents/TopBar';
 
 interface AssignDriverPageProps {
-    searchParams: { [key: string]: string | undefined }
+    searchParams: Promise<{ [key: string]: string | undefined }>
 }
 
-const AssignDriverPage = ({ searchParams }: AssignDriverPageProps) => {
-    const vanMakeAndModel = searchParams?.vanMakeAndModel ?? '';
+const AssignDriverPage = async ({ searchParams }: AssignDriverPageProps) => {
+    const resolvedSearchParams = await searchParams;
+    const vanMakeAndModel = resolvedSearchParams?.vanMakeAndModel ?? '';
 
     return (
         <section className="p-6 md:p-10 min-h-screen w-full">

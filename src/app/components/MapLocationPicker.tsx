@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useCallback, useRef } from 'react';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { GoogleMap, Marker } from '@react-google-maps/api';
+import { loadGoogleMapsAPI } from '@/lib/googleMapsLoader';
 
 // Define the container style
 const containerStyle = {
@@ -26,11 +27,26 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
   // Use initial location or default to Sri Lanka center
   const [markerPosition, setMarkerPosition] = useState(initialLocation || defaultCenter);
   const [mapCenter, setMapCenter] = useState(initialLocation || defaultCenter);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   
   const mapRef = useRef<google.maps.Map | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  
+  // Load Google Maps API
+  useEffect(() => {
+    const loadMaps = async () => {
+      try {
+        await loadGoogleMapsAPI();
+        setIsGoogleMapsLoaded(true);
+      } catch (error) {
+        console.error('Failed to load Google Maps API:', error);
+      }
+    };
+    
+    loadMaps();
+  }, []);
   
   // Initialize map and set up Autocomplete
   const onMapLoad = useCallback((map: google.maps.Map) => {
@@ -126,43 +142,49 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
     }
   }, [onLocationSelect]);
 
+  if (!isGoogleMapsLoaded) {
+    return (
+      <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-gray-600">Loading Google Maps...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Google Map */}
-      <LoadScript 
-        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-        libraries={['places']}
-      >
-        <div className="relative">
-          {/* Search box positioned above the map */}
-          <input
-            ref={inputRef}
-            id="pac-input"
-            type="text"
-            placeholder="Search for locations or addresses"
-            className="absolute z-10 px-3 py-2 border border-gray-300 rounded-md shadow-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            style={{
-              top: "10px",
-              left: "10px",
-              width: "calc(100% - 100px)",
-              maxWidth: "400px",
-              backgroundColor: "white"
-            }}
-          />
-          
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={mapCenter}
-            zoom={10}
-            onClick={handleMapClick}
-            onLoad={onMapLoad}
-            mapTypeId="roadmap"
-          >
-            {/* Main selected marker */}
-            <Marker position={markerPosition} />
-          </GoogleMap>
-        </div>
-      </LoadScript>
+      <div className="relative">
+        {/* Search box positioned above the map */}
+        <input
+          ref={inputRef}
+          id="pac-input"
+          type="text"
+          placeholder="Search for locations or addresses"
+          className="absolute z-10 px-3 py-2 border border-gray-300 rounded-md shadow-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          style={{
+            top: "10px",
+            left: "10px",
+            width: "calc(100% - 100px)",
+            maxWidth: "400px",
+            backgroundColor: "white"
+          }}
+        />
+        
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={mapCenter}
+          zoom={10}
+          onClick={handleMapClick}
+          onLoad={onMapLoad}
+          mapTypeId="roadmap"
+        >
+          {/* Main selected marker */}
+          <Marker position={markerPosition} />
+        </GoogleMap>
+      </div>
 
       {/* Display selected coordinates */}
       <div className="text-sm text-gray-600">
