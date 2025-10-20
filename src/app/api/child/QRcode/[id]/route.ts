@@ -14,8 +14,18 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       return NextResponse.json({ error: 'Child not found' }, { status: 404 })
     }
 
-    if(!child.qrCode || child.qrCode.startsWith('QR')){
-      const qrImageDataUrl = await QRCode.toDataURL('http://localhost:3000/childInfo/' + child.id.toString());
+    if(child.qrCode.startsWith('LO') || child.qrCode.startsWith('DE') || !child.qrCode ){
+
+      console.log('hello');
+
+      const baseUrl = child.qrCode?.startsWith('DE')
+        ? 'https://schoolway-frontend.vercel.app/childInfo/'
+        : 'http://localhost:3000/childInfo/';
+
+      // Generate QR
+      const qrImageDataUrl = await QRCode.toDataURL(baseUrl + child.id.toString());
+
+
       const updatedChild = await prisma.child.update({
             where: { id: child.id },
             data: { qrCode: qrImageDataUrl },
