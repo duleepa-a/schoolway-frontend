@@ -48,7 +48,7 @@ interface Van {
   driver?: Driver | null;
   hasRoute: boolean;
   routeAssigned: boolean;
-  pathId?: string; // Add this line
+  pathId?: string;
   Path?: {
     id: string;
     routeStart: { lat: number; lng: number } | null;
@@ -61,6 +61,13 @@ interface Van {
       isStop: boolean;
     }>;
   } | null;
+  routeStatus?: {
+    hasStartLocation: boolean;
+    hasEndLocation: boolean;
+    waypointCount: number;
+    isComplete: boolean;
+    isEmpty: boolean;
+  };
 }
 
 interface FormData {
@@ -308,8 +315,10 @@ const VanDetails = ({ van }: { van: Van }) => {
 
   // Add this helper function inside the VanDetails component
   const renderRouteSection = () => {
-    if (!van.Path || !van.pathId) {
-      // No route exists
+    const status = van.routeStatus;
+
+    // No route at all - no pathId
+    if (!van.pathId || !status || status.isEmpty) {
       return (
         <div className="my-3 grid grid-cols-2">
           <div>
@@ -328,8 +337,31 @@ const VanDetails = ({ van }: { van: Van }) => {
       );
     }
 
+    // Route incomplete - missing start or end
+    if (!status.hasStartLocation || !status.hasEndLocation) {
+      return (
+        <div className="my-3 grid grid-cols-2">
+          <div>
+            <h2 className="text-base font-semibold mb-4">Route Incomplete</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Start: {status.hasStartLocation ? '✓' : '✗'} | 
+              End: {status.hasEndLocation ? '✓' : '✗'}
+            </p>
+          </div>
+          <div className='flex items-center justify-center'>
+            <button
+              onClick={handleAddRouteClick}
+              className="btn-small-primary font-bold w-full max-w-[200px] py-3 rounded-2xl"
+            >
+              Complete Route
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // Route exists but no waypoints
-    if (van.Path && (!van.Path.WayPoint || van.Path.WayPoint.length === 0)) {
+    if (status.hasStartLocation && status.hasEndLocation && status.waypointCount === 0) {
       return (
         <div className="my-3 grid grid-cols-2">
           <div>
@@ -348,13 +380,13 @@ const VanDetails = ({ van }: { van: Van }) => {
       );
     }
 
-    // Complete route with waypoints
+    // Complete route with waypoints - show Update Route button
     return (
       <div className="my-3 grid grid-cols-2">
         <div>
           <h2 className="text-base font-semibold mb-4 text-green-600">Route Assigned ✓</h2>
           <p className="text-sm text-gray-600 mb-4">
-            {van.Path.WayPoint.length} stops configured
+            {van.Path?.WayPoint?.length || 0} stops configured
           </p>
         </div>
         <div className='flex items-center justify-center'>
@@ -494,36 +526,23 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </>
                 :
 
-                <><div className="my-3 grid  grid-cols-2">
-                <div>
-                  <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
-                  <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
-                </div>
-                <div className='flex items-center justify-center'>
-                  <button className="btn-secondary px-8 py-3 rounded-2xl"
-                    onClick={() => setIsAssistantModalOpen(true)}
-                  >
-                    Assign an Assistant
-                  </button>
-                </div>
-              </div><div className="my-3 grid  grid-cols-2">
+                <div className="my-3 grid grid-cols-2">
                   <div>
-                    <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
-                    <p className="text-sm text-gray-500 mb-4">Please create a route for this van</p>
+                    <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
                   </div>
                   <div className='flex items-center justify-center'>
-                    <button
-                      onClick={handleAddRouteClick}
-                      className="btn-secondary px-8 py-3 rounded-2xl"
+                    <button className="btn-secondary px-8 py-3 rounded-2xl"
+                      onClick={() => setIsAssistantModalOpen(true)}
                     >
-                      Add route
+                      Assign an Assistant
                     </button>
                   </div>
-                </div></>
+                </div>
 
-
-
-                } 
+                }
+                
+                {renderRouteSection()}
                   
               </> 
               } 

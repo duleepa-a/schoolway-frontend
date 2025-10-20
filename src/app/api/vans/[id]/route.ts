@@ -120,6 +120,15 @@ export async function GET(
     // Determine route status
     const hasRoute = !!pathData && (!!pathData.routeStart || !!pathData.routeEnd);
     const routeAssigned = !!pathData && !!pathData.routeStart && !!pathData.routeEnd && pathData.WayPoint.length > 0;
+    
+    // Calculate route status details
+    const routeStatus = {
+      hasStartLocation: !!pathData?.routeStart,
+      hasEndLocation: !!pathData?.routeEnd,
+      waypointCount: pathData?.WayPoint?.length || 0,
+      isComplete: !!pathData?.routeStart && !!pathData?.routeEnd && (pathData?.WayPoint?.length || 0) > 0,
+      isEmpty: !pathData || (!pathData.routeStart && !pathData.routeEnd && (!pathData.WayPoint || pathData.WayPoint.length === 0))
+    };
 
     const transformedVan = {
       ...van,
@@ -127,6 +136,7 @@ export async function GET(
       driver,
       hasRoute,
       routeAssigned,
+      routeStatus, // Add this
     };
 
     console.log('✓ Fetched van:', {
@@ -134,7 +144,7 @@ export async function GET(
       hasRoute: transformedVan.hasRoute,
       routeAssigned: transformedVan.routeAssigned,
       pathId: transformedVan.pathId,
-      waypointCount: transformedVan.Path?.WayPoint?.length || 0
+      routeStatus: transformedVan.routeStatus
     });
     
     return NextResponse.json(transformedVan);
@@ -163,7 +173,6 @@ export async function PUT(
         salaryPercentage: data.salaryPercentage,
       },
     });
-
     return NextResponse.json(updatedVan, { status: 200 });
   } catch (error) {
     console.error('Update error:', error);
