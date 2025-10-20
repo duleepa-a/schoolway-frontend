@@ -24,6 +24,12 @@ export default function DriverInfoPage() {
         const json = await res.json();
 
         if (!json.success) {
+          // Check if it's an authorization error
+          if (res.status === 401) {
+            // Redirect to public driver profile
+            router.push(`/driver-profile/${driverId}`);
+            return;
+          }
           setError(json.message || "Failed to fetch driver information");
         } else {
           setData(json);
@@ -37,14 +43,14 @@ export default function DriverInfoPage() {
     };
 
     fetchData();
-  }, [driverId]);
+  }, [driverId, router]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[var(--color-background)]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p style={{ color: "var(--color-textgreydark)" }}>
+          <p style={{ color: "var(--color-textgreydark)" }} className="text-sm">
             Loading driver information...
           </p>
         </div>
@@ -64,7 +70,7 @@ export default function DriverInfoPage() {
               border: "1px solid",
             }}
           >
-            <p style={{ color: "#991b1b" }} className="font-medium">
+            <p style={{ color: "#991b1b" }} className="font-medium text-sm">
               {error || data?.message || "Error loading data"}
             </p>
           </div>
@@ -301,7 +307,7 @@ export default function DriverInfoPage() {
           ) : (
             <div className="text-center py-12">
               <Users className="w-12 h-12 mx-auto mb-3" style={{ color: "var(--color-textgreydark)30" }} />
-              <p style={{ color: "var(--color-textgreydark)" }} className="font-medium">
+              <p style={{ color: "var(--color-textgreydark)" }} className="font-medium text-sm">
                 No pickups scheduled for today
               </p>
             </div>
