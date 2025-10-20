@@ -101,10 +101,11 @@ export default function AwarenessPostsSection() {
     return doc.body.textContent || '';
   };
 
-  const truncateContent = (content: string, maxLength: number = 100) => {
+  const truncateContent = (content: string, maxLength: number = 1000) => {
+    // Remove HTML tags for length calculation but preserve formatting for display
     const cleanContent = stripHtmlTags(content);
-    if (cleanContent.length <= maxLength) return cleanContent;
-    return cleanContent.substring(0, maxLength) + '...';
+    if (cleanContent.length <= maxLength) return content; // Return original HTML content
+    return content.substring(0, content.length); // Return full content with HTML formatting
   };
 
   if (loading) {
@@ -188,7 +189,7 @@ export default function AwarenessPostsSection() {
                   <div className="bg-white rounded-md shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
                     {/* Image */}
                     {post.imageUrl ? (
-                      <div className="aspect-[3/2] w-full overflow-hidden">
+                      <div className="aspect-[2.5/1] w-full overflow-hidden">
                         <img
                           src={post.imageUrl}
                           alt={post.title}
@@ -196,7 +197,7 @@ export default function AwarenessPostsSection() {
                         />
                       </div>
                     ) : (
-                      <div className="aspect-[3/2] bg-gray-100 flex items-center justify-center">
+                      <div className="aspect-[2.5/1] bg-gray-100 flex items-center justify-center">
                         <div className="text-gray-400 text-center">
                           <Image className="h-4 w-4 mx-auto mb-1" />
                           <p className="text-xs">No image</p>
@@ -205,10 +206,10 @@ export default function AwarenessPostsSection() {
                     )}
 
                     {/* Content */}
-                    <div className="p-2">
+                    <div className="p-6">
                       {/* Header */}
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(post.priority)}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(post.priority)}`}>
                           {post.priority}
                         </span>
                         <div className="flex items-center text-gray-500 text-xs">
@@ -218,24 +219,25 @@ export default function AwarenessPostsSection() {
                       </div>
 
                       {/* Category and Target Audience */}
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
                           {post.category}
                         </span>
-                        <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 text-xs font-medium rounded">
+                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded">
                           {post.targetAudience}
                         </span>
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">
                         {post.title}
                       </h3>
 
                       {/* Content */}
-                      <p className="text-gray-600 text-xs line-clamp-3">
-                        {truncateContent(post.content, 100)}
-                      </p>
+                      <div 
+                        className="text-gray-600 text-base leading-relaxed text-justify prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: truncateContent(post.content, 1000) }}
+                      />
                     </div>
                   </div>
                 </div>
