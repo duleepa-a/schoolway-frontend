@@ -47,6 +47,7 @@ const PublishedPostsViewer = () => {
       if (response.ok) {
         const data = await response.json();
         setPosts(data.posts || []);
+        console.log("Published",posts);
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
