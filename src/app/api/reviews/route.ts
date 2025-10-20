@@ -99,13 +99,13 @@ export async function POST(request: NextRequest) {
     if (reviewType === 'DRIVER') {
       const driver = await prisma.userProfile.findUnique({
         where: { id: targetId },
-        include: { driverProfile: true }
+        include: { DriverProfile: true }
       });
 
-      if (!driver || !driver.driverProfile) {
+      if (!driver || !driver.DriverProfile) {
         // Get some sample drivers to help debug
         const sampleDrivers = await prisma.userProfile.findMany({
-          where: { driverProfile: { isNot: null } },
+          where: { DriverProfile: { isNot: null } },
           select: { id: true, firstname: true, lastname: true },
           take: 5
         });
@@ -290,7 +290,7 @@ export async function GET(request: NextRequest) {
             lastname: true,
             dp: true,
             mobile: true,
-            driverProfile: {
+            DriverProfile: {
               select: {
                 averageRating: true
               }
