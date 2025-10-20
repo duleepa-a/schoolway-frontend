@@ -604,7 +604,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                 <FormInput
                   type="number"
                   name="studentRating"
-                  label='Student Rating per km'
+                  label='Student Rating per km per month (Rs.)'
                   value={formData.studentRating.toString()}
                   onChange={handleChange}
                   placeholder="Enter van model"
