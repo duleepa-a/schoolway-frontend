@@ -43,11 +43,12 @@ interface Van {
   salaryPercentage: number;
   hasDriver: boolean;
   hasAssistant: boolean;
-  status : number;
-  assistant?: Assistant | null;
+  status: number;
+  Assistant?: Assistant | null;
   driver?: Driver | null;
   hasRoute: boolean;
   routeAssigned: boolean;
+  pathId?: string;
   Path?: {
     id: string;
     routeStart: { lat: number; lng: number } | null;
@@ -60,6 +61,13 @@ interface Van {
       isStop: boolean;
     }>;
   } | null;
+  routeStatus?: {
+    hasStartLocation: boolean;
+    hasEndLocation: boolean;
+    waypointCount: number;
+    isComplete: boolean;
+    isEmpty: boolean;
+  };
 }
 
 interface FormData {
@@ -307,13 +315,15 @@ const VanDetails = ({ van }: { van: Van }) => {
 
   // Add this helper function inside the VanDetails component
   const renderRouteSection = () => {
-    if (!van.Path) {
-      // No route exists - use black button (btn-secondary) like "Find a Driver"
+    const status = van.routeStatus;
+
+    // No route at all - no pathId
+    if (!van.pathId || !status || status.isEmpty) {
       return (
         <div className="my-3 grid grid-cols-2">
           <div>
-            <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
-            <p className="text-sm text-gray-500 mb-4">Please create a route by adding start and end points</p>
+            <h2 className="text-base font-semibold mb-4">No Route Assigned</h2>
+            <p className="text-sm text-gray-500 mb-4">Create a route to define the areas you cover</p>
           </div>
           <div className='flex items-center justify-center'>
             <button
@@ -327,13 +337,36 @@ const VanDetails = ({ van }: { van: Van }) => {
       );
     }
 
-    // Route exists but no waypoints - use small primary button
-    if (van.Path && (!van.Path.WayPoint || van.Path.WayPoint.length === 0)) {
+    // Route incomplete - missing start or end
+    if (!status.hasStartLocation || !status.hasEndLocation) {
       return (
         <div className="my-3 grid grid-cols-2">
           <div>
-            <h2 className="text-base font-semibold mb-4">Basic Route Created</h2>
-            <p className="text-sm text-gray-500 mb-4">Add waypoints to define your service coverage areas</p>
+            <h2 className="text-base font-semibold mb-4">Route Incomplete</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Start: {status.hasStartLocation ? '✓' : '✗'} | 
+              End: {status.hasEndLocation ? '✓' : '✗'}
+            </p>
+          </div>
+          <div className='flex items-center justify-center'>
+            <button
+              onClick={handleAddRouteClick}
+              className="btn-small-primary font-bold w-full max-w-[200px] py-3 rounded-2xl"
+            >
+              Complete Route
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Route exists but no waypoints
+    if (status.hasStartLocation && status.hasEndLocation && status.waypointCount === 0) {
+      return (
+        <div className="my-3 grid grid-cols-2">
+          <div>
+            <h2 className="text-base font-semibold mb-4">Route Created - Add Waypoints</h2>
+            <p className="text-sm text-gray-500 mb-4">Add waypoints to better define the areas you cover</p>
           </div>
           <div className='flex items-center justify-center'>
             <button
@@ -347,13 +380,13 @@ const VanDetails = ({ van }: { van: Van }) => {
       );
     }
 
-    // Complete route with waypoints - use small primary button like "Update Assistant"
+    // Complete route with waypoints - show Update Route button
     return (
       <div className="my-3 grid grid-cols-2">
         <div>
-          <h2 className="text-base font-semibold mb-4 text-green-600">Route Assigned</h2>
+          <h2 className="text-base font-semibold mb-4 text-green-600">Route Assigned ✓</h2>
           <p className="text-sm text-gray-600 mb-4">
-            {van.Path.WayPoint.length} stops configured
+            {van.Path?.WayPoint?.length || 0} stops configured
           </p>
         </div>
         <div className='flex items-center justify-center'>
@@ -469,7 +502,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                         <div className="flex items-center space-x-4">
                           <div>
                             <Image
-                              src={localVan.assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
+                              src={localVan.Assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
                               alt="Assistant"
                               width={50}
                               height={50}
@@ -477,9 +510,9 @@ const VanDetails = ({ van }: { van: Van }) => {
                             />
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{localVan.assistant?.name}</p>
-                            <p className="text-xs text-gray-500">NIC: {localVan.assistant?.nic}</p>
-                            <p className="text-xs text-gray-500">Contact: {localVan.assistant?.contact}</p>
+                            <p className="font-medium text-sm">{localVan.Assistant?.name}</p>
+                            <p className="text-xs text-gray-500">NIC: {localVan.Assistant?.nic}</p>
+                            <p className="text-xs text-gray-500">Contact: {localVan.Assistant?.contact}</p>
                           </div>
                         </div>
                         <div className='flex items-center justify-center'> 
@@ -493,36 +526,23 @@ const VanDetails = ({ van }: { van: Van }) => {
                   </>
                 :
 
-                <><div className="my-3 grid  grid-cols-2">
-                <div>
-                  <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
-                  <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
-                </div>
-                <div className='flex items-center justify-center'>
-                  <button className="btn-secondary px-8 py-3 rounded-2xl"
-                    onClick={() => setIsAssistantModalOpen(true)}
-                  >
-                    Assign an Assistant
-                  </button>
-                </div>
-              </div><div className="my-3 grid  grid-cols-2">
+                <div className="my-3 grid grid-cols-2">
                   <div>
-                    <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
-                    <p className="text-sm text-gray-500 mb-4">Please create a route for this van</p>
+                    <h2 className="text-base font-semibold mb-4">Assistant Not Assigned</h2>
+                    <p className="text-sm text-gray-500 mb-4">Please assign an assistant to this van.</p>
                   </div>
                   <div className='flex items-center justify-center'>
-                    <button
-                      onClick={handleAddRouteClick}
-                      className="btn-secondary px-8 py-3 rounded-2xl"
+                    <button className="btn-secondary px-8 py-3 rounded-2xl"
+                      onClick={() => setIsAssistantModalOpen(true)}
                     >
-                      Add route
+                      Assign an Assistant
                     </button>
                   </div>
-                </div></>
+                </div>
 
-
-
-                } 
+                }
+                
+                {renderRouteSection()}
                   
               </> 
               } 
