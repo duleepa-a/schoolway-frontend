@@ -528,10 +528,10 @@ export default function DriverDetails({ driverId }: DriverDetailsProps) {
                                         })}
                                     </span>
                                 </div>
-                                <div className="flex items-center space-x-3 text-sm text-gray-600 mb-2">
+                                {/* <div className="flex items-center space-x-3 text-sm text-gray-600 mb-2">
                                     <span>Van: {review.Van?.makeAndModel || 'Unknown'}</span>
                                     <span>({review.Van?.licensePlateNumber || 'No plate'})</span>
-                                </div>
+                                </div> */}
                                 <div className="flex space-x-1 mt-0 mb-3">
                                     {renderStars(review.rating)}
                                 </div>
