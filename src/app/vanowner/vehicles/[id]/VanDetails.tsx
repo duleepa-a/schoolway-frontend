@@ -402,7 +402,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             <p className='text-sm'><span className="font-medium">Salary Percentage</span><span className="text-active-text"> {localVan.salaryPercentage} %</span></p>
           </div>
         </div>
-        <div>
+        {/* <div>
           <h3 className="text-lg font-semibold mb-2 text-gray-900">Actions</h3>
           <div className="relative">
             <ul>
@@ -410,7 +410,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             </ul>
             
           </div>
-        </div>
+        </div> */}
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
