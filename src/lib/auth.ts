@@ -39,6 +39,13 @@ export const authOptions: NextAuthOptions = {
             if(!pwmatch){
                 return null;
             }
+
+            // Check if user account is active
+            if(!existingUser.activeStatus){
+                console.log("User account is deactivated, please contact the admin");
+                return null;
+            }
+
             return {
                 id:`${existingUser.id}`,
                 email: existingUser.email,

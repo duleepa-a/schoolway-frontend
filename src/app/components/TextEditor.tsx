@@ -30,27 +30,36 @@ const TiptapEditor = ({ value, onChange }: TiptapEditorProps) => {
     <div>
       <div className="toolbar">
         <button
+          type="button"
           onClick={() => editor?.chain().focus().toggleBold().run()}
           className={editor?.isActive('bold') ? 'activeBtn' : ''}
         >
           B
         </button>
         <button
+          type="button"
           onClick={() => editor?.chain().focus().toggleItalic().run()}
           className={editor?.isActive('italic') ? 'activeBtn' : ''}
         >
           I
         </button>
         <button
+          type="button"
           onClick={() => editor?.chain().focus().toggleUnderline().run()}
           className={editor?.isActive('underline') ? 'activeBtn' : ''}
         >
           U
         </button>
-        <button onClick={() => editor?.chain().focus().toggleBulletList().run()}>
+        <button 
+          type="button"
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+        >
           • List
         </button>
-        <button onClick={() => editor?.chain().focus().toggleOrderedList().run()}>
+        <button 
+          type="button"
+          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+        >
           1. List
         </button>
       </div>

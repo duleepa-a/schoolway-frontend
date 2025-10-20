@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaEllipsisV, FaChevronDown } from 'react-icons/fa';
 import { GoogleMap, Marker, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import Image from 'next/image';
 
 function RouteMap({ pickup, destination }) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -91,6 +92,8 @@ function TablePagination({ totalPages, currentPage, onPageChange }) {
 }
 function PrivatehireTable() {
   const [hires, setHires] = useState([]);
+  const [acceptedHires, setAcceptedHires] = useState([]);
+  const [acceptMsg, setAcceptMsg] = useState('');
   const [selectedVan, setSelectedVan] = useState('All');
   const [actionMenuIndex, setActionMenuIndex] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -189,7 +192,13 @@ function PrivatehireTable() {
                   <td className="px-4 py-3 text-gray-900">{hire.departureDate ? new Date(hire.departureDate).toLocaleDateString() : '-'}</td>
                   <td className="px-4 py-3 text-gray-900">{hire.returnDate ? new Date(hire.returnDate).toLocaleDateString() : '-'}</td>
                   <td className="px-4 py-3 text-gray-900">{hire.noOfPassengers}</td>
-                  <td className="px-4 py-3 font-semibold text-green-600">{hire.finalFare !== undefined && hire.finalFare !== null ? hire.finalFare : calculateFare(hire)}</td>
+                  <td className="px-4 py-3 font-semibold text-green-600">
+                    {hire.finalFare !== undefined && hire.finalFare !== null
+                      ? hire.finalFare
+                      : (hire.fare !== undefined && hire.fare !== null
+                          ? hire.fare
+                          : calculateFare(hire))}
+                  </td>
                   <td className="px-4 py-3 text-gray-900">{hire.notes}</td>
                   <td className="px-4 py-3 text-gray-900">{hire.status}</td>
                   <td className="px-4 py-3 flex justify-center align-middle relative">
@@ -209,16 +218,48 @@ function PrivatehireTable() {
                                 body: JSON.stringify({ status: 'accepted' })
                               });
                               if (res.ok) {
-                                setHires(prev => prev.map(h => h.id === hire.id ? { ...h, status: 'accepted' } : h));
-                                // Optionally, trigger a callback or state update to AcceptedhiresTable here
+                                // Remove from hires and add to acceptedHires
+                                setHires(prev => prev.filter(h => h.id !== hire.id));
+                                setAcceptedHires(prev => [...prev, { ...hire, status: 'accepted' }]);
+                                setAcceptMsg('Hire accepted and moved to Accepted Hires!');
+                                setTimeout(() => setAcceptMsg(''), 2000);
+                              } else {
+                                setAcceptMsg('Failed to accept hire.');
+                                setTimeout(() => setAcceptMsg(''), 2000);
                               }
-                            } catch (err) {
-                              // Optionally show error
+                            } catch (error) {
+                              console.error('Error accepting hire:', error);
+                              setAcceptMsg('Error accepting hire.');
+                              setTimeout(() => setAcceptMsg(''), 2000);
                             }
                             setActionMenuIndex(null);
                           }}>Accept</button>
                         <button className="px-4 py-2 text-left hover:bg-gray-100 text-red-500 font-semibold"
-                          onClick={() => { alert('Rejected!'); setActionMenuIndex(null); }}>Reject</button>
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/vanowner/private-hires/${hire.id}/reject-hire`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: hire.id })
+                              });
+                              if (res.ok) {
+                                // Update the hire status in the state
+                                setHires(prev => prev.map(h => 
+                                  h.id === hire.id ? { ...h, status: 'rejected' } : h
+                                ));
+                                setAcceptMsg('Hire rejected successfully!');
+                                setTimeout(() => setAcceptMsg(''), 2000);
+                              } else {
+                                setAcceptMsg('Failed to reject hire.');
+                                setTimeout(() => setAcceptMsg(''), 2000);
+                              }
+                            } catch (error) {
+                              console.error('Error rejecting hire:', error);
+                              setAcceptMsg('Error rejecting hire.');
+                              setTimeout(() => setAcceptMsg(''), 2000);
+                            }
+                            setActionMenuIndex(null);
+                          }}>Reject</button>
                         <button className="px-4 py-2 text-left hover:bg-gray-100 text-blue-600 font-semibold"
                           onClick={() => { setSelectedHire(hire); setShowModal(true); setActionMenuIndex(null); }}>Show Details</button>
                       </div>
@@ -231,6 +272,18 @@ function PrivatehireTable() {
           </table>
         )}
       </div>
+
+      {acceptMsg && (
+        <div style={{ position: 'fixed', top: 30, right: 30, zIndex: 1000 }}>
+          <span className="px-3 py-2 rounded bg-green-100 text-green-800 text-sm shadow-lg flex items-center">
+            {acceptMsg}
+            <button
+              className="ml-2 text-green-600 hover:underline text-xs"
+              onClick={() => setAcceptMsg('')}
+            >✕</button>
+          </span>
+        </div>
+      )}
 
       {showModal && selectedHire && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4">
@@ -251,20 +304,43 @@ function PrivatehireTable() {
                   : '-'
               }</div>
               <div className="text-sm"><strong>Passengers:</strong> {selectedHire.noOfPassengers}</div>
-              <div className="text-sm"><strong>Fare:</strong> {selectedHire.fare ? selectedHire.fare.toFixed(2) : calculateFare(selectedHire)}</div>
+              <div className="text-sm"><strong>Trip Distance:</strong> {
+                (selectedHire.pickupLat && selectedHire.pickupLng && selectedHire.destinationLat && selectedHire.destinationLng)
+                  ? calculateDistance(selectedHire.pickupLat, selectedHire.pickupLng, selectedHire.destinationLat, selectedHire.destinationLng).toFixed(2) + ' km'
+                  : '-'
+              }</div>
+              {selectedHire.finalFare != null ? (
+                <>
+                  <div className="text-sm"><strong>Normal Fare:</strong> {selectedHire.fare ? selectedHire.fare.toFixed(2) : calculateFare(selectedHire)}</div>
+                  <div className="text-sm"><strong>Final Fare:</strong> {selectedHire.finalFare.toFixed(2)}</div>
+                </>
+              ) : (
+                <div className="text-sm"><strong>Fare:</strong> {selectedHire.fare ? selectedHire.fare.toFixed(2) : calculateFare(selectedHire)}</div>
+              )}
               <div className="text-sm col-span-full"><strong>Notes:</strong> {selectedHire.notes}</div>
               <div className="text-sm"><strong>Status:</strong> {selectedHire.status}</div>
               <div className="text-sm col-span-full mt-2">
                 <strong>User Info:</strong>
                 <div className="flex items-center gap-3 mt-1">
                   {selectedHire.UserProfile?.dp && (
-                    <img src={selectedHire.UserProfile.dp} alt="User DP" className="w-10 h-10 rounded-full border" />
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden border">
+                      <Image 
+                        src={selectedHire.UserProfile.dp}
+                        alt="User DP"
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    </div>
                   )}
                   <div>
                     <div>{selectedHire.UserProfile?.firstname} {selectedHire.UserProfile?.lastname}</div>
                     <div className="text-xs text-gray-500">Mobile: {selectedHire.UserProfile?.mobile}</div>
                   </div>
                 </div>
+              </div>
+              <div className="text-sm col-span-full mt-2 p-3 bg-yellow-50 rounded border border-yellow-200 text-yellow-800">
+                <strong>Notice:</strong> Please review and adjust the final fare if the number of days of stay or other factors require a change. Or simply accept the Hire
               </div>
               <div className="text-sm col-span-full mt-2 flex items-center gap-2">
                 <strong>Final Fare:</strong>
@@ -296,11 +372,13 @@ function PrivatehireTable() {
                       }
                       setSelectedHire({ ...selectedHire, fare: finalFare });
                       setFareUpdateMsg('Fare updated successfully');
-                    } catch (err) {
+                    } catch (error) {
+                      console.error('Error updating fare:', error);
                       setFareUpdateMsg('Error updating fare');
                     }
                   }}
-                >Update Fare</button>
+                >Accept Fare</button>
+               
               </div>
               {fareUpdateMsg && (
                 <div style={{ position: 'fixed', top: 30, right: 30, zIndex: 1000 }}>

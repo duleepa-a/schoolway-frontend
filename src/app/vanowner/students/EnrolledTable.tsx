@@ -17,7 +17,7 @@ type StudentRow = {
 };
 
 const statusColors: Record<string, string> = {
-  Active: 'bg-[var(--green-shade-light)] text-[var(--green-shade-dark)] border-[var(--green-shade-dark)]',
+  Active: 'text-[var(--green-shade-dark)] border-[var(--green-shade-dark)]',
   Inactive: 'bg-gray-100 text-gray-600 border-gray-400',
   AT_HOME: 'bg-yellow-100 text-yellow-700 border-yellow-400', // Example for extra status
 };

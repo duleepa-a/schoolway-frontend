@@ -6,11 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/components/sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/components/sidebar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/child/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/child/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/driver/details/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/reviews/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/van-service/details/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/awareness/PublishedPostsViewer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/awareness/PublishedPostsViewer.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -159,6 +155,11 @@
       <workItem from="1759730535216" duration="1632000" />
       <workItem from="1760552068783" duration="3555000" />
       <workItem from="1760638245673" duration="3405000" />
+      <workItem from="1760758692819" duration="7893000" />
+      <workItem from="1760801360201" duration="2194000" />
+      <workItem from="1760844092699" duration="8782000" />
+      <workItem from="1760868089145" duration="11354000" />
+      <workItem from="1760945621949" duration="3030000" />
     </task>
     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
       <option name="closed" value="true" />

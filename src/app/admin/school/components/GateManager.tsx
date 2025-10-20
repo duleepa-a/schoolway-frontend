@@ -469,7 +469,7 @@ const GateManager: React.FC<GateManagerProps> = ({ schoolId, onGatesUpdate }) =>
                                             )}
                                         </div>
                                         <button
-                                            onClick={() => handleToggleGateStatus(gate.id, gate.isActive)}
+                                            onClick={() => gate.id && handleToggleGateStatus(gate.id, gate.isActive)}
                                             disabled={isLoading}
                                             className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${
                                                 gate.isActive

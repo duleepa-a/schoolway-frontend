@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// GET /api/vans/[id]
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  console.log('Fetching van with ID:', params.id);
   try {
     const id = parseInt(params.id);
 
@@ -16,20 +16,9 @@ export async function GET(
     const van = await prisma.van.findUnique({
       where: { id },
       include: {
-        Path: {
-          include: {
-            WayPoint: {
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
-        },
         Assistant: true,
         DriverVanJobRequest: {
-          where: {
-            status: 'ACCEPTED',
-          },
+          where: { status: 'ACCEPTED' },
           include: {
             UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
           },
@@ -44,15 +33,13 @@ export async function GET(
     const driverRequest = van.DriverVanJobRequest[0];
     const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
 
-    // Add hasRoute flag based on Path existence
     const transformedVan = {
       ...van,
       driver,
-      hasRoute: !!van.Path,  // Convert to boolean
-      routeAssigned: !!van.pathId && !!van.Path // Check both pathId and Path existence
+      hasRoute: !!van.Path,
+      routeAssigned: !!van.pathId && !!van.Path,
     };
 
-    console.log('Transformed Van:', transformedVan);
     return NextResponse.json(transformedVan);
   } catch (error) {
     console.error('Error fetching van:', error);
@@ -60,10 +47,13 @@ export async function GET(
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+// PUT /api/vans/[id]
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id: idString } = params;
-    const id = Number(idString);
+    const id = Number(params.id);
     const data = await req.json();
 
     const updatedVan = await prisma.van.update({

@@ -75,6 +75,10 @@ export async function POST(req: NextRequest,
       data: {
         schoolId: schoolId,
         guardianId: newUser.id,
+        email: email,
+        firstName: firstname,
+        lastName: lastname,
+        phone: phone || null,
       },
     });
 
