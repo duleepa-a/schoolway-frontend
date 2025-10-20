@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="28afdde8-4660-4fa9-975e-fa7a083ac9d3" name="Changes" comment="add admin page" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -160,7 +158,7 @@
       <workItem from="1760868089145" duration="11354000" />
       <workItem from="1760945621949" duration="6254000" />
       <workItem from="1760981108747" duration="2881000" />
-      <workItem from="1760992138281" duration="371000" />
+      <workItem from="1760992138281" duration="1040000" />
     </task>
     <task id="LOCAL-00001" summary="van driver assign &amp; driver details pages">
       <option name="closed" value="true" />
