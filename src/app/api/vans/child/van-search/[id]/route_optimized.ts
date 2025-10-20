@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-const PROXIMITY_RADIUS_KM = 200; // Configurable proximity radius in km
 
 // Helper function to calculate distance between two points (Haversine formula)
 function calculateDistance(
@@ -24,80 +23,77 @@ function calculateDistance(
   return R * c;
 }
 
+// Helper function to get minimum distance from a point to any waypoint
+function getMinDistanceToWaypoints(
+  pointLat: number,
+  pointLng: number,
+  waypoints: any[]
+): number {
+  if (!waypoints || waypoints.length === 0) return Infinity;
+
+  let minDistance = Infinity;
+  for (const waypoint of waypoints) {
+    const distance = calculateDistance(
+      pointLat,
+      pointLng,
+      parseFloat(waypoint.latitude.toString()),
+      parseFloat(waypoint.longitude.toString())
+    );
+    minDistance = Math.min(minDistance, distance);
+  }
+  return minDistance;
+}
+
 // Helper function to check if van route direction matches child's direction
 function isDirectionMatching(
   childPickupLat: number,
   childPickupLng: number,
   schoolLat: number,
   schoolLng: number,
-  vanStartLat: number,
-  vanStartLng: number,
-  vanEndLat: number,
-  vanEndLng: number
+  vanPathWaypoints: any[]
 ): boolean {
+  if (!vanPathWaypoints || vanPathWaypoints.length < 2) return false;
+
+  // Get the first and last waypoints of the van's route
+  const vanStartWaypoint = vanPathWaypoints[0];
+  const vanEndWaypoint = vanPathWaypoints[vanPathWaypoints.length - 1];
+
   // Calculate distances: child pickup to van start and school to van end
   const childPickupToVanStart = calculateDistance(
     childPickupLat,
     childPickupLng,
-    vanStartLat,
-    vanStartLng
+    parseFloat(vanStartWaypoint.latitude.toString()),
+    parseFloat(vanStartWaypoint.longitude.toString())
   );
 
   const schoolToVanEnd = calculateDistance(
     schoolLat,
     schoolLng,
-    vanEndLat,
-    vanEndLng
+    parseFloat(vanEndWaypoint.latitude.toString()),
+    parseFloat(vanEndWaypoint.longitude.toString())
   );
 
-  // Child pickup should be close to van's start, and school close to van's end
-  // Allowing flexibility (within 10km each for general direction check)
-  return childPickupToVanStart <= 10 && schoolToVanEnd <= 10;
+  // Child pickup should be closer to van's start, and school closer to van's end
+  // Allowing flexibility (within 5km each)
+  return childPickupToVanStart < 5 && schoolToVanEnd < 5;
 }
 
-// Helper function to check if van route is within proximity radius of both pickup and dropoff
-function isVanWithinProximity(
+// Helper function to check if van passes near child's pickup location
+function isVanNearPickup(
   childPickupLat: number,
   childPickupLng: number,
-  schoolLat: number,
-  schoolLng: number,
   vanPathWaypoints: any[]
 ): boolean {
   if (!vanPathWaypoints || vanPathWaypoints.length === 0) return false;
 
-  // Check if any waypoint/endpoint is within proximity radius of pickup
-  let pickupProximityMet = false;
-  for (const waypoint of vanPathWaypoints) {
-    const distanceToPickup = calculateDistance(
-      childPickupLat,
-      childPickupLng,
-      parseFloat(waypoint.latitude.toString()),
-      parseFloat(waypoint.longitude.toString())
-    );
-    if (distanceToPickup <= PROXIMITY_RADIUS_KM) {
-      pickupProximityMet = true;
-      break;
-    }
-  }
+  // Check if any waypoint is within 10km of child's pickup
+  const minDistance = getMinDistanceToWaypoints(
+    childPickupLat,
+    childPickupLng,
+    vanPathWaypoints
+  );
 
-  if (!pickupProximityMet) return false;
-
-  // Check if any waypoint/endpoint is within proximity radius of dropoff (school)
-  let dropoffProximityMet = false;
-  for (const waypoint of vanPathWaypoints) {
-    const distanceToDropoff = calculateDistance(
-      schoolLat,
-      schoolLng,
-      parseFloat(waypoint.latitude.toString()),
-      parseFloat(waypoint.longitude.toString())
-    );
-    if (distanceToDropoff <= PROXIMITY_RADIUS_KM) {
-      dropoffProximityMet = true;
-      break;
-    }
-  }
-
-  return pickupProximityMet && dropoffProximityMet;
+  return minDistance <= 1000;
 }
 
 export async function GET(
@@ -130,6 +126,14 @@ export async function GET(
     const pickupLng = parseFloat(child.pickupLng.toString());
 
     // 2️⃣ Get school gate location (using first active gate)
+    const schoolLocation = await prisma.school.findUnique({
+      where: { id: child.schoolID },
+    });
+
+    if (!schoolLocation) {
+      return NextResponse.json({ error: "School not found" }, { status: 404 });
+    }
+
     const gateLocation = child.School?.Gate?.[0];
     if (!gateLocation || gateLocation.latitude === null || gateLocation.longitude === null) {
       return NextResponse.json(
@@ -141,23 +145,15 @@ export async function GET(
     const schoolLat = gateLocation.latitude;
     const schoolLng = gateLocation.longitude;
 
-    // 3️⃣ Fetch existing van requests for this child
-    const existingRequests = await prisma.vanRequest.findMany({
-      where: { childId },
-      select: { vanId: true, status: true },
-    });
-
-    const requestMap = new Map(existingRequests.map(r => [r.vanId, r.status]));
-
-    // 4️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers and their paths
+    // 3️⃣ Fetch only APPROVED vans (status = 1) with assigned drivers
     const vans = await prisma.van.findMany({
-      // where: {
-      //   hasDriver: true,
-      //   status: 1,
-      //   assignedDriverId: { not: null },
-      // },
+      where: {
+        hasDriver: true,
+        status: 1,
+        assignedDriverId: { not: null },
+      },
       include: {
-        UserProfile: {
+        UserProfile_Van_ownerIdToUserProfile: {
           select: {
             firstname: true,
             lastname: true,
@@ -179,16 +175,22 @@ export async function GET(
       },
     });
 
-    // 5️⃣ Filter vans based on direction matching AND proximity
+    // 4️⃣ Filter vans based on proximity and direction matching
     const qualifiedVans = [];
 
     for (const van of vans) {
-      if (!van.Path || !van.Path.WayPoint || van.Path.WayPoint.length < 2) {
+      if (!van.Path || !van.Path.WayPoint || van.Path.WayPoint.length === 0) {
         continue;
       }
 
-      const vanStartWaypoint = van.Path.WayPoint[0];
-      const vanEndWaypoint = van.Path.WayPoint[van.Path.WayPoint.length - 1];
+      // Check if van passes near pickup location (within 10km)
+      const isNearPickup = isVanNearPickup(
+        pickupLat,
+        pickupLng,
+        van.Path.WayPoint
+      );
+
+      if (!isNearPickup) continue;
 
       // Check if van's route direction matches child's direction
       const isDirectionGood = isDirectionMatching(
@@ -196,29 +198,15 @@ export async function GET(
         pickupLng,
         schoolLat,
         schoolLng,
-        parseFloat(vanStartWaypoint.latitude.toString()),
-        parseFloat(vanStartWaypoint.longitude.toString()),
-        parseFloat(vanEndWaypoint.latitude.toString()),
-        parseFloat(vanEndWaypoint.longitude.toString())
+        van.Path.WayPoint
       );
 
       if (!isDirectionGood) continue;
 
-      // Check if van route is within proximity radius of both pickup and dropoff
-      const isWithinProximity = isVanWithinProximity(
-        pickupLat,
-        pickupLng,
-        schoolLat,
-        schoolLng,
-        van.Path.WayPoint
-      );
-
-      if (!isWithinProximity) continue;
-
       qualifiedVans.push(van);
     }
 
-    // 6️⃣ Calculate distance and estimated fare for qualified vans
+    // 5️⃣ Calculate distance and estimated fare for qualified vans
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${pickupLat},${pickupLng}&destinations=${schoolLat},${schoolLng}&key=${GOOGLE_MAPS_API_KEY}`;
 
     const distanceRes = await fetch(url);
@@ -237,18 +225,13 @@ export async function GET(
     const distanceInMeters = distanceData.rows[0].elements[0].distance.value;
     const distanceInKm = distanceInMeters / 1000;
 
-    const vansWithEstimate = qualifiedVans.map((van) => {
-      const requestStatus = requestMap.get(van.id);
-      return {
-        ...van,
-        estimatedFare: Math.round(distanceInKm * van.studentRating * 100) / 100,
-        distanceInKm,
-        requestStatus: requestStatus || null,
-      };
-    });
+    const vansWithEstimate = qualifiedVans.map((van) => ({
+      ...van,
+      estimatedFare: Math.round(distanceInKm * van.studentRating * 100) / 100,
+      distanceInKm,
+    }));
 
     console.log(`Found ${vansWithEstimate.length} qualified vans for child ${childId}`);
-    console.log(vansWithEstimate);
 
     return NextResponse.json(vansWithEstimate, { status: 200 });
   } catch (error) {

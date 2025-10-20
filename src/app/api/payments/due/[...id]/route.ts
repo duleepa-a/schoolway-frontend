@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { parentId: string } }
+  { params }: { params: { id: string[] } }
 ) {
-  const { parentId } = params;
+  const parentId = params.id[0];
 
   try {
     const now = new Date();

@@ -30,9 +30,9 @@ export async function GET(req: Request, { params }: { params: { driverId: string
       },
       orderBy: { createdAt: "desc" },
       include: {
-        SessionStudent: {
+        sessionStudents: {
           include: {
-            Child: {
+            child: {
               include: {
                 School: {
                   select: {
@@ -45,14 +45,14 @@ export async function GET(req: Request, { params }: { params: { driverId: string
             },
           },
         },
-        Van: {
+        van: {
           select: {
             registrationNumber: true,
             makeAndModel: true,
             photoUrl: true,
           },
         },
-        UserProfile: {
+        driver: {
           select: {
             firstname: true,
             lastname: true,
@@ -71,21 +71,21 @@ export async function GET(req: Request, { params }: { params: { driverId: string
     }
 
     // 🎯 Filter children belonging to guardian's school
-    const filteredStudents = sessionData.SessionStudent.filter(
-      (ss) => ss.Child.schoolID === guardian.schoolId
+    const filteredStudents = sessionData.sessionStudents.filter(
+      (ss) => ss.child.schoolID === guardian.schoolId
     ).map((ss) => ({
-      id: ss.Child.id,
-      name: ss.Child.name,
-      grade: ss.Child.grade,
-      gate: ss.Child.Gate?.gateName || "N/A",
-      pickupAddress: ss.Child.pickupAddress,
-      profilePicture: ss.Child.profilePicture,
+      id: ss.child.id,
+      name: ss.child.name,
+      grade: ss.child.grade,
+      gate: ss.child.Gate?.gateName || "N/A",
+      pickupAddress: ss.child.pickupAddress,
+      profilePicture: ss.child.profilePicture,
     }));
     console.log("✅ Fetched driver info successfully.", sessionData);
     return NextResponse.json({
       success: true,
-      driver: sessionData.UserProfile,
-      van: sessionData.Van,
+      driver: sessionData.driver,
+      van: sessionData.van,
       students: filteredStudents,
     });
   } catch (error) {

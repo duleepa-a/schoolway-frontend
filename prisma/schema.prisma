@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Assistant {
-  id         String  @id @default(cuid())
+  id         String  @id
   name       String
   contact    String
   nic        String
@@ -52,21 +52,22 @@ model Child {
 }
 
 model ContactUs {
-  id        Int          @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
   email     String
   subject   String
   message   String
   userType  String
-  status    String       @default("Pending")
-  createdAt DateTime     @default(now())
-  Type      InquiryType  @default(OTHER)
   userId    String?
-  User      UserProfile? @relation(fields: [userId], references: [id])
+  Type      InquiryType @default(OTHER)
+  status    String   @default("Pending")
+  User      UserProfile?     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 model DriverProfile {
-  id             String     @id @default(cuid())
+  id             String      @id
   licenseId      String
   licenseExpiry  DateTime
   licenseFront   String?
@@ -131,7 +132,7 @@ model Gate {
 }
 
 model Path {
-  id                String                  @id @default(cuid())
+  id                String                  @id
   routeStart        Unsupported("geometry")
   routeEnd          Unsupported("geometry")
   routeGeometry     Unsupported("geometry")
@@ -170,7 +171,7 @@ model Payment {
 }
 
 model PrivateHire {
-  id             String      @id @default(cuid())
+  id             String      @id
   userId         String
   vanId          Int?
   pickupLat      Float
@@ -222,7 +223,7 @@ model SchoolGuardian {
 }
 
 model UserProfile {
-  id                                                              String                @id @default(cuid())
+  id                                                              String                @id
   email                                                           String                @unique
   firstname                                                       String?
   createdAt                                                       DateTime              @default(now())
@@ -241,13 +242,12 @@ model UserProfile {
   AwarenessPost                                                   AwarenessPost[]
   BankAccount                                                     BankAccount?
   Child                                                           Child[]
-  ContactUs                                                       ContactUs[]
   DriverProfile                                                   DriverProfile?
   DriverVanJobRequest_DriverVanJobRequest_driverIdToUserProfile   DriverVanJobRequest[] @relation("DriverVanJobRequest_driverIdToUserProfile")
   DriverVanJobRequest_DriverVanJobRequest_vanOwnerIdToUserProfile DriverVanJobRequest[] @relation("DriverVanJobRequest_vanOwnerIdToUserProfile")
-  Notification                                                    Notification[]
   Payment_Payment_driverIdToUserProfile                           Payment[]             @relation("Payment_driverIdToUserProfile")
   Payment                                                         Payment[]
+  ContactUs                                                       ContactUs[]
   Payment_Payment_vanServiceIdToUserProfile                       Payment[]             @relation("Payment_vanServiceIdToUserProfile")
   Payroll                                                         Payroll[]
   PrivateHire                                                     PrivateHire[]
@@ -256,6 +256,7 @@ model UserProfile {
   TransportSession                                                TransportSession[]
   Van_Van_assignedDriverIdToUserProfile                           Van[]                 @relation("Van_assignedDriverIdToUserProfile")
   Van                                                             Van[]
+  Notification                                                    Notification[]
   VanService                                                      VanService?
 }
 
@@ -274,6 +275,7 @@ model Van {
   createdAt                                     DateTime              @default(now())
   ownerId                                       String
   hasDriver                                     Boolean               @default(false)
+  noOfStudentsAssigned                          Int                   @default(0)
   assignedDriverId                              String?
   salaryPercentage                              Float?                @default(25.0)
   shiftDetails                                  String?
@@ -284,7 +286,6 @@ model Van {
   pathId                                        String?
   endTime                                       DateTime?
   startTime                                     DateTime?
-  noOfStudentsAssigned                          Int                   @default(0)
   Assistant                                     Assistant?
   Child                                         Child[]
   DriverVanJobRequest                           DriverVanJobRequest[]
@@ -299,19 +300,19 @@ model Van {
 }
 
 model VanRequest {
-  id            String        @id @default(cuid())
+  id            String        @id
   vanId         Int
   childId       Int           @unique
   status        RequestStatus @default(PENDING)
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @default(now())
+  updatedAt     DateTime
   estimatedFare Float         @default(0)
   Child         Child         @relation(fields: [childId], references: [id])
   Van           Van           @relation(fields: [vanId], references: [id])
 }
 
 model VanService {
-  id               String      @id @default(cuid())
+  id               String      @id
   serviceName      String
   contactNo        String
   serviceRegNumber String
@@ -450,7 +451,7 @@ model LocationHistory {
 }
 
 model AwarenessPost {
-  id             String      @id @default(cuid())
+  id             String      @id
   title          String
   content        String
   imageUrl       String?
@@ -474,21 +475,31 @@ model AwarenessPost {
 }
 
 model Notification {
-  id           String           @id @default(cuid())
+  id           String       @id @default(cuid())
   title        String
   message      String
   type         NotificationType
-  targetUserId String?
-  read         Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  UserProfile  UserProfile?     @relation(fields: [targetUserId], references: [id])
+  targetUserId String?      
+  read         Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  UserProfile  UserProfile? @relation(fields: [targetUserId], references: [id])
 
   @@index([targetUserId])
   @@index([read])
 }
 
+enum NotificationType {
+  ALERT          // urgent notification
+  REMINDER       // e.g., payment or attendance reminder
+  EMERGENCY      // e.g., child missing, van breakdown
+  PAYMENT        // payment related
+  ATTENDANCE     // attendance related
+  ANNOUNCEMENT   // school announcements or posts
+}
+
+
 model BankAccount {
-  id          String      @id @default(cuid())
+  id          String      @id
   userId      String      @unique
   accountNo   String
   accountName String
@@ -499,15 +510,6 @@ model BankAccount {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime
   UserProfile UserProfile @relation(fields: [userId], references: [id])
-}
-
-enum NotificationType {
-  ALERT
-  REMINDER
-  EMERGENCY
-  PAYMENT
-  ATTENDANCE
-  ANNOUNCEMENT
 }
 
 enum SessionStatus {
@@ -605,5 +607,5 @@ enum InquiryType {
   SCHOOL_REQ
   SUGGESTIONS
   INQUIRIES
-  OTHER
+  OTHER
 }

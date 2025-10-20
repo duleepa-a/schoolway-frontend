@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma';
+import { profile } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -58,11 +59,30 @@ async function getLocationName(lat: number, lng: number): Promise<string> {
 async function getDriverVehicleInfo(driverId: string) {
   try {
     const van = await prisma.van.findFirst({
-      where: { assignedDriverId: driverId },
+      where: {
+        assignedDriverId: driverId
+      },
       include: {
-        owner: true,
-        children: { include: { School: true } },
-        path: { include: { waypoints: { orderBy: { order: 'asc' } } } }
+        UserProfile: {
+          include: {
+            VanService: true
+          }
+        },
+        Child: {
+          include: {
+            School: true
+          }
+        },
+        Path: {
+          include: {
+            WayPoint: {
+              orderBy: {
+                order: "asc"
+              }
+            }
+          }
+        },
+        Assistant: true
       }
     });
 
@@ -73,8 +93,9 @@ async function getDriverVehicleInfo(driverId: string) {
     // --- Get routeStart and routeEnd coordinates from geometry columns ---
     let startLocation = 'Unknown Start';
     let endLocation = 'Unknown End';
-    if (van.path?.id) {
-      const coords = await getRouteStartEndCoords(van.path.id);
+    if (van.Path?.id) {
+      const coords = await getRouteStartEndCoords(van.Path.id);
+      console.log('Route coordinates:', coords);
       if (coords?.start_lat && coords?.start_lng) {
         startLocation = await getLocationName(coords.start_lat, coords.start_lng);
       }
@@ -84,7 +105,7 @@ async function getDriverVehicleInfo(driverId: string) {
     }
 
     // Get unique schools from children
-    const schools = van.children.reduce((acc, child) => {
+    const schools = van.Child.reduce((acc, child) => {
       const school = child.School;
       if (!acc.find(s => s.id === school.id)) {
         acc.push(school);
@@ -92,13 +113,16 @@ async function getDriverVehicleInfo(driverId: string) {
       return acc;
     }, [] as any[]);
 
+    // Update the reference from van.UserProfile to van.UserProfile_Van_ownerIdToUserProfile
+    const ownerProfile = van.UserProfile;
+    
     return {
       id: van.registrationNumber,
       model: van.makeAndModel,
       licensePlate: van.licensePlateNumber,
       status: van.status === 1 ? 'active' : 'inactive',
       image: van.photoUrl || null,
-      ownerName: `${van.owner.firstname || ''} ${van.owner.lastname || ''}`.trim() || 'Unknown Owner',
+      ownerName: `${ownerProfile.firstname || ''} ${ownerProfile.lastname || ''}`.trim() || 'Unknown Owner',
       capacity: van.seatingCapacity,
       year: new Date(van.createdAt).getFullYear(),
       fuelType: 'Diesel',
@@ -107,9 +131,9 @@ async function getDriverVehicleInfo(driverId: string) {
         endLocation
       },
       stats: {
-        studentCount: van.children.length,
+        studentCount: van.Child.length,
         schoolCount: schools.length,
-        rating: van.privateRating || 0
+        rating: ownerProfile.VanService?.averageRating || 0.0
       }
     };
   } catch (error) {
@@ -120,60 +144,96 @@ async function getDriverVehicleInfo(driverId: string) {
 
 // Function to get assistant info (lazy loaded)
 async function getAssistantInfo(driverId: string) {
-  // TODO: Replace with actual database query
-  // Simulate loading time
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  return {
-    fullName: 'Maria Santos',
-    phone: '+1 (555) 123-4567',
-    experience: '3 years',
-    emergencyContact: '+1 (555) 987-6543',
-    certifications: ['First Aid', 'Child Safety'],
-    joinDate: '2021-08-15'
-  };
+  try {
+    // First get the van associated with the driver to get the assistant
+    const van = await prisma.van.findFirst({
+      where: {
+        assignedDriverId: driverId
+      },
+      include: {
+        Assistant: true
+      }
+    });
+
+    if (!van || !van.Assistant) {
+      return {
+        error: 'No assistant assigned to this van',
+        status: 404
+      };
+    }
+
+    const assistant = van.Assistant;
+
+    return {
+      id: assistant.id,
+      fullName: assistant.name,
+      phone: assistant.contact,
+      // nic: assistant.nic,
+      profilePic: assistant.profilePic || null,
+      // Keeping the mock data for fields not in DB schema
+      experience: '3 years',
+      // certifications: ['First Aid', 'Child Safety'],  
+      // joinDate: new Date().toISOString().split('T')[0] // Current date as join date
+    };
+
+    //  return {
+    //   fullName: 'Maria Santos',
+    //   phone: '+1 (555) 123-4567',
+    //   experience: '3 years',
+    //   emergencyContact: '+1 (555) 987-6543',
+    //   certifications: ['First Aid', 'Child Safety'],
+    //   joinDate: '2021-08-15'
+    // };
+
+  } catch (error) {
+    console.error('Error fetching assistant info:', error);
+    throw error;
+  }
 }
 
 // Function to get assigned students (lazy loaded)
 async function getAssignedStudents(driverId: string) {
-  // TODO: Replace with actual database query
-  // Simulate loading time
-  await new Promise(resolve => setTimeout(resolve, 1200));
-  
-  return [
-    {
-      id: 'STU001',
-      name: 'Alex Johnson',
-      grade: 'Grade 5',
-      pickupLocation: '123 Oak Street',
-      dropoffLocation: 'Lincoln Elementary',
-      parentContact: '+1 (555) 111-2222'
-    },
-    {
-      id: 'STU002',
-      name: 'Sarah Williams',
-      grade: 'Grade 7',
-      pickupLocation: '456 Pine Avenue',
-      dropoffLocation: 'Jefferson Middle School',
-      parentContact: '+1 (555) 333-4444'
-    },
-    {
-      id: 'STU003',
-      name: 'Michael Brown',
-      grade: 'Grade 3',
-      pickupLocation: '789 Elm Drive',
-      dropoffLocation: 'Washington Primary',
-      parentContact: '+1 (555) 555-6666'
-    },
-    {
-      id: 'STU004',
-      name: 'Emma Davis',
-      grade: 'Grade 6',
-      pickupLocation: '321 Maple Lane',
-      dropoffLocation: 'Roosevelt Elementary',
-      parentContact: '+1 (555) 777-8888'
+  try {
+    // First get the van associated with the driver
+    const van = await prisma.van.findFirst({
+      where: {
+        assignedDriverId: driverId
+      },
+      include: {
+        Child: {
+          include: {
+            School: true,
+            UserProfile: true // This gets the parent info
+          }
+        }
+      }
+    });
+
+    if (!van) {
+      return {
+        error: 'No van assigned to this driver',
+        status: 404
+      };
     }
-  ];
+
+    // Transform the data to match the required format
+    const students = van.Child.map(child => ({
+      id: child.id.toString(),
+      name: child.name,
+      grade: `Grade ${child.grade}`,
+      pickupLocation: child.pickupAddress,
+      dropoffLocation: child.School.schoolName,
+      parentContact: child.UserProfile?.mobile || 'No contact provided',
+      profilePic: child.profilePicture || null
+    }));
+
+    // console.log(`Found `, students);
+    return students;
+
+  } catch (error) {
+    console.error('Error fetching assigned students:', error);
+    throw error;
+  }
 }
 
 // Function to get route and schools (lazy loaded)
