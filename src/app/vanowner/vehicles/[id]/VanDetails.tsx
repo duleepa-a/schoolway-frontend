@@ -32,6 +32,7 @@ interface Van {
   licensePlateNumber: string;
   registrationNumber: string;
   seatingCapacity: number;
+  noOfStudentsAssigned : number;
   acCondition: boolean;
   routeStart?: string;
   routeEnd?: string;
@@ -423,9 +424,9 @@ const VanDetails = ({ van }: { van: Van }) => {
             </div>
             <p className='text-sm'><span className="font-medium">Model:</span> {localVan.makeAndModel}</p>
             <div className="my-2">
-              <div className="text-xs mb-1">Seats: 5 / {localVan.seatingCapacity}</div>
+              <div className="text-xs mb-1">Seats: {localVan.noOfStudentsAssigned}/ {localVan.seatingCapacity}</div>
               <div className='w-full flex justify-end'>
-                <div className=" bg-gray-200 rounded-full h-1.5 w-9/10">
+                <div className=" bg-gray-200 rounded-full h-1.5 w-${}/10">
                   <div className="bg-primary h-1.5 rounded-full " style={{ width: '80%' }}></div>
                 </div>
               </div>
