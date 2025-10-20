@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { User, School, MapPin, Truck, Star, Phone, Mail, AlertCircle } from "lucide-react";
+import { User, School, MapPin, Truck, Phone, Mail, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import Footer from "@/app/components/Footer";
 
@@ -37,6 +37,7 @@ interface ChildData {
       name: string;
       contact: string;
       nic: string;
+      profilePic: string;
     };
     UserProfile_Van_ownerIdToUserProfile?: {
       firstname: string;
@@ -126,7 +127,6 @@ const ChildInfoPage: React.FC = () => {
   }
 
   const driver = child.Van?.UserProfile_Van_assignedDriverIdToUserProfile;
-  const driverRating = driver?.DriverProfile?.averageRating || 0;
   const assistant = child.Van?.Assistant;
   const parent = child.UserProfile;
   const vanOwner = child.Van?.UserProfile_Van_ownerIdToUserProfile;
@@ -134,107 +134,64 @@ const ChildInfoPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       <div className="max-w-5xl mx-auto py-8 px-4 md:px-6">
-        {/* Emergency Alert Banner */}
+        {/* Child Profile Card with Parent Info */}
         <div
-          className="rounded-xl border-2 p-4 mb-8 flex items-start gap-3"
+          className="rounded-2xl shadow-sm p-8 mb-6"
           style={{
-            borderColor: "#fca5a5",
-            background: "#fee2e2",
+            background: "var(--color-textwhite)",
+            border: "1px solid #e5e7eb",
           }}
         >
-          <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: "#991b1b" }} />
-          <div>
-            <p style={{ color: "#991b1b" }} className="font-bold mb-1">
-              Child Information Card
-            </p>
-            <p style={{ color: "#991b1b" }} className="text-sm">
-              If you found this child or have information about them, please contact the parent or guardian immediately.
-            </p>
-          </div>
-        </div>
-
-        {/* Child Profile Card */}
-        <div
-          className="rounded-2xl shadow-lg p-8 mb-8"
-          style={{ background: "var(--color-textwhite)" }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Child Photo & QR Code */}
-            <div className="flex flex-col items-center">
-              <div className="w-[150px] h-[150px] rounded-full overflow-hidden shadow-lg mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Child Photo */}
+            <div className="md:col-span-1 flex flex-col items-center justify-start">
+              <div className="w-[140px] h-[140px] rounded-full overflow-hidden shadow-sm mb-4">
                 {child.profilePicture ? (
                   <Image
                     src={child.profilePicture}
                     alt={child.name}
-                    width={150}
-                    height={150}
+                    width={140}
+                    height={140}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div
                     className="w-full h-full flex items-center justify-center"
-                    style={{ background: "var(--blue-shade-light)20" }}
+                    style={{ background: "var(--blue-shade-light)15" }}
                   >
-                    <User className="w-16 h-16" style={{ color: "var(--blue-shade-dark)" }} />
+                    <User className="w-14 h-14" style={{ color: "var(--blue-shade-dark)" }} />
                   </div>
                 )}
               </div>
-              {child.qrCode && (
-                <div className="p-3 bg-white border-2 rounded-lg" style={{ borderColor: "var(--blue-shade-light)" }}>
-                  <img src={child.qrCode} alt="QR Code" width={120} height={120} className="rounded" />
-                </div>
-              )}
             </div>
 
-            {/* Child Info */}
-            <div className="md:col-span-2">
-              <h1
-                className="text-4xl font-bold mb-3"
-                style={{ color: "var(--blue-shade-dark)" }}
-              >
-                {child.name}
-              </h1>
-              <div className="flex flex-wrap gap-3 mb-6">
-                <span
-                  className="px-4 py-2 rounded-full font-semibold text-sm"
-                  style={{
-                    background: "var(--blue-shade-light)20",
-                    color: "var(--blue-shade-dark)",
-                  }}
+            {/* Child & Parent Info */}
+            <div className="md:col-span-3">
+              {/* Child Info */}
+              <div className="mb-6">
+                <h1
+                  className="text-3xl font-bold mb-1"
+                  style={{ color: "var(--blue-shade-dark)" }}
                 >
-                  Age: {child.age}
-                </span>
-                <span
-                  className="px-4 py-2 rounded-full font-semibold text-sm"
-                  style={{
-                    background: "var(--blue-shade-light)20",
-                    color: "var(--blue-shade-dark)",
-                  }}
+                  {child.name}
+                </h1>
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "var(--color-textgreydark)" }}
                 >
-                  Grade: {child.grade}
-                </span>
-                {child.specialNotes && (
-                  <span
-                    className="px-4 py-2 rounded-full font-semibold text-sm"
-                    style={{
-                      background: "var(--green-shade-light)20",
-                      color: "var(--green-shade-dark)",
-                    }}
-                  >
-                    {child.specialNotes}
-                  </span>
-                )}
+                  Grade {child.grade}
+                </p>
               </div>
 
-              {/* Address */}
-              <div className="space-y-3">
+              {/* Address & School */}
+              <div className="space-y-3 mb-6 pb-6 border-b" style={{ borderColor: "#e5e7eb" }}>
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: "var(--blue-shade-light)" }} />
+                  <MapPin className="w-4 h-4 flex-shrink-0 mt-1" style={{ color: "var(--blue-shade-light)" }} />
                   <div>
-                    <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold mb-1">
+                    <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold">
                       Pickup Address
                     </p>
-                    <p style={{ color: "var(--color-textblack)" }} className="font-medium">
+                    <p style={{ color: "var(--color-textblack)" }} className="text-sm">
                       {child.pickupAddress}
                     </p>
                   </div>
@@ -242,124 +199,108 @@ const ChildInfoPage: React.FC = () => {
 
                 {child.School && (
                   <div className="flex items-start gap-3">
-                    <School className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: "var(--green-shade-light)" }} />
+                    <School className="w-4 h-4 flex-shrink-0 mt-1" style={{ color: "var(--green-shade-light)" }} />
                     <div>
-                      <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold mb-1">
+                      <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold">
                         School
                       </p>
-                      <p style={{ color: "var(--color-textblack)" }} className="font-medium">
+                      <p style={{ color: "var(--color-textblack)" }} className="text-sm font-medium">
                         {child.School.schoolName}
                       </p>
-                      <p style={{ color: "var(--color-textgreydark)" }} className="text-sm">
+                      <p style={{ color: "var(--color-textgreydark)" }} className="text-xs">
                         {child.School.address}
                       </p>
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* Parent/Guardian Info - Sleek */}
+              {parent && (
+                <div className="flex items-center gap-4">
+                  <div className="w-[80px] h-[80px] rounded-full overflow-hidden flex-shrink-0">
+                    {parent.dp ? (
+                      <Image
+                        src={parent.dp}
+                        alt={`${parent.firstname} ${parent.lastname}`}
+                        width={80}
+                        height={80}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ background: "var(--green-shade-light)15" }}
+                      >
+                        <User className="w-8 h-8" style={{ color: "var(--green-shade-dark)" }} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-grow">
+                    <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold mb-1">
+                      PARENT / GUARDIAN
+                    </p>
+                    <p style={{ color: "var(--color-textblack)" }} className="font-bold text-sm mb-2">
+                      {parent.firstname} {parent.lastname}
+                    </p>
+                    <div className="flex gap-2">
+                      <a
+                        href={`tel:${parent.mobile}`}
+                        className="px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:shadow-sm transition-shadow"
+                        style={{
+                          background: "var(--green-shade-light)20",
+                          color: "var(--green-shade-dark)",
+                        }}
+                      >
+                        <Phone className="w-3 h-3" /> {parent.mobile}
+                      </a>
+                      <a
+                        href={`mailto:${parent.email}`}
+                        className="px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:shadow-sm transition-shadow"
+                        style={{
+                          background: "var(--green-shade-light)20",
+                          color: "var(--green-shade-dark)",
+                        }}
+                      >
+                        <Mail className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Parent/Guardian Contact - PRIMARY */}
-        {parent && (
-          <div
-            className="rounded-2xl shadow-lg p-8 mb-8 border-4"
-            style={{
-              background: "var(--color-textwhite)",
-              borderColor: "var(--green-shade-light)",
-            }}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div
-                className="p-2 rounded-full"
-                style={{ background: "var(--green-shade-light)20" }}
-              >
-                <Phone className="w-6 h-6" style={{ color: "var(--green-shade-dark)" }} />
-              </div>
-              <h2
-                className="text-2xl font-bold"
-                style={{ color: "var(--green-shade-dark)" }}
-              >
-                Parent / Guardian (PRIMARY CONTACT)
-              </h2>
-            </div>
+        {/* Emergency Action Required */}
+        <div
+          className="rounded-xl p-6 mb-8"
+          style={{
+            borderColor: "#fca5a5",
+            background: "#fee2e2",
+            border: "1px solid",
+          }}
+        >
+          <p style={{ color: "#991b1b" }} className="font-bold mb-3 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            EMERGENCY ACTION REQUIRED
+          </p>
+          <ul style={{ color: "#991b1b" }} className="text-sm space-y-1 list-disc list-inside">
+            <li>Contact the parent/guardian IMMEDIATELY</li>
+            <li>If unable to reach parent, contact the driver or van assistant</li>
+            <li>Contact local authorities if child is in danger or distress</li>
+            <li>Do not leave the child unattended</li>
+          </ul>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Photo */}
-              <div className="flex flex-col items-center">
-                <div className="w-[120px] h-[120px] rounded-full overflow-hidden shadow-lg mb-3">
-                  {parent.dp ? (
-                    <Image
-                      src={parent.dp}
-                      alt={`${parent.firstname} ${parent.lastname}`}
-                      width={120}
-                      height={120}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{ background: "var(--green-shade-light)20" }}
-                    >
-                      <User className="w-12 h-12" style={{ color: "var(--green-shade-dark)" }} />
-                    </div>
-                  )}
-                </div>
-                <p style={{ color: "var(--color-textblack)" }} className="font-bold text-center">
-                  {parent.firstname} {parent.lastname}
-                </p>
-              </div>
-
-              {/* Contact Info */}
-              <div className="md:col-span-2 space-y-4">
-                <a
-                  href={`tel:${parent.mobile}`}
-                  className="flex items-center gap-4 p-4 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-                  style={{
-                    background: "var(--color-background)",
-                    borderLeft: "4px solid var(--green-shade-light)",
-                  }}
-                >
-                  <Phone className="w-6 h-6 flex-shrink-0" style={{ color: "var(--green-shade-light)" }} />
-                  <div>
-                    <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold">
-                      Phone
-                    </p>
-                    <p style={{ color: "var(--color-textblack)" }} className="font-bold text-lg">
-                      {parent.mobile}
-                    </p>
-                  </div>
-                </a>
-
-                <a
-                  href={`mailto:${parent.email}`}
-                  className="flex items-center gap-4 p-4 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-                  style={{
-                    background: "var(--color-background)",
-                    borderLeft: "4px solid var(--green-shade-light)",
-                  }}
-                >
-                  <Mail className="w-6 h-6 flex-shrink-0" style={{ color: "var(--green-shade-light)" }} />
-                  <div>
-                    <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold">
-                      Email
-                    </p>
-                    <p style={{ color: "var(--color-textblack)" }} className="font-bold break-all">
-                      {parent.email}
-                    </p>
-                  </div>
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Transport Details */}
+        {/* Transport Information */}
         {child.Van && (
           <div
-            className="rounded-2xl shadow-lg p-8 mb-8"
-            style={{ background: "var(--color-textwhite)" }}
+            className="rounded-2xl shadow-sm p-8 mb-8"
+            style={{
+              background: "var(--color-textwhite)",
+              border: "1px solid #e5e7eb",
+            }}
           >
             <h2
               className="text-2xl font-bold mb-6 flex items-center gap-2"
@@ -369,207 +310,190 @@ const ChildInfoPage: React.FC = () => {
               Transport Information
             </h2>
 
-            {/* Van Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Van Card */}
               <div
-                className="p-6 rounded-xl border-2"
+                className="lg:col-span-1 p-5 rounded-xl hover:shadow-sm transition-shadow"
                 style={{
-                  borderColor: "var(--blue-shade-light)",
                   background: "var(--color-background)",
+                  border: "1px solid #e5e7eb",
                 }}
               >
-                <h3 style={{ color: "var(--blue-shade-dark)" }} className="font-bold text-lg mb-4">
+                <h3 style={{ color: "var(--blue-shade-dark)" }} className="font-bold text-sm mb-3">
                   Van Details
                 </h3>
                 {child.Van.photoUrl && (
                   <Image
                     src={child.Van.photoUrl}
                     alt="Van"
-                    width={200}
-                    height={150}
-                    className="w-full h-40 object-cover rounded-lg mb-4"
+                    width={150}
+                    height={100}
+                    className="w-full h-32 object-cover rounded-lg mb-4"
                   />
                 )}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div>
                     <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold">
                       Model
                     </p>
-                    <p style={{ color: "var(--color-textblack)" }} className="font-bold">
+                    <p style={{ color: "var(--color-textblack)" }} className="text-sm font-medium">
                       {child.Van.makeAndModel}
                     </p>
                   </div>
                   <div>
                     <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold">
-                      Registration Number
+                      Registration
                     </p>
-                    <p style={{ color: "var(--color-textblack)" }} className="font-bold">
+                    <p style={{ color: "var(--color-textblack)" }} className="text-sm font-medium">
                       {child.Van.registrationNumber}
                     </p>
                   </div>
-                </div>
-              </div>
 
-              {/* Driver Card */}
-              {driver && (
-                <div
-                  className="p-6 rounded-xl border-2"
-                  style={{
-                    borderColor: "var(--green-shade-light)",
-                    background: "var(--color-background)",
-                  }}
-                >
-                  <h3 style={{ color: "var(--green-shade-dark)" }} className="font-bold text-lg mb-4">
-                    Driver
-                  </h3>
-                  <div className="flex justify-center mb-4">
-                    <div className="w-[100px] h-[100px] rounded-full overflow-hidden">
-                      {driver.dp ? (
-                        <Image
-                          src={driver.dp}
-                          alt={`${driver.firstname} ${driver.lastname}`}
-                          width={100}
-                          height={100}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div
-                          className="w-full h-full flex items-center justify-center"
-                          style={{ background: "var(--green-shade-light)20" }}
-                        >
-                          <User className="w-12 h-12" style={{ color: "var(--green-shade-dark)" }} />
+                  {/* Service Provider inside Van Card */}
+                  {vanOwner && (
+                    <div className="pt-4 mt-4 border-t" style={{ borderColor: "#e5e7eb" }}>
+                      <p style={{ color: "var(--blue-shade-light)" }} className="text-xs font-semibold mb-2">
+                        SERVICE PROVIDER
+                      </p>
+                      <div className="space-y-2">
+                        <div>
+                          <p style={{ color: "var(--color-textgreydark)" }} className="text-xs">
+                            {vanOwner.firstname} {vanOwner.lastname}
+                          </p>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <p style={{ color: "var(--color-textblack)" }} className="font-bold">
-                      {driver.firstname} {driver.lastname}
-                    </p>
-                    {driverRating > 0 && (
-                      <div className="flex items-center justify-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400" style={{ color: "#fbbf24" }} />
-                        <span style={{ color: "var(--color-textblack)" }} className="font-medium text-sm">
-                          {driverRating.toFixed(1)} Rating
-                        </span>
+                        <a
+                          href={`tel:${vanOwner.mobile}`}
+                          className="flex items-center gap-2 px-2 py-1 rounded text-xs font-semibold hover:shadow-sm transition-shadow w-full"
+                          style={{
+                            background: "var(--blue-shade-light)15",
+                            color: "var(--blue-shade-light)",
+                          }}
+                        >
+                          <Phone className="w-3 h-3 flex-shrink-0" /> 
+                          <span className="truncate">{vanOwner.mobile}</span>
+                        </a>
+                        <a
+                          href={`mailto:${vanOwner.email}`}
+                          className="flex items-center gap-2 px-2 py-1 rounded text-xs font-semibold hover:shadow-sm transition-shadow w-full"
+                          style={{
+                            background: "var(--blue-shade-light)15",
+                            color: "var(--blue-shade-light)",
+                          }}
+                        >
+                          <Mail className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate text-xs">{vanOwner.email}</span>
+                        </a>
                       </div>
-                    )}
-                    <a
-                      href={`tel:${driver.mobile}`}
-                      className="inline-block mt-2 px-3 py-1 rounded text-sm font-semibold"
-                      style={{
-                        background: "var(--green-shade-light)20",
-                        color: "var(--green-shade-dark)",
-                      }}
-                    >
-                      {driver.mobile}
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              {/* Assistant Card (if exists) */}
-              {assistant && (
-                <div
-                  className="p-6 rounded-xl border-2"
-                  style={{
-                    borderColor: "#f59e0b",
-                    background: "var(--color-background)",
-                  }}
-                >
-                  <h3 style={{ color: "#d97706" }} className="font-bold text-lg mb-4">
-                    Van Assistant
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold">
-                        Name
-                      </p>
-                      <p style={{ color: "var(--color-textblack)" }} className="font-bold">
-                        {assistant.name}
-                      </p>
                     </div>
-                    <a
-                      href={`tel:${assistant.contact}`}
-                      className="flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold"
-                      style={{
-                        background: "#f59e0b20",
-                        color: "#d97706",
-                      }}
-                    >
-                      <Phone className="w-4 h-4" />
-                      {assistant.contact}
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Van Owner (Service Provider) */}
-            {vanOwner && (
-              <div
-                className="p-6 rounded-xl border-2"
-                style={{
-                  borderColor: "var(--blue-shade-light)30",
-                  background: "var(--color-background)",
-                }}
-              >
-                <h3 style={{ color: "var(--color-textgreydark)" }} className="font-bold text-base mb-4">
-                  Service Provider Contact
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p style={{ color: "var(--color-textgreydark)" }} className="text-xs font-semibold mb-1">
-                      Name
-                    </p>
-                    <p style={{ color: "var(--color-textblack)" }} className="font-medium">
-                      {vanOwner.firstname} {vanOwner.lastname}
-                    </p>
-                  </div>
-                  <a
-                    href={`tel:${vanOwner.mobile}`}
-                    className="flex items-center gap-2 p-2 rounded cursor-pointer hover:shadow-md transition-shadow"
-                    style={{ background: "var(--blue-shade-light)10" }}
-                  >
-                    <Phone className="w-4 h-4" style={{ color: "var(--blue-shade-light)" }} />
-                    <p style={{ color: "var(--color-textblack)" }} className="font-medium text-sm">
-                      {vanOwner.mobile}
-                    </p>
-                  </a>
-                  <a
-                    href={`mailto:${vanOwner.email}`}
-                    className="flex items-center gap-2 p-2 rounded cursor-pointer hover:shadow-md transition-shadow"
-                    style={{ background: "var(--blue-shade-light)10" }}
-                  >
-                    <Mail className="w-4 h-4" style={{ color: "var(--blue-shade-light)" }} />
-                    <p style={{ color: "var(--color-textblack)" }} className="font-medium text-sm break-all">
-                      {vanOwner.email}
-                    </p>
-                  </a>
+                  )}
                 </div>
               </div>
-            )}
+
+              {/* Right Column - Driver & Assistant Cards (Stacked) */}
+              <div className="lg:col-span-2 space-y-4">
+                {/* Driver Card */}
+                {driver && (
+                  <div
+                    className="p-4 rounded-xl hover:shadow-sm transition-shadow"
+                    style={{
+                      background: "var(--color-background)",
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    <h3 style={{ color: "var(--green-shade-dark)" }} className="font-bold text-sm mb-3">
+                      Driver
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0">
+                        {driver.dp ? (
+                          <Image
+                            src={driver.dp}
+                            alt={`${driver.firstname} ${driver.lastname}`}
+                            width={70}
+                            height={70}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center"
+                            style={{ background: "var(--green-shade-light)15" }}
+                          >
+                            <User className="w-8 h-8" style={{ color: "var(--green-shade-dark)" }} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-grow">
+                        <p style={{ color: "var(--color-textblack)" }} className="font-bold text-sm">
+                          {driver.firstname} {driver.lastname}
+                        </p>
+                        <a
+                          href={`tel:${driver.mobile}`}
+                          className="inline-block px-2 py-0.5 rounded text-xs font-semibold mt-1"
+                          style={{
+                            background: "var(--green-shade-light)15",
+                            color: "var(--green-shade-dark)",
+                          }}
+                        >
+                          {driver.mobile}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Assistant Card */}
+                {assistant && (
+                  <div
+                    className="p-4 rounded-xl hover:shadow-sm transition-shadow"
+                    style={{
+                      background: "var(--color-background)",
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    <h3 style={{ color: "#d97706" }} className="font-bold text-sm mb-3">
+                      Van Assistant
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0">
+                        {assistant.profilePic ? (
+                          <Image
+                            src={assistant.profilePic}
+                            alt={assistant.name}
+                            width={70}
+                            height={70}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center"
+                            style={{ background: "#f59e0b15" }}
+                          >
+                            <User className="w-8 h-8" style={{ color: "#d97706" }} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-grow">
+                        <p style={{ color: "var(--color-textblack)" }} className="font-bold text-sm">
+                          {assistant.name}
+                        </p>
+                        <a
+                          href={`tel:${assistant.contact}`}
+                          className="inline-block px-2 py-0.5 rounded text-xs font-semibold mt-1"
+                          style={{
+                            background: "#f59e0b15",
+                            color: "#d97706",
+                          }}
+                        >
+                          {assistant.contact}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
-
-        {/* Important Notice */}
-        <div
-          className="rounded-xl border-2 p-6 mb-8"
-          style={{
-            borderColor: "#fca5a5",
-            background: "#fee2e2",
-          }}
-        >
-          <p style={{ color: "#991b1b" }} className="font-bold mb-2">
-            🚨 EMERGENCY ACTION REQUIRED
-          </p>
-          <ul style={{ color: "#991b1b" }} className="text-sm space-y-1 list-disc list-inside">
-            <li>Contact the parent/guardian IMMEDIATELY</li>
-            <li>If unable to reach parent, contact the driver or van assistant</li>
-            <li>Contact local authorities if child is in danger or distress</li>
-            <li>Do not leave the child unattended</li>
-          </ul>
-        </div>
       </div>
 
       <Footer />
