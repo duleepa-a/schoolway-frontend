@@ -74,29 +74,6 @@ export default function EnrolledTable() {
 
   return (
     <div className="">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between lg:justify-start mb-4 gap-4">
-        {/* Van Filter Dropdown */}
-        <div className="relative w-full md:w-48">
-          <select className="w-full px-4 py-3 bg-white rounded-md text-sm cursor-pointer appearance-none border border-gray-200" defaultValue="Van 1">
-            <option disabled>Select Van</option>
-            <option>Van 1</option>
-          </select>
-          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer text-gray-400" />
-        </div>
-
-        {/* Status Filter Dropdown */}
-        <div className="relative w-full md:w-48">
-          <select className="w-full px-4 py-3 bg-white rounded-md text-sm cursor-pointer appearance-none border border-gray-200" defaultValue="All">
-            <option disabled>Student Status</option>
-            <option>All</option>
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer text-gray-400" />
-        </div>
-
-        <TablePagination totalPages={5} onPageChange={(p) => setPage(p)} currentPage={page} />
-      </div>
 
       {loading && <div className="p-4">Loading students...</div>}
       {error && <div className="p-4 text-red-600">Error: {error}</div>}
@@ -105,7 +82,6 @@ export default function EnrolledTable() {
           <table className="w-full border-collapse rounded-md overflow-hidden">
             <thead>
               <tr style={{background: 'var(--blue-shade-light)'}} className="text-left text-sm">
-                <th className="p-3 font-medium text-white"><input type="checkbox" /></th>
                 <th className="p-3 text-white">Full Name</th>
                 <th className="p-3 text-white">Grade</th>
                 <th className="p-3 text-white">Status</th>
@@ -125,7 +101,6 @@ export default function EnrolledTable() {
                     color: 'black',
                   }}
                 >
-                  <td className="p-3"><input type="checkbox" /></td>
                   <td className="p-3 flex items-center gap-2">
                     <div style={{width: 32, height: 32}} className="rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
                       <Image src={s.profilePicture ?? '/Images/male_pro_pic_placeholder.png'} alt={s.name} width={32} height={32} className="object-cover w-full h-full" />

@@ -57,6 +57,7 @@ const RevenuePage = () => {
       
       const result = await response.json();
       setRevenueData(result.data);
+      console.log(revenueData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -298,14 +299,14 @@ const RevenuePage = () => {
                   >
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-semibold text-gray-800">{payment.van.makeAndModel}</p>
-                        <p className="text-xs text-gray-500">{payment.van.licensePlateNumber}</p>
+                        <p className="font-semibold text-gray-800">{payment.Van.makeAndModel}</p>
+                        <p className="text-xs text-gray-500">{payment.Van.licensePlateNumber}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium text-gray-800">{payment.child.name}</p>
-                        <p className="text-xs text-gray-500">Grade {payment.child.grade}</p>
+                        <p className="font-medium text-gray-800">{payment.Child.name}</p>
+                        <p className="text-xs text-gray-500">Grade {payment.Child.grade}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">

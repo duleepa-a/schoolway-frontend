@@ -157,22 +157,6 @@ const StudentRequests = () => {
             // optionally add filtering logic
           />
         </div>
-        <div className="relative w-full md:w-48">
-          <select className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none" defaultValue="Van 1">
-            <option disabled>Select Van</option>
-            <option>Van 1</option>
-          </select>
-          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
-        </div>
-        <div className="relative w-full md:w-48">
-          <select className="w-full px-4 py-3 bg-search-bar-bg rounded-md text-sm cursor-pointer appearance-none" defaultValue="Van 1">
-            <option disabled>Student Status</option>
-            <option>All</option>
-            <option>Active</option>
-          </select>
-          <FaChevronDown className="ml-2 absolute top-3.5 left-40 cursor-pointer" />
-        </div>
-        <TablePagination totalPages={5} currentPage={1} onPageChange={(page) => console.log('page', page)} />
       </div>
 
       {loading && <div className="p-4">Loading requests...</div>}
