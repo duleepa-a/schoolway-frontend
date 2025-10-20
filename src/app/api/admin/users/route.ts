@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
         'driver': 'DRIVER',
         'parent': 'PARENT',
         'van owner': 'SERVICE',
-        'admin': 'ADMIN'
+        'admin': 'ADMIN',
+        'guardian': 'TEACHER'
       };
       
       whereClause.role = roleMapping[role] || role.toUpperCase();
@@ -159,6 +160,22 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        SchoolGuardian: {
+          select: {
+            id: true,
+            schoolId: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            School: {
+              select: {
+                id: true,
+                schoolName: true,
+                address: true
+              }
+            }
+          }
         }
       },
       orderBy: {
@@ -246,6 +263,12 @@ export async function GET(request: NextRequest) {
             address: child.Gate.address
           } : null
         }))
+      }),
+      ...(user.SchoolGuardian && {
+        SchoolName: user.SchoolGuardian.School?.schoolName || 'No School',
+        SchoolId: user.SchoolGuardian.schoolId,
+        GuardianId: user.SchoolGuardian.id,
+        GuardianPhone: user.SchoolGuardian.phone || ''
       })
     }));
 

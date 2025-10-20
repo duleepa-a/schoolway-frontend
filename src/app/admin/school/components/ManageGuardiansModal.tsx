@@ -11,6 +11,7 @@ interface Guardian {
   lastName: string;
   email: string;
   phone: string;
+  nic?: string;
   schoolId: number;
 }
 
@@ -115,8 +116,14 @@ const ManageGuardiansModal = ({ schoolId, schoolName, onClose }: ManageGuardians
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
@@ -224,6 +231,7 @@ const ManageGuardiansModal = ({ schoolId, schoolName, onClose }: ManageGuardians
         {showAddGuardianModal && (
           <AddGuardianModal
             preselectedSchool={schoolId}
+            schoolName={schoolName}
             onClose={() => setShowAddGuardianModal(false)}
             onSuccess={handleGuardianSuccess}
           />

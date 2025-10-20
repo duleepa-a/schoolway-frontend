@@ -3,10 +3,11 @@ import prisma from "@/lib/prisma";
 import * as bcryptjs from "bcryptjs";
 
 interface GuardianRequestBody {
-  firstname: string;
-  lastname: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
+  nic: string;
   password: string;
 }
 
@@ -16,10 +17,12 @@ export async function POST(req: NextRequest,
     const resolvedParams = await params;
     const schoolId = parseInt(resolvedParams.schoolId);
     const body = await req.json();
-    const { firstname, lastname, email, phone, password } = body as GuardianRequestBody;
+    console.log('Received guardian data:', body);
+    console.log('School ID:', schoolId);
+    const { firstName, lastName, email, phone, nic, password } = body as GuardianRequestBody;
 
     // Validate required fields
-    if (!email || !firstname || !lastname || !password) {
+    if (!email || !firstName || !lastName || !password || !nic) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
@@ -34,8 +37,31 @@ export async function POST(req: NextRequest,
     });
 
     if (existingUser) {
+      // If email exists, generate an alternative with a number
+      let counter = 1;
+      let newEmail = email;
+      let emailExists = true;
+      
+      while (emailExists) {
+        const baseEmail = email.replace('@', `${counter}@`);
+        const existingUserCheck = await prisma.userProfile.findUnique({
+          where: { email: baseEmail },
+        });
+        
+        if (!existingUserCheck) {
+          newEmail = baseEmail;
+          emailExists = false;
+        } else {
+          counter++;
+        }
+      }
+      
       return NextResponse.json(
-        { message: "User with this email already exists" },
+        { 
+          message: "User with this email already exists",
+          suggestedEmail: newEmail,
+          error: "EMAIL_EXISTS"
+        },
         { status: 400 }
       );
     }
@@ -54,19 +80,22 @@ export async function POST(req: NextRequest,
       );
     }
 
-    // Hash the password
-    const hashedPassword = await bcryptjs.hash('guardian', 10);
+    // Hash the password using consistent salt rounds (12) as used in other parts of the application
+    const hashedPassword = await bcryptjs.hash(password, 12);
 
-    // Create user with Guardian role
+    // Create user with TEACHER role
     const newUser = await prisma.userProfile.create({
       data: {
+        id: `guardian_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         email,
-        firstname,
-        lastname,
+        firstname: firstName,
+        lastname: lastName,
         password: hashedPassword,
-        // Use a valid role that's closest to GUARDIAN since it's not in schema yet
-        role: "TEACHER", // Using PARENT as the closest role until GUARDIAN is added to schema
+        role: "TEACHER",
         mobile: phone || null,
+        nic: nic,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -76,9 +105,10 @@ export async function POST(req: NextRequest,
         schoolId: schoolId,
         guardianId: newUser.id,
         email: email,
-        firstName: firstname,
-        lastName: lastname,
+        firstName: firstName,
+        lastName: lastName,
         phone: phone || null,
+        updatedAt: new Date(),
       },
     });
 
@@ -92,6 +122,8 @@ export async function POST(req: NextRequest,
         email: newUser.email,
         schoolName: school.schoolName,
         phone: newUser.mobile,
+        nic: newUser.nic,
+        role: newUser.role,
         activeStatus: newUser.activeStatus,
         createdAt: newUser.createdAt,
         updatedAt: newUser.updatedAt,
@@ -101,7 +133,11 @@ export async function POST(req: NextRequest,
   } catch (error) {
     console.error("Error creating guardian:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { 
+        message: "Internal server error",
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+      },
       { status: 500 }
     );
   }

@@ -15,6 +15,7 @@ interface Guardian {
     email: string;
     schoolName: string;
     phone?: string;
+    nic?: string;
     schoolId: number;
     createdAt: string;
     updatedAt: string;
@@ -98,19 +99,47 @@ const GuradianPageContent = () => {
         email: '',
         schoolName: '',
         schoolId: '',
-        phone: ''
+        phone: '',
+        nic: '',
+        password: ''
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Initial mock data for guardians
     
+    // Function to generate email based on firstname and school name
+    const generateEmail = (firstName: string, schoolName: string) => {
+        if (!firstName || !schoolName) return '';
+        
+        // Clean the firstname (lowercase, remove spaces and special characters)
+        const cleanFirstName = firstName.toLowerCase().replace(/[^a-z]/g, '');
+        
+        // Clean the school name (lowercase, remove spaces and special characters)
+        const cleanSchoolName = schoolName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        return `${cleanFirstName}.guardian@${cleanSchoolName}.lk`;
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        
+        setFormData(prev => {
+            const newData = {
+                ...prev,
+                [name]: value
+            };
+            
+            // Auto-generate email when firstName changes and school is selected
+            if (name === 'firstName' && selectedSchoolId) {
+                const selectedSchool = schools.find(school => school.id.toString() === selectedSchoolId);
+                if (selectedSchool) {
+                    newData.email = generateEmail(value, selectedSchool.name);
+                }
+            }
+            
+            return newData;
+        });
 
         // Clear error when user starts typing
         if (errors[name]) {
@@ -123,14 +152,10 @@ const GuradianPageContent = () => {
 
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-        if (!formData.email.trim()) newErrors.email = 'Email is required';
+        if (!formData.nic.trim()) newErrors.nic = 'NIC is required';
+        if (!formData.password.trim()) newErrors.password = 'Password is required';
+        if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
         if (!selectedSchoolId) newErrors.schoolName = 'Please select a school';
-
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (formData.email && !emailRegex.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -146,6 +171,8 @@ const GuradianPageContent = () => {
                     lastName: formData.lastName,
                     email: formData.email,
                     phone: formData.phone || '',
+                    nic: formData.nic,
+                    password: formData.password,
                     schoolId: parseInt(selectedSchoolId)
                 };
 
@@ -187,7 +214,9 @@ const GuradianPageContent = () => {
             email: '',
             schoolName: '',
             schoolId: '',
-            phone: ''
+            phone: '',
+            nic: '',
+            password: ''
         });
         setSelectedSchoolId('');
         setErrors({});
@@ -270,6 +299,22 @@ const GuradianPageContent = () => {
             setErrors(prev => ({ ...prev, schoolName: '' }));
         }
     };
+
+    // Generate email when school is selected and first name is available
+    useEffect(() => {
+        if (selectedSchoolId && formData.firstName) {
+            const selectedSchool = schools.find(school => school.id.toString() === selectedSchoolId);
+            if (selectedSchool) {
+                const generatedEmail = generateEmail(formData.firstName, selectedSchool.name);
+                if (generatedEmail && generatedEmail !== formData.email) {
+                    setFormData(prev => ({
+                        ...prev,
+                        email: generatedEmail
+                    }));
+                }
+            }
+        }
+    }, [selectedSchoolId, formData.firstName, schools]);
 
     const handleAddGuardianClick = () => setShowForm(true);
     
@@ -423,21 +468,43 @@ const GuradianPageContent = () => {
                                         onChange={handleInputChange}
                                         error={errors.lastName}
                                     />
-                                    <FormInput
-                                        label="Email Address"
-                                        name="email"
-                                        type="email"
-                                        placeholder="guardian@school.edu"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        error={errors.email}
-                                    />
+                                    <div>
+                                        <label className="block mb-1 font-medium">Email Address * (Auto-generated)</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            readOnly
+                                            className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50 text-gray-600 cursor-not-allowed"
+                                            placeholder="Email will be generated automatically"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Email is automatically generated as: firstname.guardian@schoolname.lk
+                                        </p>
+                                    </div>
                                     <FormInput
                                         label="Phone Number"
                                         name="phone"
                                         placeholder="Enter phone number (optional)"
                                         value={formData.phone}
                                         onChange={handleInputChange}
+                                    />
+                                    <FormInput
+                                        label="NIC Number *"
+                                        name="nic"
+                                        placeholder="Enter NIC number"
+                                        value={formData.nic}
+                                        onChange={handleInputChange}
+                                        error={errors.nic}
+                                    />
+                                    <FormInput
+                                        label="Password *"
+                                        name="password"
+                                        type="password"
+                                        placeholder="Enter password (min 6 characters)"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        error={errors.password}
                                     />
                                     <div>
                                         <label className="block mb-1 font-medium">School</label>

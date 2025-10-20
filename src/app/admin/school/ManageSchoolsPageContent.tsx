@@ -368,8 +368,17 @@ const ManageSchoolsPageContent = () => {
 
         {/* Gate Management Modal */}
         {showGateModal && selectedSchoolForGates && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-              <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto">
+            <div 
+              className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+              onClick={() => {
+                setShowGateModal(false);
+                setSelectedSchoolForGates(null);
+              }}
+            >
+              <div 
+                className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                     onClick={() => {
                       setShowGateModal(false);

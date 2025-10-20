@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import * as bcryptjs from "bcryptjs";
 
 interface GuardianRequestBody {
   firstName: string;
   lastName: string;
   email: string;
   phone?: string;
+  nic?: string;
+  password?: string;
   schoolId: number;
 }
 
@@ -13,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     console.log('Guardian creation request body:', body);
-    const { firstName, lastName, email, phone, schoolId } = body as GuardianRequestBody;
+    const { firstName, lastName, email, phone, nic, password, schoolId } = body as GuardianRequestBody;
 
     // Validate required fields
     if (!firstName || !lastName || !email || !schoolId) {
@@ -66,16 +69,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Hash password if provided, otherwise use default
+    const defaultPassword = password || 'guardian123';
+    const hashedPassword = await bcryptjs.hash(defaultPassword, 12);
+
     // Create user profile first
-    console.log('Creating user profile with data:', { firstName, lastName, email, phone });
+    console.log('Creating user profile with data:', { firstName, lastName, email, phone, nic });
     const newUser = await prisma.userProfile.create({
       data: {
         email,
         firstname: firstName,
         lastname: lastName,
-        password: 'guardian123', // Default password - should be hashed in production
-        role: 'PARENT', // Using PARENT as the closest role for guardians
+        password: hashedPassword,
+        role: 'TEACHER', // Using TEACHER role for guardians
         mobile: phone || null,
+        nic: nic || null,
         activeStatus: true,
         updatedAt: new Date()
       },
@@ -83,7 +91,7 @@ export async function POST(req: NextRequest) {
     console.log('User profile created successfully:', newUser);
 
     // Create guardian record linked to user profile
-    console.log('Creating guardian with data:', { firstName, lastName, email, phone, schoolId, guardianId: newUser.id });
+    console.log('Creating guardian with data:', { firstName, lastName, email, phone, nic, schoolId, guardianId: newUser.id });
     const newGuardian = await prisma.schoolGuardian.create({
       data: {
         firstName,
@@ -92,6 +100,7 @@ export async function POST(req: NextRequest) {
         phone: phone || null,
         schoolId,
         guardianId: newUser.id,
+        updatedAt: new Date(),
       },
       include: {
         School: {
@@ -207,12 +216,12 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, firstName, lastName, email, phone, schoolId } = body;
+    const { id, firstName, lastName, email, phone, nic, schoolId } = body;
 
     // Validate required fields
-    if (!id || !firstName || !lastName || !email || !schoolId) {
+    if (!id || !firstName || !lastName || !email || !schoolId || !nic) {
       return NextResponse.json(
-        { error: "Missing required fields: id, firstName, lastName, email, and schoolId are required" },
+        { error: "Missing required fields: id, firstName, lastName, email, nic, and schoolId are required" },
         { status: 400 }
       );
     }
@@ -230,18 +239,12 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Check if email is being changed and if new email already exists
+    // Email should not be changed - it's read-only
     if (email !== existingGuardian.email) {
-      const emailExists = await prisma.schoolGuardian.findUnique({
-        where: { email }
-      });
-
-      if (emailExists) {
-        return NextResponse.json(
-          { error: "Guardian with this email already exists" },
-          { status: 400 }
-        );
-      }
+      return NextResponse.json(
+        { error: "Email cannot be changed for guardians" },
+        { status: 400 }
+      );
     }
 
     // Verify school exists
@@ -292,10 +295,11 @@ export async function PUT(req: NextRequest) {
       await prisma.userProfile.update({
         where: { id: existingGuardian.UserProfile.id },
         data: {
-          email,
           firstname: firstName,
           lastname: lastName,
           mobile: phone || null,
+          nic: nic,
+          updatedAt: new Date(),
         },
       });
     }

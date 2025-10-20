@@ -7,11 +7,13 @@ import DriversTab from './DriversTab';
 import ParentsTab from './ParentsTab';
 import VanOwnersTab from './VanOwnersTab';
 import AllUsersTab from './AllUsersTab';
+import GuardiansTab from './GuardiansTab';
 
 const TABS = [
   { key: 'drivers', label: 'Drivers', icon: Users },
   { key: 'van-owners', label: 'Van Service Owners', icon: UserX },
   { key: 'parents', label: 'Parents', icon: UserCheck },
+  { key: 'guardians', label: 'Guardians', icon: UserCheck },
   { key: 'all-users', label: 'All Users', icon: Users }
 ];
 
@@ -81,6 +83,7 @@ export default function UserTabsLayout() {
           {activeTab === 'drivers' && <DriversTab />}
           {activeTab === 'van-owners' && <VanOwnersTab />}
           {activeTab === 'parents' && <ParentsTab />}
+          {activeTab === 'guardians' && <GuardiansTab />}
           {activeTab === 'all-users' && <AllUsersTab />}
         </div>
     </div>
