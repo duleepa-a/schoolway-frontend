@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+interface PathQueryResult {
+  id: string;
+  totalDistance: number | null;
+  estimatedDuration: number | null;
+  routeStart: { type: string; coordinates: [number, number] } | null;
+  routeEnd: { type: string; coordinates: [number, number] } | null;
+  routeGeometry: { type: string; coordinates: number[][] } | null;
+  boundingBox: { type: string; coordinates: number[][] } | null;
+  WayPoint: Array<{
+    id: number;
+    pathId: string;
+    name: string;
+    placeId: string | null;
+    latitude: number;
+    longitude: number;
+    order: number;
+    isStop: boolean;
+    createdAt: string;
+  }> | null;
+}
+
 // GET /api/vans/[id]
 export async function GET(
   req: NextRequest,
@@ -12,7 +33,7 @@ export async function GET(
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
-
+    console.log('Fetching van with ID:', id);
     const van = await prisma.van.findUnique({
       where: { id },
       include: {
@@ -30,16 +51,92 @@ export async function GET(
       return NextResponse.json({ error: 'Van not found' }, { status: 404 });
     }
 
+    // Fetch Path data if pathId exists
+    let pathData = null;
+    if (van.pathId) {
+      try {
+        const rawPathData = await prisma.$queryRaw<PathQueryResult[]>`
+          SELECT 
+            p.id,
+            p."totalDistance",
+            p."estimatedDuration",
+            ST_AsGeoJSON(p."routeStart")::json as "routeStart",
+            ST_AsGeoJSON(p."routeEnd")::json as "routeEnd",
+            ST_AsGeoJSON(p."routeGeometry")::json as "routeGeometry",
+            ST_AsGeoJSON(p."boundingBox")::json as "boundingBox",
+            json_agg(
+              json_build_object(
+                'id', w.id,
+                'pathId', w."pathId",
+                'name', w.name,
+                'placeId', w."placeId",
+                'latitude', w.latitude,
+                'longitude', w.longitude,
+                'order', w."order",
+                'isStop', w."isStop",
+                'createdAt', w."createdAt"
+              ) ORDER BY w."order"
+            ) FILTER (WHERE w.id IS NOT NULL) as "WayPoint"
+          FROM "Path" p
+          LEFT JOIN "WayPoint" w ON p.id = w."pathId"
+          WHERE p.id = ${van.pathId}
+          GROUP BY p.id
+        `;
+
+        if (rawPathData && rawPathData[0]) {
+          const pathRecord = rawPathData[0];
+          pathData = {
+            id: pathRecord.id,
+            totalDistance: pathRecord.totalDistance,
+            estimatedDuration: pathRecord.estimatedDuration,
+            routeStart: pathRecord.routeStart ? {
+              lat: pathRecord.routeStart.coordinates[1],
+              lng: pathRecord.routeStart.coordinates[0]
+            } : null,
+            routeEnd: pathRecord.routeEnd ? {
+              lat: pathRecord.routeEnd.coordinates[1],
+              lng: pathRecord.routeEnd.coordinates[0]
+            } : null,
+            routeGeometry: pathRecord.routeGeometry,
+            boundingBox: pathRecord.boundingBox,
+            WayPoint: pathRecord.WayPoint || []
+          };
+          
+          console.log('✓ Path data fetched:', {
+            pathId: pathData.id,
+            waypointCount: pathData.WayPoint?.length || 0,
+            hasStart: !!pathData.routeStart,
+            hasEnd: !!pathData.routeEnd
+          });
+        }
+      } catch (pathError) {
+        console.error('Error fetching path data:', pathError);
+      }
+    }
+
     const driverRequest = van.DriverVanJobRequest[0];
     const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
 
+    // Determine route status
+    const hasRoute = !!pathData && (!!pathData.routeStart || !!pathData.routeEnd);
+    const routeAssigned = !!pathData && !!pathData.routeStart && !!pathData.routeEnd && pathData.WayPoint.length > 0;
+
     const transformedVan = {
       ...van,
+      Path: pathData,
       driver,
-      hasRoute: !!van.Path,
-      routeAssigned: !!van.pathId && !!van.Path,
+      hasRoute,
+      routeAssigned,
     };
 
+    console.log('✓ Fetched van:', {
+      id: transformedVan.id,
+      hasRoute: transformedVan.hasRoute,
+      routeAssigned: transformedVan.routeAssigned,
+      pathId: transformedVan.pathId,
+      waypointCount: transformedVan.Path?.WayPoint?.length || 0
+    });
+    
     return NextResponse.json(transformedVan);
   } catch (error) {
     console.error('Error fetching van:', error);

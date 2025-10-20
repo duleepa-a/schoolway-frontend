@@ -237,37 +237,57 @@ export async function POST(
 
         // Create waypoints if provided
         if (waypoints && waypoints.length > 0) {
+          console.log('Processing waypoints:', JSON.stringify(waypoints, null, 2));
+          
           for (const waypoint of waypoints) {
-            console.log('Inserting waypoint:', waypoint);
-            const insertedWaypoint = await tx.$executeRaw`
-              INSERT INTO "WayPoint" (
-                "pathId",
-                name,
-                "placeId",
-                latitude,
-                longitude,
-                location,
-                "order",
-                "isStop",
-                "createdAt"
-              ) VALUES (
-                ${pathId},
-                ${waypoint.name},
-                ${waypoint.placeId || null},
-                ${waypoint.latitude},
-                ${waypoint.longitude},
-                ST_SetSRID(ST_MakePoint(${waypoint.longitude}, ${waypoint.latitude}), 4326),
-                ${waypoint.order},
-                ${waypoint.isStop},
-                NOW()
-              ) RETURNING *;
-            `;
-            console.log('Waypoint insertion result:', insertedWaypoint);
+            // Validate waypoint has required fields
+            if (waypoint.latitude === null || waypoint.latitude === undefined || 
+                waypoint.longitude === null || waypoint.longitude === undefined) {
+              console.error('Invalid waypoint - missing coordinates:', waypoint);
+              continue;
+            }
+            
+            if (!waypoint.name) {
+              console.error('Invalid waypoint - missing name:', waypoint);
+              continue;
+            }
+            
+            console.log(`Inserting waypoint ${waypoint.order}:`, waypoint);
+            try {
+              const insertedWaypoint = await tx.$executeRaw`
+                INSERT INTO "WayPoint" (
+                  "pathId",
+                  name,
+                  "placeId",
+                  latitude,
+                  longitude,
+                  location,
+                  "order",
+                  "isStop",
+                  "createdAt"
+                ) VALUES (
+                  ${pathId},
+                  ${waypoint.name},
+                  ${waypoint.placeId && waypoint.placeId !== 'null' ? waypoint.placeId : null},
+                  ${parseFloat(waypoint.latitude.toString())},
+                  ${parseFloat(waypoint.longitude.toString())},
+                  ST_SetSRID(ST_MakePoint(${parseFloat(waypoint.longitude.toString())}, ${parseFloat(waypoint.latitude.toString())}), 4326),
+                  ${parseInt(waypoint.order.toString())},
+                  ${waypoint.isStop === true},
+                  NOW()
+                ) RETURNING *;
+              `;
+              console.log(`✓ Waypoint ${waypoint.order} inserted successfully:`, insertedWaypoint);
+            } catch (wpError) {
+              console.error(`✗ Error inserting waypoint ${waypoint.order}:`, wpError);
+              throw wpError;
+            }
           }
 
-          // Verify waypoints exist
+          // Verify all waypoints were inserted correctly
           const waypointCheck = await tx.$queryRaw`
             SELECT 
+              id,
               "pathId",
               name,
               "placeId",
@@ -278,9 +298,18 @@ export async function POST(
               "isStop",
               "createdAt"
             FROM "WayPoint" 
-            WHERE "pathId" = ${pathId};
+            WHERE "pathId" = ${pathId}
+            ORDER BY "order" ASC;
           `;
-          console.log('Waypoint check after insertion:', waypointCheck);
+          console.log('✓ All waypoints inserted:', JSON.stringify(waypointCheck, null, 2));
+          
+          if (!waypointCheck || waypointCheck.length === 0) {
+            console.warn('⚠ WARNING: No waypoints found after insertion!');
+          } else if (waypointCheck.length !== waypoints.length) {
+            console.warn(`⚠ WARNING: Expected ${waypoints.length} waypoints but found ${waypointCheck.length}`);
+          }
+        } else {
+          console.log('No waypoints provided');
         }
 
         // Update and verify van reference

@@ -43,11 +43,12 @@ interface Van {
   salaryPercentage: number;
   hasDriver: boolean;
   hasAssistant: boolean;
-  status : number;
+  status: number;
   assistant?: Assistant | null;
   driver?: Driver | null;
   hasRoute: boolean;
   routeAssigned: boolean;
+  pathId?: string; // Add this line
   Path?: {
     id: string;
     routeStart: { lat: number; lng: number } | null;
@@ -287,7 +288,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             </button>
           </div>
           <div className="p-4">
-            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isLoaded} />
+            <AddRoute vehicleId={van.id} onClose={handleCloseAddRoute} isLoaded={isGoogleMapsLoaded} />
           </div>
         </div>
       </div>
@@ -307,13 +308,13 @@ const VanDetails = ({ van }: { van: Van }) => {
 
   // Add this helper function inside the VanDetails component
   const renderRouteSection = () => {
-    if (!van.Path) {
-      // No route exists - use black button (btn-secondary) like "Find a Driver"
+    if (!van.Path || !van.pathId) {
+      // No route exists
       return (
         <div className="my-3 grid grid-cols-2">
           <div>
-            <h2 className="text-base font-semibold mb-4">Route not assigned</h2>
-            <p className="text-sm text-gray-500 mb-4">Please create a route by adding start and end points</p>
+            <h2 className="text-base font-semibold mb-4">No Route Assigned</h2>
+            <p className="text-sm text-gray-500 mb-4">Create a route to define the areas you cover</p>
           </div>
           <div className='flex items-center justify-center'>
             <button
@@ -327,13 +328,13 @@ const VanDetails = ({ van }: { van: Van }) => {
       );
     }
 
-    // Route exists but no waypoints - use small primary button
+    // Route exists but no waypoints
     if (van.Path && (!van.Path.WayPoint || van.Path.WayPoint.length === 0)) {
       return (
         <div className="my-3 grid grid-cols-2">
           <div>
-            <h2 className="text-base font-semibold mb-4">Basic Route Created</h2>
-            <p className="text-sm text-gray-500 mb-4">Add waypoints to define your service coverage areas</p>
+            <h2 className="text-base font-semibold mb-4">Route Created - Add Waypoints</h2>
+            <p className="text-sm text-gray-500 mb-4">Add waypoints to better define the areas you cover</p>
           </div>
           <div className='flex items-center justify-center'>
             <button
@@ -347,11 +348,11 @@ const VanDetails = ({ van }: { van: Van }) => {
       );
     }
 
-    // Complete route with waypoints - use small primary button like "Update Assistant"
+    // Complete route with waypoints
     return (
       <div className="my-3 grid grid-cols-2">
         <div>
-          <h2 className="text-base font-semibold mb-4 text-green-600">Route Assigned</h2>
+          <h2 className="text-base font-semibold mb-4 text-green-600">Route Assigned ✓</h2>
           <p className="text-sm text-gray-600 mb-4">
             {van.Path.WayPoint.length} stops configured
           </p>
