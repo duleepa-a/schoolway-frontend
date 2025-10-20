@@ -19,6 +19,9 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); // distance in km
 }
 
+const ETA_THRESHOLD_MINUTES = 5; // Trigger alert when ETA < 5 minutes
+const NOTIFICATION_COOLDOWN_MINUTES = 15;
+
 export async function GET(req: NextRequest) {
   try {
     const parentId = req.nextUrl.searchParams.get('parentId');
@@ -102,6 +105,39 @@ export async function GET(req: NextRequest) {
               const VAN_SPEED_KMPM = VAN_SPEED_KMH / 60; // km per minute
               const etaMinutes = distance / VAN_SPEED_KMPM;
               etaMap[childId] = Math.round(etaMinutes);
+
+              if (etaMap[childId] < ETA_THRESHOLD_MINUTES) {
+                const title = `Van for ${child.name} is almost there!`;
+                const message = `ETA: ${Math.round(etaMap[childId])} minutes`;
+
+                // Check for recent notifications to avoid spam
+                const recentNotif = await prisma.notification.findFirst({
+                  where: {
+                    targetUserId: parentId,
+                    type: "ALERT",
+                    title: { contains: `Van for ${child.name}` },
+                    createdAt: {
+                      gte: new Date(
+                        Date.now() - NOTIFICATION_COOLDOWN_MINUTES * 60 * 1000
+                      ),
+                    },
+                  },
+                });
+
+                if (!recentNotif) {
+                  await prisma.notification.create({
+                    data: {
+                      targetUserId: parentId,
+                      title,
+                      message,
+                      type: "REMINDER",
+                    },
+                  });
+                  console.log(`🔔 Alert created for ${child.name}`);
+                } else {
+                  console.log(`⏱️ Alert skipped for ${child.name} (recently notified)`);
+                }
+              }
             }
           }
         }
@@ -113,6 +149,7 @@ export async function GET(req: NextRequest) {
         };
       })
     );
+    
 
     return NextResponse.json({
       success: true,

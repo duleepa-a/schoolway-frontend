@@ -67,6 +67,7 @@ export async function GET(
     },
   });
 
+  console.log("child dineth",child);
 
   if (!child) {
     return NextResponse.json({ error: 'Child not found' }, { status: 404 });

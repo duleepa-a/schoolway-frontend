@@ -14,7 +14,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       return NextResponse.json({ error: 'Child not found' }, { status: 404 })
     }
 
-    if(!child.qrCode){
+    if(!child.qrCode || child.qrCode.startsWith('QR')){
       const qrImageDataUrl = await QRCode.toDataURL('http://localhost:3000/childInfo/' + child.id.toString());
       const updatedChild = await prisma.child.update({
             where: { id: child.id },
