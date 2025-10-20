@@ -25,14 +25,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     const found = await prisma.vanRequest.findUnique({
       where: { id },
-      include: { van: true },
+      include: { Van: true },
     });
 
     if (!found) {
       return NextResponse.json({ error: 'Request not found' }, { status: 404 });
     }
 
-    if (found.van.ownerId !== ownerId) {
+    if (found.Van.ownerId !== ownerId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         where: { id: found.childId },
         data: {
           status: 'AT_HOME',
-          vanID: found.van.id,
+          vanID: found.Van.id,
           feeAmount: found.estimatedFare,
         },
       });

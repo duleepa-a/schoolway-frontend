@@ -10,7 +10,7 @@ export async function PATCH(request: Request) {
 		const updated = await prisma.privateHire.update({
 			where: { id },
 			data: {
-				status: 'accepted',
+				status: 'ACCEPTED',
 				updatedAt: new Date(),
 			},
 		});

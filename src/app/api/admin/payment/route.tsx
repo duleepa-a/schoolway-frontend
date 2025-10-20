@@ -7,8 +7,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         UserProfile: true,
-        child: true,
-        van: true,
+        Child: true,
+        Van: true,
       },
     });
 

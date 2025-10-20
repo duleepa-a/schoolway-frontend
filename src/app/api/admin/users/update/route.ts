@@ -76,12 +76,12 @@ export async function PUT(request: NextRequest) {
         district: true,
         nic: true,
         updatedAt: true,
-        driverProfile: {
+        DriverProfile: {
           select: {
             licenseId: true
           }
         },
-        vanService: {
+        VanService: {
           select: {
             serviceName: true
           }
@@ -117,8 +117,8 @@ export async function PUT(request: NextRequest) {
       Address: updatedUser.address || '',
       District: updatedUser.district || '',
       NIC: updatedUser.nic || '',
-      LicenseNumber: updatedUser.driverProfile?.licenseId || '',
-      ServiceName: updatedUser.vanService?.serviceName || '',
+      LicenseNumber: updatedUser.DriverProfile?.licenseId || '',
+      ServiceName: updatedUser.VanService?.serviceName || '',
       UpdatedAt: updatedUser.updatedAt
     };
 

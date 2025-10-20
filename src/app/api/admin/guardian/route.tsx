@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
         role: 'PARENT', // Using PARENT as the closest role for guardians
         mobile: phone || null,
         activeStatus: true,
+        updatedAt: new Date()
       },
     });
     console.log('User profile created successfully:', newUser);
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
         guardianId: newUser.id,
       },
       include: {
-        school: {
+        School: {
           select: {
             id: true,
             schoolName: true,
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
         email: newGuardian.email,
         phone: newGuardian.phone,
         schoolId: newGuardian.schoolId,
-        schoolName: newGuardian.school.schoolName,
+        schoolName: newGuardian.School.schoolName,
         createdAt: newGuardian.createdAt,
         updatedAt: newGuardian.updatedAt,
       },
@@ -155,7 +156,7 @@ export async function GET(req: NextRequest) {
     const guardians = await prisma.schoolGuardian.findMany({
       where: whereClause,
       include: {
-        school: {
+        School: {
           select: {
             id: true,
             schoolName: true,
@@ -184,7 +185,7 @@ export async function GET(req: NextRequest) {
       email: guardian.email,
       phone: guardian.phone,
       schoolId: guardian.schoolId,
-      schoolName: guardian.school.schoolName,
+      schoolName: guardian.School.schoolName,
       createdAt: guardian.createdAt,
       updatedAt: guardian.updatedAt,
     }));
@@ -267,7 +268,7 @@ export async function PUT(req: NextRequest) {
         updatedAt: new Date(),
       },
       include: {
-        school: {
+        School: {
           select: {
             id: true,
             schoolName: true,
@@ -308,7 +309,7 @@ export async function PUT(req: NextRequest) {
         email: updatedGuardian.email,
         phone: updatedGuardian.phone,
         schoolId: updatedGuardian.schoolId,
-        schoolName: updatedGuardian.school.schoolName,
+        schoolName: updatedGuardian.School.schoolName,
         createdAt: updatedGuardian.createdAt,
         updatedAt: updatedGuardian.updatedAt,
       }

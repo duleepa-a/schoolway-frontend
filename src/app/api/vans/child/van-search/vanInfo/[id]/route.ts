@@ -60,7 +60,7 @@ export async function GET(
       where: { id: vanId },
       include: {
         // Van owner info
-        UserProfile_Van_ownerIdToUserProfile: {
+        UserProfile: {
           select: {
             id: true,
             firstname: true,
@@ -201,13 +201,13 @@ export async function GET(
       salaryPercentage: van.salaryPercentage,
 
       // Van owner info
-      owner: van.UserProfile_Van_ownerIdToUserProfile
+      owner: van.UserProfile
         ? {
-            id: van.UserProfile_Van_ownerIdToUserProfile.id,
-            name: `${van.UserProfile_Van_ownerIdToUserProfile.firstname} ${van.UserProfile_Van_ownerIdToUserProfile.lastname}`,
-            email: van.UserProfile_Van_ownerIdToUserProfile.email,
-            mobile: van.UserProfile_Van_ownerIdToUserProfile.mobile,
-            profilePicture: van.UserProfile_Van_ownerIdToUserProfile.dp,
+            id: van.UserProfile.id,
+            name: `${van.UserProfile.firstname} ${van.UserProfile.lastname}`,
+            email: van.UserProfile.email,
+            mobile: van.UserProfile.mobile,
+            profilePicture: van.UserProfile.dp,
           }
         : null,
 

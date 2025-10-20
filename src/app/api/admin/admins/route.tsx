@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         role: "ADMIN",
         mobile: contact,
+        updatedAt: new Date()
       },
     });
 
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(adminData, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to create admin", details: error?.message },
+      { error: "Failed to create admin" , details : "Failed"},
       { status: 500 }
     );
   }
@@ -72,7 +73,7 @@ export async function GET() {
     return NextResponse.json(admins);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch admins", details: error?.message },
+      { error: "Failed to fetch admins", details: 'Failed' },
       { status: 500 }
     );
   }

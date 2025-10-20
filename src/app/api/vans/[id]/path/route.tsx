@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     }
 
     // Then use raw query to get path data with geometry conversion
-    const pathData = await prisma.$queryRaw`
+    const pathData = (await prisma.$queryRaw`
       SELECT 
         p.id,
         p."totalDistance",
@@ -63,9 +63,9 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
       LEFT JOIN "WayPoint" w ON p.id = w."pathId"
       WHERE p.id = ${van.pathId}
       GROUP BY p.id
-    `;
+    `) as any[];
 
-    if (!pathData || !pathData[0]) {
+    if (!Array.isArray(pathData) || pathData.length === 0) {
       return NextResponse.json(null, { status: 404 });
     }
 

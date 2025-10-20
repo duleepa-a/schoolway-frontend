@@ -7,7 +7,7 @@ export async function GET() {
       include: {
         UserProfile: {
           include: {
-            vanService: true,
+            VanService: true,
           },
         },
       },

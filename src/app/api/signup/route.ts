@@ -72,6 +72,7 @@ export async function POST(req:NextRequest) {
       password: hashedPassword,
       role: 'SERVICE',
       createdAt: new Date(),
+      updatedAt: new Date()
       // VanService will be created below
       }
     });
