@@ -11,7 +11,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ schoolId
     const guardians = await prisma.schoolGuardian.findMany({
       where: { schoolId: Number(schoolId) },
       include: {
-        userProfile: {
+        UserProfile: {
           select: {
             firstname: true,
             lastname: true,
@@ -28,7 +28,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ schoolId
       firstName: guardian.firstName,
       lastName: guardian.lastName,
       email: guardian.email,
-      phone: guardian.phone || guardian.userProfile?.mobile || null,
+      phone: guardian.phone || guardian.UserProfile?.mobile || null,
       schoolId: guardian.schoolId
     }));
 
