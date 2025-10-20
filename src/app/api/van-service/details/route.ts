@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
               email: true,
               mobile: true,
               dp: true,
-              vanService: {
+              VanService: {
                 select: {
                   id: true,
                   serviceName: true,
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      if (!van.UserProfile?.vanService) {
+      if (!van.UserProfile?.VanService) {
         return NextResponse.json(
           { error: 'Van service not found for this van' },
           { status: 404 }
@@ -60,13 +60,13 @@ export async function GET(request: NextRequest) {
       }
 
       vanServiceData = {
-        id: van.UserProfile.vanService.id,
-        serviceName: van.UserProfile.vanService.serviceName,
-        contactNo: van.UserProfile.vanService.contactNo,
-        serviceRegNumber: van.UserProfile.vanService.serviceRegNumber,
-        businessDocument: van.UserProfile.vanService.businessDocument,
-        averageRating: van.UserProfile.vanService.averageRating,
-        totalReviews: van.UserProfile.vanService.totalReviews,
+        id: van.UserProfile.VanService.id,
+        serviceName: van.UserProfile.VanService.serviceName,
+        contactNo: van.UserProfile.VanService.contactNo,
+        serviceRegNumber: van.UserProfile.VanService.serviceRegNumber,
+        businessDocument: van.UserProfile.VanService.businessDocument,
+        averageRating: van.UserProfile.VanService.averageRating,
+        totalReviews: van.UserProfile.VanService.totalReviews,
         owner: {
           id: van.UserProfile.id,
           firstname: van.UserProfile.firstname,
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
       const vanService = await prisma.vanService.findUnique({
         where: { id: vanServiceId },
         include: {
-          user: {
+          UserProfile: {
             select: {
               id: true,
               firstname: true,
@@ -119,12 +119,12 @@ export async function GET(request: NextRequest) {
         averageRating: vanService.averageRating,
         totalReviews: vanService.totalReviews,
         owner: {
-          id: vanService.user.id,
-          firstname: vanService.user.firstname,
-          lastname: vanService.user.lastname,
-          email: vanService.user.email,
-          mobile: vanService.user.mobile,
-          profilePicture: vanService.user.dp
+          id: vanService.UserProfile.id,
+          firstname: vanService.UserProfile.firstname,
+          lastname: vanService.UserProfile.lastname,
+          email: vanService.UserProfile.email,
+          mobile: vanService.UserProfile.mobile,
+          profilePicture: vanService.UserProfile.dp
         }
       };
     }

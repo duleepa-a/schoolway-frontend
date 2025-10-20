@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         dp: true,
         createdAt: true,
         updatedAt: true,
-        driverProfile: {
+        DriverProfile: {
           select: {
             licenseId: true,
             licenseExpiry: true,
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
             licensePlateNumber: true
           }
         },
-        vanService: {
+        VanService: {
           select: {
             serviceName: true,
             contactNo: true,

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         ...dateFilter
       },
       include: {
-        van: {
+        Van: {
           select: {
             id: true,
             makeAndModel: true,
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
             registrationNumber: true
           }
         },
-        child: {
+        Child: {
           select: {
             id: true,
             name: true,
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
       const vanId = payment.vanId;
       if (!acc[vanId]) {
         acc[vanId] = {
-          van: payment.van,
+          van: payment.Van,
           totalRevenue: 0,
           paymentCount: 0,
           payments: []

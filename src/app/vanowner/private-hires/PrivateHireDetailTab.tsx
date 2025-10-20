@@ -41,9 +41,6 @@ export default function PrivateHireDetailTab() {
         <PrivatehireTable/>
       )}
 
-      {activeTab === 'accepted' && (
-        <AcceptedhiresTable/>
-      )}
 
       
 

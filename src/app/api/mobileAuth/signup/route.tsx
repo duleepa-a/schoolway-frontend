@@ -143,6 +143,7 @@ export async function POST(req: NextRequest) {
         // phoneNumber: textFields.phoneNumber,
         // profilePhoto: files.profilePhoto ? files.profilePhoto[0].filepath : null,
         createdAt: new Date(),
+        updatedAt: new Date(),
       }
     });
 

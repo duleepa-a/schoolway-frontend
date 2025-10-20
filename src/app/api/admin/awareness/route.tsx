@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
             password: 'temp-password',
             role: 'ADMIN',
             activeStatus: true,
+            updatedAt: new Date()
           }
         });
         console.log('Created temporary admin user:', adminUser);
