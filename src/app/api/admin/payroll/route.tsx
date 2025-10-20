@@ -18,7 +18,8 @@ type GroupedPayroll = {
   recipientRole: string;
   month: string;
   year: string;
-  payrollCount: number; // Track how many payroll entries were summed
+  payrollCount: number;
+  dp: string | null;
 };
 
 export async function GET() {
@@ -32,6 +33,7 @@ export async function GET() {
             firstname: true,
             lastname: true,
             role: true,
+            dp: true,
           },
         },
       },
@@ -132,6 +134,7 @@ export async function GET() {
           status: p.payrollStatus || "PENDING",
           recipientId: p.recipientId,
           recipientRole: p.recipientRole,
+          dp: user?.dp || null,
         };
       })
     );
@@ -166,6 +169,7 @@ export async function GET() {
             recipientId: record.recipientId,
             recipientRole: record.recipientRole,
             payrollCount: 1, // First payroll entry
+            dp: record.dp || null,
           };
         } else {
           // Additional payroll entry for same person in same month
@@ -194,7 +198,10 @@ export async function GET() {
     //     }: Rs. ${entry.totalAmount} (${entry.payrollCount} entries)`
     //   );
     // });
-    console.log(`Total grouped payroll records: ${groupedData}`);
+    // console.log(
+    //   "Total grouped payroll records:----------------------------------- ",
+    //   groupedData
+    // );
     return NextResponse.json(groupedData);
   } catch (error) {
     console.error("Error fetching payroll data:", error);

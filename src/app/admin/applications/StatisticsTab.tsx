@@ -1,14 +1,15 @@
+"use client";
+
 import StatCard from "@/app/dashboardComponents/StatCard";
 import DriverOverviewChart from "@/app/dashboardComponents/DriverOverviewChart";
-import ActivityFeed from "@/app/dashboardComponents/ActivityFeed";
 import DriverRatingChart from "@/app/dashboardComponents/DriverRatingChart";
 import {
   FaFileAlt,
   FaHourglassHalf,
   FaCheckCircle,
   FaTimesCircle,
-  FaRedo,
 } from "react-icons/fa";
+import { Users, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -68,84 +69,114 @@ export default function StatisticsTab() {
     fetch_stats_data();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0099cc]"></div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-md font-semibold tracking-wide text-[var(--blue-shade-dark)] relative">
-          Driver Applications
-          <span className="absolute left-0 -bottom-1 w-10 h-[3px] bg-[var(--blue-shade-light)] rounded"></span>
-        </h2>
-      </div>
-      <div className="grid grid-cols-5 gap-4 ">
-        {" "}
-        <StatCard
-          icon={<FaFileAlt className="text-xl" />}
-          text="Total Recieved"
-          number={loading ? 0 : stats?.drivers?.total ?? 0}
-        />{" "}
-        <StatCard
-          icon={<FaHourglassHalf className="text-xl" />}
-          text="Pending "
-          number={loading ? 0 : stats?.drivers?.pending ?? 0}
-        />{" "}
-        <StatCard
-          icon={<FaCheckCircle className="text-xl" />}
-          text="Approved"
-          number={loading ? 0 : stats?.drivers?.approved ?? 0}
-        />{" "}
-        <StatCard
-          icon={<FaTimesCircle className="text-xl" />}
-          text="Rejected"
-          number={loading ? 0 : stats?.drivers?.rejected ?? 0}
-        />{" "}
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        {/* Driver Applications Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Users className="w-5 h-5 text-[#0099cc]" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Driver Applications
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <StatCard
+              icon={<FaFileAlt className="text-xl text-[#0099cc]" />}
+              text="Total Received"
+              number={stats?.drivers?.total ?? 0}
+              gradient="from-blue-50 to-cyan-50"
+              borderColor="border-blue-100"
+            />
+            <StatCard
+              icon={<FaHourglassHalf className="text-xl text-yellow-500" />}
+              text="Pending Review"
+              number={stats?.drivers?.pending ?? 0}
+              gradient="from-yellow-50 to-amber-50"
+              borderColor="border-yellow-100"
+            />
+            <StatCard
+              icon={<FaCheckCircle className="text-xl text-green-500" />}
+              text="Approved"
+              number={stats?.drivers?.approved ?? 0}
+              gradient="from-green-50 to-emerald-50"
+              borderColor="border-green-100"
+            />
+            <StatCard
+              icon={<FaTimesCircle className="text-xl text-red-500" />}
+              text="Rejected"
+              number={stats?.drivers?.rejected ?? 0}
+              gradient="from-red-50 to-rose-50"
+              borderColor="border-red-100"
+            />
+          </div>
+        </div>
+
+        {/* Van Applications Section */}
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Truck className="w-5 h-5 text-purple-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Van Applications
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <StatCard
+              icon={<FaFileAlt className="text-xl text-purple-500" />}
+              text="Total Received"
+              number={stats?.vans?.total ?? 0}
+              gradient="from-purple-50 to-violet-50"
+              borderColor="border-purple-100"
+            />
+            <StatCard
+              icon={<FaHourglassHalf className="text-xl text-yellow-500" />}
+              text="Pending Review"
+              number={stats?.vans?.pending ?? 0}
+              gradient="from-yellow-50 to-amber-50"
+              borderColor="border-yellow-100"
+            />
+            <StatCard
+              icon={<FaCheckCircle className="text-xl text-green-500" />}
+              text="Approved"
+              number={stats?.vans?.approved ?? 0}
+              gradient="from-green-50 to-emerald-50"
+              borderColor="border-green-100"
+            />
+            <StatCard
+              icon={<FaTimesCircle className="text-xl text-red-500" />}
+              text="Rejected"
+              number={stats?.vans?.rejected ?? 0}
+              gradient="from-red-50 to-rose-50"
+              borderColor="border-red-100"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-4">{/* StatCards here */}</div>
-
-      <div className="flex items-center gap-2 mt-4">
-        <h2 className="text-md font-semibold tracking-wide text-[var(--blue-shade-dark)] relative">
-          Van Applications
-          <span className="absolute left-0 -bottom-1 w-10 h-[3px] bg-[var(--blue-shade-light)] rounded"></span>
-        </h2>
-      </div>
-      <div className="grid grid-cols-5 gap-4 mt-4 ">
-        {" "}
-        <StatCard
-          icon={<FaFileAlt className="text-xl" />}
-          text="Total Recieved"
-          number={loading ? 0 : stats?.vans?.total ?? 0}
-        />{" "}
-        <StatCard
-          icon={<FaHourglassHalf className="text-xl" />}
-          text="Pending "
-          number={loading ? 0 : stats?.vans?.pending ?? 0}
-        />{" "}
-        <StatCard
-          icon={<FaCheckCircle className="text-xl" />}
-          text="Approved"
-          number={loading ? 0 : stats?.vans?.approved ?? 0}
-        />{" "}
-        <StatCard
-          icon={<FaTimesCircle className="text-xl" />}
-          text="Rejected"
-          number={loading ? 0 : stats?.vans?.rejected ?? 0}
-        />{" "}
-      </div>
-
-      <div className="grid grid-cols-5 gap-4 mb-10">{/* StatCards here */}</div>
-
-      <div className="grid grid-cols-4 gap-1">
-        {/* 3-row section (left side) - Driver Overview Chart */}
-        <div className="col-span-2 dashboard-section-card">
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Driver Overview Chart Card */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
           <DriverOverviewChart data={stats?.driverOverview ?? []} />
         </div>
 
-        {/* 2-row section (below it) */}
-        <div className="col-span-2 dashboard-section-card">
+        {/* Driver Rating Chart Card */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
           <DriverRatingChart data={stats?.ratingDistribution ?? []} />
         </div>
-
-        {/* Full-height dense section (right column) */}
       </div>
     </div>
   );

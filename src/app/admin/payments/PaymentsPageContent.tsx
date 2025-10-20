@@ -14,9 +14,9 @@ import {
 import ViewPaymentModal from "./ViewPaymentModal";
 
 const columns = [
+  { key: "FullName", label: "Full Name" },
   { key: "PaymentID", label: "Payment ID" },
   { key: "ParentID", label: "Parent ID" },
-  { key: "FullName", label: "Full Name" },
   { key: "VanID", label: "Van ID" },
   { key: "Date", label: "Date" },
   { key: "Status", label: "Status" },
@@ -40,6 +40,7 @@ const PaymentsPageContent = () => {
     PaidAt?: string | null;
     PaymentType?: string;
     ChildId?: number;
+    dp?: string | null;
   };
 
   const [payments, setPayments] = useState<PaymentItem[]>([]);
@@ -205,6 +206,22 @@ const PaymentsPageContent = () => {
         <DataTable
           columns={columns}
           data={filteredData}
+          renderCell={(column, value, row) => {
+            if (column === "FullName") {
+              return (
+                <div className="flex items-center gap-2">
+                  <img
+                    src={row.dp || "/images/user__.png"}
+                    alt={row.FullName}
+                    className="w-8 h-8 rounded-full  border border-[#0099cc]"
+                  />
+                  <span>{row.FullName}</span>
+                </div>
+              );
+            }
+
+            return value; // default for other cells
+          }}
           actions={[
             {
               type: "custom",

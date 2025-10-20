@@ -128,6 +128,22 @@ export default function VanTab() {
           { key: "status", label: "Status" },
         ]}
         data={vans}
+        renderCell={(column, value, row) => {
+          if (column === "registrationNumber") {
+            return (
+              <div className="flex items-center gap-2">
+                <img
+                  src={row.photoUrl || "/images/user__.png"}
+                  alt={row.name}
+                  className="w-8 h-8 rounded-full  border border-[#0099cc]"
+                />
+                <span>{row.name}</span>
+              </div>
+            );
+          }
+
+          return value; // default for other cells
+        }}
         actions={[
           {
             type: "custom",

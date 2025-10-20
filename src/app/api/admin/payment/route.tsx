@@ -31,8 +31,12 @@ export async function GET() {
       PaidAt: p.paidAt ? p.paidAt.toISOString() : null,
       PaymentType: p.paymentType,
       ChildId: p.childId,
+      dp: p.UserProfile?.dp || null,
     }));
-
+    // console.log(
+    //   "Fetched payment data ---------------------------------------:",
+    //   data
+    // );
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching paymentdata:", error);

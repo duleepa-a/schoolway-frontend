@@ -8,6 +8,8 @@ import {
   FileText,
   Phone,
   Mail,
+  Shield,
+  X,
 } from "lucide-react";
 import { ApplicationData } from "./types";
 
@@ -28,7 +30,6 @@ export default function ViewApplication({
   const [tab, setTab] = useState<"about" | "documents">("about");
 
   useEffect(() => {
-    console.log("Application data:", application);
     function handleClickOutside(event: MouseEvent) {
       if (
         modalRef.current &&
@@ -53,95 +54,137 @@ export default function ViewApplication({
         href={safeUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 text-[#0099cc] hover:underline hover:text-[#007aa3] transition-colors p-2 rounded border border-transparent hover:border-[#0099cc]/30"
+        className="flex items-center gap-2 px-4 py-3 text-[#0099cc] bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-transparent hover:border-[#0099cc]"
         aria-label={`Open ${label} in new tab`}
       >
-        {icon} {label}
+        {icon}
+        <span className="font-medium">{label}</span>
       </a>
     );
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-7">
       <div
         ref={modalRef}
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl p-6"
+        className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100"
       >
+        {/* Close Button */}
         <button
           onClick={onClose}
           aria-label="Close modal"
-          className="absolute top-3 right-3 text-gray-500 hover:text-[#0099cc] text-2xl focus:outline-none"
+          className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          ✖
+          <X size={20} />
         </button>
 
-        <div className="grid grid-cols-3 gap-8 p-6">
-          <aside className="col-span-1 border-r border-gray-200 pr-6">
-            <div className="flex flex-col items-center">
-              {application.profilePicture ? (
-                <img
-                  src={application.profilePicture}
-                  alt="Profile"
-                  className="h-36 w-36 rounded-full object-cover border shadow-md"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='144' height='144' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M12 8v4'%3E%3C/path%3E%3Ccircle cx='12' cy='16' r='1'%3E%3C/circle%3E%3C/svg%3E";
-                  }}
-                />
-              ) : (
-                <div className="h-36 w-36 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-                  <User size={40} />
-                </div>
-              )}
-
-              <h2 className="mt-4 text-lg font-bold text-gray-800">
-                {application.name || "Unknown"}
-              </h2>
-              <p className="text-sm text-gray-500">Driver Applicant</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+          {/* Sidebar - Styled as cards like your reference */}
+          <aside className="col-span-1 space-y-6">
+            {/* Profile Card */}
+            <div className="bg-white rounded-xl border border-gray-100 p-6 text-center mb-2">
+              <div className="flex flex-col items-center">
+                {application.profilePicture ? (
+                  <img
+                    src={application.profilePicture}
+                    alt="Profile"
+                    className="h-24 w-24 rounded-full object-cover border-4 border-gray-100 shadow-sm"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M12 8v4'%3E%3C/path%3E%3Ccircle cx='12' cy='16' r='1'%3E%3C/circle%3E%3C/svg%3E";
+                    }}
+                  />
+                ) : (
+                  <div className="h-24 w-24 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border-4 border-gray-50">
+                    <User size={32} />
+                  </div>
+                )}
+                <h2 className="mt-4 text-xl font-bold text-gray-800">
+                  {application.name || "Unknown"}
+                </h2>
+                <p className="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full mt-1">
+                  Driver Applicant
+                </p>
+              </div>
             </div>
 
-            <div className="mt-6 space-y-4 text-sm">
-              <div>
-                <h4 className="font-semibold mb-1 text-[#0099cc]">Contact</h4>
-                <p className="flex items-center gap-2 text-sm">
-                  <Phone size={14} className="text-[#0099cc]" />{" "}
-                  {application.mobile || "-"}
-                </p>
-                <p className="flex items-center gap-2 text-sm">
-                  <Mail size={14} className="text-[#0099cc]" />{" "}
-                  {application.email || "-"}
-                </p>
+            {/* Contact Card */}
+            <div className="bg-white rounded-xl border border-gray-100 p-5 mb-2">
+              <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Phone className="w-4 h-4 text-[#0099cc]" />
+                </div>
+                Contact Information
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <Phone className="w-4 h-4 text-[#0099cc]" />
+                  <span>{application.mobile || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <Mail className="w-4 h-4 text-[#0099cc]" />
+                  <span className="break-all">{application.email || "-"}</span>
+                </div>
               </div>
-
-              <div>
-                <h4 className="font-semibold mb-1">NIC</h4>
-                <p className="text-[#0099cc]">{application.nic || "-"}</p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-1">Started Driving</h4>
-                <p>{application.date || "-"}</p>
+            </div>
+            {/* Details Card */}
+            <div className="bg-white rounded-xl border border-gray-100 p-5">
+              <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Shield className="w-4 h-4 text-green-600" />
+                </div>
+                Driver Details
+              </h4>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs uppercase text-gray-400 mb-1">
+                    NIC Number
+                  </p>
+                  <p className="font-medium text-gray-800">
+                    {application.nic || "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-gray-400 mb-1">
+                    Started Driving
+                  </p>
+                  <p className="font-medium text-gray-800">
+                    {application.date || "-"}
+                  </p>
+                </div>
+                {application.languages && application.languages.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase text-gray-400 mb-1">
+                      Languages
+                    </p>
+                    <p className="font-medium text-gray-800">
+                      {(application.languages || []).join(", ") || "-"}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </aside>
 
-          <main className="col-span-2 pl-4">
-            <div className="flex gap-6 border-b border-gray-200 mb-6 text-base">
+          {/* Main Content */}
+          <main className="col-span-2">
+            {/* Tabs - Styled like your reference */}
+            <div className="flex gap-8 border-b border-gray-200 mb-6 text-base">
               <button
                 onClick={() => setTab("about")}
-                className={`pb-3 font-medium transition-colors ${
+                className={`pb-4 font-medium transition-colors ${
                   tab === "about"
-                    ? "border-b-3 border-[#0099cc] text-[#0099cc]"
+                    ? "border-b-2 border-[#0099cc] text-[#0099cc]"
                     : "text-gray-500 hover:text-[#0099cc]"
                 }`}
               >
-                About
+                About Driver
               </button>
               <button
                 onClick={() => setTab("documents")}
-                className={`pb-3 font-medium transition-colors ${
+                className={`pb-4 font-medium transition-colors ${
                   tab === "documents"
-                    ? "border-b-3 border-[#0099cc] text-[#0099cc]"
+                    ? "border-b-2 border-[#0099cc] text-[#0099cc]"
                     : "text-gray-500 hover:text-[#0099cc]"
                 }`}
               >
@@ -150,100 +193,138 @@ export default function ViewApplication({
             </div>
 
             {tab === "about" && (
-              <div className="space-y-6 text-sm">
-                <div>
-                  <h4 className="font-semibold mb-2">Profile</h4>
-                  <p className="mb-2">{application.bio || "-"}</p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <h5 className="text-xs uppercase text-gray-400">
-                        License ID
-                      </h5>
-                      <p className="font-semibold">
-                        {application.drivingLicense || "-"}
-                      </p>
+              <div className="space-y-6">
+                {/* Profile Section */}
+                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <User className="w-4 h-4 text-purple-600" />
                     </div>
+                    Profile Summary
+                  </h4>
+                  <p className="text-gray-700 leading-relaxed mb-6">
+                    {application.bio || "No profile summary provided."}
+                  </p>
 
-                    <div>
-                      <h5 className="text-xs uppercase text-gray-400">
-                        License Expiry
-                      </h5>
-                      <p className="font-semibold">
-                        {application.licenseExpiry || "-"}
-                      </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h5 className="text-xs uppercase text-gray-400 mb-2">
+                          License ID
+                        </h5>
+                        <p className="font-semibold text-gray-800 text-xs">
+                          {application.drivingLicense || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <h5 className="text-xs uppercase text-gray-400 mb-2">
+                          Languages
+                        </h5>
+                        <p className="font-semibold text-gray-800">
+                          {(application.languages || []).join(", ") || "-"}
+                        </p>
+                      </div>
                     </div>
-
-                    <div>
-                      <h5 className="text-xs uppercase text-gray-400">
-                        Languages
-                      </h5>
-                      <p>{(application.languages || []).join(", ") || "-"}</p>
+                    <div className="space-y-4">
+                      <div>
+                        <h5 className="text-xs uppercase text-gray-400 mb-2">
+                          License Expiry
+                        </h5>
+                        <p className="font-semibold text-gray-800 text-xs">
+                          {application.licenseExpiry || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <h5 className="text-xs uppercase text-gray-400 mb-2">
+                          Experience
+                        </h5>
+                        <p className="font-semibold text-gray-800 text-xs">
+                          {application.date ? `Since ${application.date}` : "-"}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* bank/account info not always available in ApplicationData type; omit if absent */}
                   </div>
                 </div>
               </div>
             )}
 
             {tab === "documents" && (
-              <div className="space-y-5 text-sm mt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {renderDocumentLink(
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                  <h4 className="font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <FileText className="w-4 h-4 text-orange-600" />
+                    </div>
+                    Application Documents
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    {renderDocumentLink(
+                      application.policeReportDocument ||
+                        application.policeReport,
+                      "Police Report",
+                      <FileText size={18} />
+                    )}
+                    {renderDocumentLink(
+                      application.licenseFront,
+                      "License Front",
+                      <FileText size={18} />
+                    )}
+                    {renderDocumentLink(
+                      application.licenseBack,
+                      "License Back",
+                      <FileText size={18} />
+                    )}
+                    {renderDocumentLink(
+                      application.medicalReportDocument ||
+                        application.medicalReport,
+                      "Medical Report",
+                      <FileText size={18} />
+                    )}
+                  </div>
+
+                  {!(
                     application.policeReportDocument ||
-                      application.policeReport,
-                    "Police Report",
-                    <FileText size={16} />
-                  )}
-                  {renderDocumentLink(
-                    application.licenseFront,
-                    "License Front",
-                    <FileText size={16} />
-                  )}
-                  {renderDocumentLink(
-                    application.licenseBack,
-                    "License Back",
-                    <FileText size={16} />
-                  )}
-                  {renderDocumentLink(
-                    application.medicalReportDocument ||
-                      application.medicalReport,
-                    "Medical Report",
-                    <FileText size={16} />
+                    application.licenseFront ||
+                    application.licenseBack ||
+                    application.medicalReportDocument
+                  ) && (
+                    <div className="text-center py-8">
+                      <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500 text-xs">
+                        No documents uploaded
+                      </p>
+                      <p className="text-gray-400 text-sm mt-1">
+                        This applicant hasn't uploaded any documents yet.
+                      </p>
+                    </div>
                   )}
                 </div>
-
-                {!(
-                  application.policeReportDocument ||
-                  application.licenseFront ||
-                  application.licenseBack ||
-                  application.medicalReportDocument
-                ) && (
-                  <p className="text-gray-500 italic py-4 text-center">
-                    No documents uploaded yet.
-                  </p>
-                )}
               </div>
             )}
           </main>
         </div>
 
-        <div className="sticky bottom-0 left-0 -mx-6 -mb-6 flex justify-end gap-3 bg-white py-4 px-6 border-t border-gray-200">
-          <button
-            onClick={onReject}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-600 rounded-sm hover:bg-red-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-            aria-label="Reject application"
-          >
-            <XCircle size={18} /> Reject
-          </button>
-          <button
-            onClick={onApprove}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-green-600 border border-green-600 rounded-sm hover:bg-green-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
-            aria-label="Approve application"
-          >
-            <CheckCircle size={18} /> Approve
-          </button>
+        {/* Action Buttons - Styled like your reference buttons */}
+        <div className="sticky bottom-0 left-0 bg-white py-4 px-6 border-t border-gray-100 rounded-b-xl">
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={onReject}
+              className="flex items-center gap-2 px-5 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors border border-transparent hover:border-red-200 font-medium"
+              aria-label="Reject application"
+            >
+              <XCircle size={18} />
+              Reject Application
+            </button>
+            <button
+              onClick={onApprove}
+              className="flex items-center gap-2 px-5 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm hover:shadow-md"
+              aria-label="Approve application"
+            >
+              <CheckCircle size={18} />
+              Approve Application
+            </button>
+          </div>
         </div>
       </div>
     </div>

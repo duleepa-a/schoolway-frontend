@@ -73,6 +73,147 @@ export function renderDriverRejectionEmail(
     </div>
   `;
 }
+export function renderPayrollSettlementEmail(
+  recipientName: string,
+  recipientRole: string,
+  monthLabel: string,
+  totals: {
+    totalAmount: number;
+    totalSystemFee: number;
+    totalDriverShare: number;
+    totalOwnerShare: number;
+  },
+  perVan: Array<{
+    vanId: number;
+    totalAmount: number;
+    totalSystemFee: number;
+    totalDriverShare: number;
+    totalOwnerShare: number;
+    students: Array<{
+      childId: string;
+      name: string;
+      amountPaid: number;
+      systemFee: number;
+      driverShare: number;
+      ownerShare: number;
+    }>;
+  }>
+): string {
+  const rows = perVan
+    .map(
+      (v) => `
+        <div style="margin-top: 24px;">
+          <h4 style="font-size:16px;margin:0 0 6px 0;font-weight:bold;color:#333;">
+            Van #${v.vanId}
+          </h4>
+
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <thead>
+              <tr style="background:#f7f7f7;">
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Student</th>
+                <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd;">Amount</th>
+                <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd;">System Fee</th>
+                <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd;">Driver Share</th>
+                <th style="text-align:right;padding:8px;border-bottom:1px solid #ddd;">Owner Share</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${v.students
+                .map(
+                  (s) => `
+                    <tr style="border-bottom:1px solid #eee;">
+                      <td style="padding:8px;">${escapeHtml(s.name)}</td>
+                      <td style="padding:8px;text-align:right;">${s.amountPaid.toFixed(
+                        2
+                      )}</td>
+                      <td style="padding:8px;text-align:right;">${s.systemFee.toFixed(
+                        2
+                      )}</td>
+                      <td style="padding:8px;text-align:right;">${s.driverShare.toFixed(
+                        2
+                      )}</td>
+                      <td style="padding:8px;text-align:right;">${s.ownerShare.toFixed(
+                        2
+                      )}</td>
+                    </tr>
+                  `
+                )
+                .join("")}
+            </tbody>
+            <tfoot>
+              <tr style="font-weight:bold;background:#fafafa;">
+                <td style="padding:8px;">Van Totals</td>
+                <td style="padding:8px;text-align:right;">${v.totalAmount.toFixed(
+                  2
+                )}</td>
+                <td style="padding:8px;text-align:right;">${v.totalSystemFee.toFixed(
+                  2
+                )}</td>
+                <td style="padding:8px;text-align:right;">${v.totalDriverShare.toFixed(
+                  2
+                )}</td>
+                <td style="padding:8px;text-align:right;">${v.totalOwnerShare.toFixed(
+                  2
+                )}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `
+    )
+    .join("");
+
+  return `
+    <div style="font-family:Arial, sans-serif; line-height:1.6; color:#222; font-size:14px;">
+      <h2 style="font-size:22px;margin-bottom:16px;color:#222;">Payroll Settlement Notice</h2>
+
+      <p style="margin:0 0 16px 0;">
+        Hi <strong>${escapeHtml(recipientName || "")}</strong>,
+      </p>
+
+      <p style="margin:0 0 20px 0;">
+        Your payroll for 
+        <strong>${escapeHtml(monthLabel)}</strong> has been settled 
+        as a <strong>${escapeHtml(recipientRole)}</strong>.
+      </p>
+
+      <h3 style="font-size:18px; margin:24px 0 12px 0; color:#333;">Summary</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px;">
+        <tr>
+          <td style="padding:6px;">Total Collected</td>
+          <td style="padding:6px;text-align:right;">${totals.totalAmount.toFixed(
+            2
+          )}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">Total System Fees</td>
+          <td style="padding:6px;text-align:right;">${totals.totalSystemFee.toFixed(
+            2
+          )}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">Total Driver Share</td>
+          <td style="padding:6px;text-align:right;">${totals.totalDriverShare.toFixed(
+            2
+          )}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">Total Owner/Service Share</td>
+          <td style="padding:6px;text-align:right;">${totals.totalOwnerShare.toFixed(
+            2
+          )}</td>
+        </tr>
+      </table>
+
+      ${rows}
+
+      <p style="margin-top:30px;">
+        Thank you,<br>
+        — SchoolWay Team
+      </p>
+    </div>
+  `;
+}
 
 function escapeHtml(input: string): string {
   return input

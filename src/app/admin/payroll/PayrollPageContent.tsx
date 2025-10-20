@@ -4,10 +4,18 @@ import { useEffect, useState, useMemo } from "react";
 import Swal from "sweetalert2";
 import SearchFilter from "@/app/dashboardComponents/SearchFilter";
 import CustomTable from "@/app/dashboardComponents/CustomTable";
-import { FileText, CheckCircle } from "lucide-react";
+import {
+  FileText,
+  CheckCircle,
+  User,
+  Building,
+  CreditCard,
+  DollarSign,
+  X,
+} from "lucide-react";
 import React from "react";
 
-//  Define the structure of a payroll record
+// Define the structure of a payroll record
 interface PayrollRecord {
   id: number | string;
   firstname?: string | null;
@@ -27,6 +35,7 @@ interface PayrollRecord {
   monthYear?: string;
   month?: string;
   year?: string;
+  dp?: string | null;
 }
 
 // Bank fields structure for editing
@@ -55,7 +64,6 @@ interface Student {
     ownerShare: number;
     parentId: string;
   }[];
-  // Add other student fields as needed
 }
 
 export default function PayrollPage() {
@@ -83,6 +91,8 @@ export default function PayrollPage() {
 
   // Modal states
   const [modalType, setModalType] = useState<"view" | "settle" | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // Bank editing states
   const [editingBank, setEditingBank] = useState(false);
@@ -93,7 +103,6 @@ export default function PayrollPage() {
   });
 
   useEffect(() => {
-    //
     const fetchPayrolls = async () => {
       try {
         const res = await fetch("/api/admin/payroll");
@@ -101,8 +110,7 @@ export default function PayrollPage() {
           throw new Error("Failed to fetch payroll data");
         }
         const data = await res.json();
-        // console.log("-----------------------------", data);
-        setPayrolls(data); ///stores payroll data
+        setPayrolls(data);
       } catch (err) {
         console.error("Error fetching payrolls:", err);
         Swal.fire("Error", "Unable to load payroll data", "error");
@@ -118,29 +126,25 @@ export default function PayrollPage() {
       const matchesSearch =
         searchTerm === "" ||
         [p.fullname, p.accountNo, p.bank, p.vanServiceName]
-          .filter(Boolean) // Remove null/undefined values
+          .filter(Boolean)
           .some((field) =>
             field!.toString().toLowerCase().includes(searchTerm.toLowerCase())
           );
 
-      //  Check if role matches selected role filter
       const matchesRole =
         selectedRole === "" ||
         (p.role && p.role.toLowerCase() === selectedRole.toLowerCase());
 
-      // Check if status matches selected status filter
       const matchesStatus =
         selectedStatus === "" ||
         (p.status &&
           p.status.toLowerCase().includes(selectedStatus.toLowerCase()));
 
-      // month & year filters
       const matchesMonth =
         selectedMonth === "" || (p.month && p.month === selectedMonth);
       const matchesYear =
         selectedYear === "" || (p.year && p.year === selectedYear);
 
-      //  Return true only if ALL filters match
       return (
         matchesSearch &&
         matchesRole &&
@@ -181,7 +185,6 @@ export default function PayrollPage() {
 
     (async () => {
       try {
-        // Fetch detailed payroll information for this recipient and month/year
         const month = row.month || row.monthYear?.split(" ")?.[0] || "";
         const year = row.year || row.monthYear?.split(" ")?.[1] || "";
         const params = new URLSearchParams({
@@ -197,7 +200,6 @@ export default function PayrollPage() {
         if (res.ok) {
           const data = await res.json();
           setStudentsList(data.students || []);
-
           setBankFields({
             accountNo: row.accountNo || "",
             bank: row.bank || "",
@@ -207,34 +209,26 @@ export default function PayrollPage() {
           console.error("Failed loading child details", await res.text());
         }
       } catch (err) {
-        //  Log error but don't show alert (non-critical)
         console.error("Error fetching payroll details:", err);
       }
     })();
   };
 
-  //  Open modal to settle/mark a payroll as paid
+  // SETTLE PAYROLL HANDLER
   const handleSettle = (row: PayrollRecord) => {
-    // Store the selected payroll record
     setSelectedPayroll(row);
-
-    //  Set modal type to "settle"
     setModalType("settle");
   };
 
   const settlePayroll = async () => {
-    // Guard clause - exit if no payroll is selected
     if (!selectedPayroll) return;
 
     try {
-      //  Send POST request to settle the payroll
       const res = await fetch(`/api/admin/payroll/settle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // send the payroll record id (grouped payroll id), not the recipient's user id
           payrollId: selectedPayroll.id,
-          // include month info so the server can settle all related transactions
           month: (
             selectedPayroll.monthYear ||
             selectedPayroll.date ||
@@ -247,7 +241,6 @@ export default function PayrollPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to settle payroll");
 
-      // Update local state: mark all payrolls that match the recipientId and month as Settled
       const monthToMatch = (
         selectedPayroll.monthYear ||
         selectedPayroll.date ||
@@ -262,11 +255,9 @@ export default function PayrollPage() {
         )
       );
 
-      // Close modal
       setModalType(null);
       setSelectedPayroll(null);
 
-      // Show success message
       Swal.fire({
         icon: "success",
         title: "Settled",
@@ -274,10 +265,7 @@ export default function PayrollPage() {
         confirmButtonColor: "#0099cc",
       });
     } catch (err) {
-      // Handle errors
       console.error("Error settling payroll:", err);
-
-      //  Show error alert
       Swal.fire({
         icon: "error",
         title: "Failed",
@@ -289,20 +277,16 @@ export default function PayrollPage() {
   // SAVE BANK DETAILS HANDLER
   const handleSaveBankDetails = async () => {
     try {
-      //
       if (!selectedPayroll) throw new Error("No payroll selected");
 
-      //  Get recipient information
       const recipientId = selectedPayroll.recipientId;
       const recipientRole =
         selectedPayroll.recipientRole || selectedPayroll.role || "";
 
-      //
       if (!recipientId || !recipientRole) {
         throw new Error("Missing recipientId or role");
       }
 
-      // Send POST request to update bank details
       const response = await fetch(`/api/admin/payroll/bankDetails`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -315,232 +299,272 @@ export default function PayrollPage() {
         }),
       });
 
-      //  Parse response
       const responseData = await response.json();
 
-      //  Check for errors
       if (!response.ok) {
         throw new Error(responseData?.error || "Failed to update");
       }
 
-      // Update the selected payroll with new bank details
       setSelectedPayroll((prev) => (prev ? { ...prev, ...bankFields } : prev));
-
-      // Update the payrolls list to show new bank details in table
       setPayrolls((prev) =>
         prev.map((p) =>
           p.id === selectedPayroll.id ? { ...p, ...bankFields } : p
         )
       );
 
-      //  Exit editing mode
       setEditingBank(false);
-
-      // Show success message
       Swal.fire("Success", "Bank info updated", "success");
     } catch (err) {
-      //  Handle errors
       console.error("Error updating bank details:", err);
-
-      // Show error alert
       Swal.fire("Error", "Unable to update bank info", "error");
     }
   };
 
-  // LOADING STATE
-
-  //  Show loading message while data is being fetched
   if (loading) {
-    return <p className="text-center p-4">Loading payrolls...</p>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0099cc]"></div>
+      </div>
+    );
   }
 
-  // MAIN RENDER
   return (
-    <div className="p-6 space-y-4">
-      <SearchFilter
-        onSearchChange={setSearchTerm}
-        onRoleChange={setSelectedRole}
-        onStatusChange={setSelectedStatus}
-        onDateChange={() => {}}
-        onMonthChange={setSelectedMonth}
-        onYearChange={setSelectedYear}
-        onClearFilters={handleClearFilters}
-        config={{
-          searchPlaceholder: "Search by name, account, or bank",
-          showAddButton: false,
-          showClearButton: true,
-          showDateFilter: false,
-          roleOptions: [
-            { value: "", label: "Role" },
-            { value: "Driver", label: "Driver" },
-            { value: "Service", label: "Service" },
-          ],
-          statusOptions: [
-            { value: "", label: "Status" },
-            { value: "Pending", label: "Pending" },
-            { value: "Completed", label: "Completed" },
-          ],
-          // derive month/year options from payrolls
-          monthOptions: [
-            { value: "", label: "Month" },
-            ...Array.from(
-              new Set(payrolls.map((p) => p.month).filter(Boolean))
-            ).map((m) => ({ value: m as string, label: m as string })),
-          ],
-          yearOptions: [
-            { value: "", label: "Year" },
-            ...Array.from(
-              new Set(payrolls.map((p) => p.year).filter(Boolean))
-            ).map((y) => ({ value: y as string, label: y as string })),
-          ],
-        }}
-      />
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <SearchFilter
+          onSearchChange={setSearchTerm}
+          onRoleChange={setSelectedRole}
+          onStatusChange={setSelectedStatus}
+          onDateChange={() => {}}
+          onMonthChange={setSelectedMonth}
+          onYearChange={setSelectedYear}
+          onClearFilters={handleClearFilters}
+          config={{
+            searchPlaceholder: "Search by name, account, or bank...",
+            showAddButton: false,
+            showClearButton: true,
+            showDateFilter: false,
+            roleOptions: [
+              { value: "", label: "All Roles" },
+              { value: "Driver", label: "Driver" },
+              { value: "Service", label: "Service" },
+            ],
+            statusOptions: [
+              { value: "", label: "All Status" },
+              { value: "Pending", label: "Pending" },
+              { value: "Completed", label: "Completed" },
+            ],
+            monthOptions: [
+              { value: "", label: "All Months" },
+              ...Array.from(
+                new Set(payrolls.map((p) => p.month).filter(Boolean))
+              ).map((m) => ({
+                value: m as string,
+                label: m as string,
+              })),
+            ],
+            yearOptions: [
+              { value: "", label: "All Years" },
+              ...Array.from(
+                new Set(payrolls.map((p) => p.year).filter(Boolean))
+              ).map((y) => ({
+                value: y as string,
+                label: y as string,
+              })),
+            ],
+          }}
+        />
+      </div>
 
-      <CustomTable
-        columns={columns}
-        data={filteredPayrolls}
-        // Render amounts with two decimal places
-        renderCell={(column, value, row) => {
-          if (column === "totalAmount" || column === "amount") {
-            const num = Number(value ?? row.amount ?? row.totalAmount ?? 0);
-            return new Intl.NumberFormat(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(num);
-          }
-          return String(value ?? "");
-        }}
-        actions={[
-          {
-            type: "custom",
-            icon: <FileText size={16} color="blue" />,
-            label: "View",
-            onClick: handleView,
-          },
-          {
-            type: "custom",
-            icon: <CheckCircle size={16} color="green" />,
-            label: "Settle",
-            onClick: handleSettle,
-          },
-        ]}
-      />
+      {/* Data Table Card */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <CustomTable
+          columns={columns}
+          data={filteredPayrolls}
+          renderCell={(column, value, row) => {
+            if (column === "totalAmount" || column === "amount") {
+              const num = Number(value ?? row.amount ?? row.totalAmount ?? 0);
+              return new Intl.NumberFormat(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(num);
+            }
+            if (column === "fullname") {
+              return (
+                <div className="flex items-center gap-2">
+                  <img
+                    src={row.dp || "/images/user__.png"}
+                    alt={row.fullname}
+                    className="w-8 h-8 rounded-full  border border-[#0099cc]"
+                  />
+                  <span>{row.fullname}</span>
+                </div>
+              );
+            }
+            return value;
+            return String(value ?? "");
+          }}
+          actions={[
+            {
+              type: "custom",
+              icon: <FileText size={16} color="blue" />,
+              label: "View Details",
+              onClick: handleView,
+            },
+            {
+              type: "custom",
+              icon: <CheckCircle size={16} color="green" />,
+              label: "Settle Payment",
+              onClick: handleSettle,
+            },
+          ]}
+        />
+      </div>
 
+      {/* View Payroll Modal */}
       {selectedPayroll && modalType === "view" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {/*clicking it closes the modal */}
-          <div
-            className="absolute inset-0"
-            onClick={() => {
-              setModalType(null);
-              setSelectedPayroll(null);
-            }}
-          />
-
-          {/* Modal content */}
-          <div className="relative z-10 w-full max-w-3xl bg-white rounded-lg shadow-xl p-8 animate-slideUp">
-            {/*Close button */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100">
+            {/* Close Button */}
             <button
               onClick={() => {
                 setModalType(null);
                 setSelectedPayroll(null);
               }}
-              className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-[#0099cc] font-bold"
-              aria-label="Close"
+              className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              &times;
+              <X size={20} />
             </button>
 
-            {/*  Modal title */}
-            <h3 className="text-2xl font-semibold text-[#6a6c6c] mb-6">
-              Payroll Details
-            </h3>
-
-            {/*Personal information section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm border-b pb-6 mb-6">
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold">Name:</span>
-                <span className="font-semibold text-gray-900 text-right">{`${
-                  selectedPayroll.fullname || "N/A"
-                }`}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold">Role:</span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedPayroll.role}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold">Van Service:</span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedPayroll.vanServiceName || "-"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold">Date:</span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedPayroll.monthYear}
-                </span>
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <DollarSign className="w-6 h-6 text-[#0099cc]" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Payroll Details
+                  </h3>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Complete payroll information and breakdown
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/*  Payment details section */}
-            <div className="mb-4">
-              <h4 className="text-[#0099cc] font-bold mb-2">Payment Details</h4>
-              <div className="border rounded p-3 bg-gray-50 text-gray-800 text-sm">
-                {/*  Amount display */}
-                <div className="flex justify-between">
-                  <span>Amount</span>
-                  <span className="font-semibold">
-                    LKR{" "}
-                    {formatAmount(
-                      selectedPayroll.totalAmount ?? selectedPayroll.amount
-                    )}
-                  </span>
-                </div>
-
-                {/* Bank details */}
-                <div className="flex flex-col gap-2 mt-2">
-                  <div className="flex justify-between">
-                    <span>Bank</span>
-                    <span className="font-semibold">
-                      {selectedPayroll.bank || "-"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Account No</span>
-                    <span className="font-semibold">
-                      {selectedPayroll.accountNo || "-"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Branch</span>
-                    <span className="font-semibold">
-                      {selectedPayroll.branch || "-"}
-                    </span>
+            {/* Content */}
+            <div className="p-6">
+              {/* Personal Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <User className="w-4 h-4 text-blue-500" />
+                    Personal Information
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Name:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedPayroll.fullname || "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Role:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedPayroll.role}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Van Service:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedPayroll.vanServiceName || "-"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* only show if bank details are missing */}
-                {(selectedPayroll.bank === null ||
-                  selectedPayroll.accountNo === null ||
-                  selectedPayroll.branch === null) && (
-                  <div className="mt-3">
-                    {/* Show "Add Bank Details" button when not editing */}
-                    {!editingBank ? (
-                      <button
-                        onClick={() => setEditingBank(true)}
-                        className="px-3 py-1 bg-[#0099cc] text-white rounded hover:bg-[#007aaf] transition"
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-blue-500" />
+                    Payment Information
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Period:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedPayroll.monthYear}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Status:</span>
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          selectedPayroll.status?.toLowerCase() === "settled"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
                       >
-                        Add Bank Details
-                      </button>
-                    ) : (
-                      /*  Show input fields when editing */
-                      <div className="space-y-2">
-                        {/*  Bank name input */}
+                        {selectedPayroll.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Total Amount:</span>
+                      <span className="font-medium text-gray-800">
+                        LKR{" "}
+                        {formatAmount(
+                          selectedPayroll.totalAmount ?? selectedPayroll.amount
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bank Details Section */}
+              <div className="bg-white rounded-lg border border-gray-100 p-6 mb-6">
+                <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-blue-500" />
+                  Bank Details
+                </h4>
+
+                {!editingBank ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs uppercase text-gray-400 mb-1">
+                        Bank Name
+                      </p>
+                      <p className="font-medium text-gray-800">
+                        {selectedPayroll.bank || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-gray-400 mb-1">
+                        Account Number
+                      </p>
+                      <p className="font-medium text-gray-800">
+                        {selectedPayroll.accountNo || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-gray-400 mb-1">
+                        Branch
+                      </p>
+                      <p className="font-medium text-gray-800">
+                        {selectedPayroll.branch || "Not provided"}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Bank Name
+                        </label>
                         <input
-                          className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#0099cc]"
-                          placeholder="Bank"
+                          type="text"
                           value={bankFields.bank}
                           onChange={(e) =>
                             setBankFields({
@@ -548,23 +572,16 @@ export default function PayrollPage() {
                               bank: e.target.value,
                             })
                           }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter bank name"
                         />
-                        {/*  Branch input */}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Account Number
+                        </label>
                         <input
-                          className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#0099cc]"
-                          placeholder="Branch"
-                          value={bankFields.branch}
-                          onChange={(e) =>
-                            setBankFields({
-                              ...bankFields,
-                              branch: e.target.value,
-                            })
-                          }
-                        />
-                        {/*  Account number input */}
-                        <input
-                          className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#0099cc]"
-                          placeholder="Account No"
+                          type="text"
                           value={bankFields.accountNo}
                           onChange={(e) =>
                             setBankFields({
@@ -572,235 +589,327 @@ export default function PayrollPage() {
                               accountNo: e.target.value,
                             })
                           }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter account number"
                         />
-                        {/* Action buttons */}
-                        <div className="flex gap-2">
-                          {/*  Save button */}
-                          <button
-                            onClick={handleSaveBankDetails}
-                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
-                          >
-                            Save
-                          </button>
-                          {/*  Cancel button */}
-                          <button
-                            onClick={() => setEditingBank(false)}
-                            className="px-3 py-1 border rounded hover:bg-gray-100 transition"
-                          >
-                            Cancel
-                          </button>
-                        </div>
                       </div>
-                    )}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Branch
+                        </label>
+                        <input
+                          type="text"
+                          value={bankFields.branch}
+                          onChange={(e) =>
+                            setBankFields({
+                              ...bankFields,
+                              branch: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter branch"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleSaveBankDetails}
+                        className="flex items-center gap-2 px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <CheckCircle size={16} />
+                        Save Bank Details
+                      </button>
+                      <button
+                        onClick={() => setEditingBank(false)}
+                        className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {/*  Status display */}
-                <div className="flex justify-between mt-2">
-                  <span>Status</span>
-                  <span className="font-semibold">
-                    {selectedPayroll.status || "-"}
-                  </span>
-                </div>
+                {!editingBank &&
+                  (!selectedPayroll.bank ||
+                    !selectedPayroll.accountNo ||
+                    !selectedPayroll.branch) && (
+                    <button
+                      onClick={() => setEditingBank(true)}
+                      className="mt-4 flex items-center gap-2 px-4 py-2 text-[#0099cc] bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      <CreditCard size={16} />
+                      Add Bank Details
+                    </button>
+                  )}
               </div>
-            </div>
 
-            {/*  Children/Students count (if loaded) */}
-            {studentsList.length > 0 && (
-              <div className="mb-4 text-sm text-gray-700">
-                <span className="font-medium text-[#0099cc]">Children:</span>{" "}
-                <span>
-                  {studentsList.length} child(ren) included in this payroll
-                </span>
-                <div className="mt-3 border rounded bg-white p-3">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-gray-600">
-                        <th className="pb-2">Child</th>
-                        <th className="pb-2 text-right">Paid Amount</th>
-                        <th className="pb-2 text-right">System Fee</th>
-                        <th className="pb-2 text-right">Allocated</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {studentsList.map((s: Student) => (
-                        <React.Fragment key={s.childId}>
-                          <>
-                            <tr key={s.childId} className="border-t">
-                              <td className="py-2 align-top">{s.name}</td>
-                              <td className="py-2 text-right font-semibold align-top">
-                                LKR {formatAmount(s.amountPaid)}
+              {/* Students List Section */}
+              {studentsList.length > 0 && (
+                <div className="bg-white rounded-lg border border-gray-100 p-6">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <User className="w-4 h-4 text-blue-500" />
+                    Student Breakdown ({studentsList.length} students)
+                  </h4>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left pb-3 font-medium text-gray-700">
+                            Student Name
+                          </th>
+                          <th className="text-right pb-3 font-medium text-gray-700">
+                            Paid Amount
+                          </th>
+                          <th className="text-right pb-3 font-medium text-gray-700">
+                            System Fee
+                          </th>
+                          <th className="text-right pb-3 font-medium text-gray-700">
+                            Allocated Amount
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {studentsList.map((student) => (
+                          <React.Fragment key={student.childId}>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-3 font-medium text-gray-800">
+                                {student.name}
                               </td>
-                              <td className="py-2 text-right font-semibold align-top">
-                                LKR {formatAmount(s.totalSystemFee)}
+                              <td className="py-3 text-right font-semibold text-gray-800">
+                                LKR {formatAmount(student.amountPaid)}
                               </td>
-                              <td className="py-2 text-right font-semibold align-top">
-                                LKR {formatAmount(s.allocatedToRecipient)}
+                              <td className="py-3 text-right font-semibold text-gray-800">
+                                LKR {formatAmount(student.totalSystemFee)}
+                              </td>
+                              <td className="py-3 text-right font-semibold text-gray-800">
+                                LKR {formatAmount(student.allocatedToRecipient)}
                               </td>
                             </tr>
 
-                            {/* Per-payment breakdown for this child */}
-                            {s.payments && s.payments.length > 0 && (
-                              <tr key={`payments-${s.childId}`}>
-                                <td colSpan={4} className="bg-gray-50">
-                                  <div className="p-3">
-                                    <div className="text-xs text-gray-600 mb-2 font-medium">
-                                      Payment breakdown
+                            {/* Payment Breakdown */}
+                            {student.payments &&
+                              student.payments.length > 0 && (
+                                <tr>
+                                  <td colSpan={4} className="bg-gray-50 p-4">
+                                    <div className="text-xs font-medium text-gray-600 mb-2">
+                                      Payment Breakdown:
                                     </div>
-                                    <table className="w-full text-xs">
-                                      <thead>
-                                        <tr className="text-left text-gray-500">
-                                          <th className="pb-1">Payment ID</th>
-                                          <th className="pb-1 text-right">
-                                            Amount
-                                          </th>
-                                          <th className="pb-1 text-right">
-                                            System Fee
-                                          </th>
-                                          <th className="pb-1 text-right">
-                                            Driver Share
-                                          </th>
-                                          <th className="pb-1 text-right">
-                                            Owner Share
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {s.payments.map((p) => (
-                                          <tr key={p.id} className="border-t">
-                                            <td className="py-1">{p.id}</td>
-                                            <td className="py-1 text-right">
-                                              LKR {formatAmount(p.amount)}
-                                            </td>
-                                            <td className="py-1 text-right">
-                                              LKR {formatAmount(p.systemFee)}
-                                            </td>
-                                            <td className="py-1 text-right">
-                                              LKR {formatAmount(p.driverShare)}
-                                            </td>
-                                            <td className="py-1 text-right">
-                                              LKR {formatAmount(p.ownerShare)}
-                                            </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
-                          </>
-                        </React.Fragment>
-                      ))}
-                    </tbody>
-                  </table>
+                                    <div className="space-y-2">
+                                      {student.payments.map((payment) => (
+                                        <div
+                                          key={payment.id}
+                                          className="flex justify-between text-xs bg-white p-2 rounded border"
+                                        >
+                                          <span>Payment #{payment.id}</span>
+                                          <div className="flex gap-4">
+                                            <span>
+                                              Amount: LKR{" "}
+                                              {formatAmount(payment.amount)}
+                                            </span>
+                                            <span>
+                                              Fee: LKR{" "}
+                                              {formatAmount(payment.systemFee)}
+                                            </span>
+                                            <span>
+                                              Driver: LKR{" "}
+                                              {formatAmount(
+                                                payment.driverShare
+                                              )}
+                                            </span>
+                                            <span>
+                                              Owner: LKR{" "}
+                                              {formatAmount(payment.ownerShare)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/*  Modal action buttons */}
-            <div className="flex justify-end gap-3">
-              {/*  Close button */}
-              <button
-                onClick={() => {
-                  setModalType(null);
-                  setSelectedPayroll(null);
-                }}
-                className="px-5 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition font-semibold"
-              >
-                Close
-              </button>
-              {/*  Settle button */}
-              <button
-                onClick={() => {
-                  setModalType("settle");
-                }}
-                className="px-5 py-2 bg-[#0099cc] hover:bg-[#007aaf] text-white rounded-md font-semibold transition"
-              >
-                Settle
-              </button>
+            {/* Footer Actions */}
+            <div className="sticky bottom-0 left-0 bg-white py-3 px-5 border-t border-gray-100 rounded-b-xl">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setModalType(null);
+                    setSelectedPayroll(null);
+                  }}
+                  className="flex items-center gap-2 px-5 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 font-medium"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => setModalType("settle")}
+                  className="flex items-center gap-2 px-5 py-2 text-white bg-green-600 rounded-lg hover:bg--700 transition-colors font-medium shadow-sm hover:shadow-md"
+                >
+                  <CheckCircle size={18} />
+                  Settle Payroll
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!selectedPayroll) return;
+                    setPreviewLoading(true);
+                    try {
+                      const res = await fetch(`/api/admin/payroll/preview`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          payrollId: selectedPayroll.id,
+                          month:
+                            selectedPayroll.monthYear ||
+                            selectedPayroll.date ||
+                            null,
+                          recipientId: selectedPayroll.recipientId,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok)
+                        throw new Error(data?.error || "Failed to get preview");
+                      setPreviewHtml(data.html || "");
+                    } catch (err) {
+                      console.error("Preview error:", err);
+                      Swal.fire("Error", "Unable to load preview", "error");
+                    } finally {
+                      setPreviewLoading(false);
+                    }
+                  }}
+                  className="flex items-center gap-2 px-5 py-2 text-white bg-[#0099cc] rounded-lg hover:bg-[#0077a3] transition-colors border border-transparent hover:border-gray-200 font-medium"
+                >
+                  <FileText size={18} />
+                  {previewLoading ? "Loading..." : "Preview Email"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Settle Payroll Modal */}
       {selectedPayroll && modalType === "settle" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {/*  Backdrop - clicking it closes the modal */}
-          <div
-            className="absolute inset-0"
-            onClick={() => {
-              setModalType(null);
-              setSelectedPayroll(null);
-            }}
-          />
-
-          {/* Modal content */}
-          <div className="relative z-10 w-full max-w-3xl bg-white rounded-lg shadow-xl p-8 animate-slideUp">
-            {/*  Close button */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-2xl h-xl bg-white rounded-xl shadow-lg border border-gray-100 p-4">
+            {/* Close Button */}
             <button
               onClick={() => {
                 setModalType(null);
                 setSelectedPayroll(null);
               }}
-              className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-[#0099cc] font-bold"
-              aria-label="Close"
+              className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              &times;
+              <X size={20} />
             </button>
 
-            {/*  Modal title */}
-            <h3 className="text-2xl font-semibold text-[#6a6c6c] mb-6">
-              Settle Payroll
-            </h3>
-
-            {/* Confirmation message */}
-            <p className="mb-4">
-              Are you sure you want to mark this payroll as settled?
-            </p>
-
-            {/*  Summary of payroll being settled */}
-            <div className="mb-6 border rounded p-4 bg-gray-50">
-              <div className="flex justify-between">
-                <span className="font-medium">Name</span>
-                <span>{`${selectedPayroll.fullname}`}</span>
-              </div>
-              <div className="flex justify-between mt-2">
-                <span className="font-medium">Amount</span>
-                <span>
-                  LKR{" "}
-                  {formatAmount(
-                    selectedPayroll.totalAmount ?? selectedPayroll.amount
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between mt-2">
-                <span className="font-medium">Account</span>
-                <span>{`${selectedPayroll.accountNo || "-"}`}</span>
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CheckCircle className="w-7 h-7 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Settle Payroll
+                  </h3>
+                  <p className="text-gray-600 text-md mt-1">
+                    Confirm payroll settlement
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Modal action buttons */}
-            <div className="flex justify-end gap-3">
-              {/*  Cancel button */}
-              <button
-                onClick={() => {
-                  setModalType(null);
-                  setSelectedPayroll(null);
-                }}
-                className="px-5 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition font-semibold"
-              >
-                Cancel
-              </button>
-              {/*  Confirm settle button */}
-              <button
-                onClick={settlePayroll}
-                className="px-5 py-2 bg-[#0099cc] hover:bg-[#007aaf] text-white rounded-md font-semibold transition"
-              >
-                Confirm Settle
-              </button>
+            {/* Content */}
+            <div className="p-6">
+              <p className="text-gray-700 mb-4 text-md">
+                Are you sure you want to mark this payroll as settled?
+              </p>
+
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-6">
+                <div className="space-y-2 text-md">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Recipient:</span>
+                    <span className="font-medium text-gray-800">
+                      {selectedPayroll.fullname}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Amount:</span>
+                    <span className="font-medium text-gray-800">
+                      LKR{" "}
+                      {formatAmount(
+                        selectedPayroll.totalAmount ?? selectedPayroll.amount
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Account:</span>
+                    <span className="font-medium text-gray-800">
+                      {selectedPayroll.accountNo || "Not provided"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="sticky bottom-0 left-0 bg-white py-4 px-6 border-t border-gray-100 rounded-b-xl">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setModalType(null);
+                    setSelectedPayroll(null);
+                  }}
+                  className="flex items-center gap-2 px-5 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={settlePayroll}
+                  className="flex items-center gap-2 px-5 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm hover:shadow-md"
+                >
+                  <CheckCircle size={18} />
+                  Confirm Settlement
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {previewHtml && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          {" "}
+          <div
+            className="absolute inset-0"
+            onClick={() => setPreviewHtml(null)}
+          />{" "}
+          <div className="relative z-10 w-full max-w-5xl bg-white rounded-xl shadow-lg border border-gray-100 p-6 overflow-auto max-h-[90vh]">
+            {" "}
+            <button
+              onClick={() => setPreviewHtml(null)}
+              className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              {" "}
+              <X size={20} />{" "}
+            </button>{" "}
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              {" "}
+              Email Preview{" "}
+            </h3>{" "}
+            <div
+              className="prose max-w-none border rounded-lg p-6 bg-gray-50"
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />{" "}
+          </div>{" "}
         </div>
       )}
     </div>

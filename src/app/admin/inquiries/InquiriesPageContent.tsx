@@ -3,7 +3,16 @@
 import { useState, useEffect, useMemo } from "react";
 import SearchFilter from "@/app/dashboardComponents/SearchFilter";
 import DataTable from "@/app/dashboardComponents/CustomTable";
-import { FileText, FileCheck } from "lucide-react";
+import {
+  FileText,
+  FileCheck,
+  Mail,
+  User,
+  Calendar,
+  Tag,
+  MessageSquare,
+  X,
+} from "lucide-react";
 import Swal from "sweetalert2";
 
 const columns = [
@@ -33,7 +42,7 @@ const InquiriesPageContent = () => {
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [replySubject, setReplySubject] = useState("");
   const [replyBody, setReplyBody] = useState("");
-  const [modalType, setModalType] = useState<"view" | "reply" | null>(null); // to handle the modal
+  const [modalType, setModalType] = useState<"view" | "reply" | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
@@ -47,7 +56,7 @@ const InquiriesPageContent = () => {
         if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
         console.log("Fetched inquiries:", data);
-        // Map Prisma ContactUs to Inquiry shape
+
         type ContactUsRow = {
           id: number;
           name: string;
@@ -59,6 +68,7 @@ const InquiriesPageContent = () => {
           status: string;
           createdAt: string;
         };
+
         const mapped: Inquiry[] = (data as ContactUsRow[]).map((d) => ({
           id: d.id,
           FullName: d.name,
@@ -68,24 +78,20 @@ const InquiriesPageContent = () => {
             d.userType.charAt(0).toUpperCase() +
             d.userType.slice(1).toLowerCase(),
           Type: d.Type
-            ? d.Type.split("_") // split into words
+            ? d.Type.split("_")
                 .map(
                   (word) =>
                     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                 )
-                .join(" ") // join back as normal text
+                .join(" ")
             : "",
-
           Email: d.email,
           Date: new Date(d.createdAt).toISOString().split("T")[0],
           Message: d.message,
         }));
         setInquiriesData(mapped);
-        // console.log("Mapped inquiries:", mapped);
       } catch (err) {
         console.error(err);
-        // fallback to dummy
-        // setInquiriesData(dummyData);
       } finally {
         setLoading(false);
       }
@@ -118,7 +124,7 @@ const InquiriesPageContent = () => {
   const handleResolve = (row: Inquiry) => {
     setSelectedInquiry(row);
     setReplySubject(`Re: ${row.Subject}`);
-    setReplyBody(`Hello ${row.FullName},\n\n`);
+    setReplyBody(`Hello ${row.FullName},\n\nThank you for contacting us. `);
     setModalType("reply");
   };
 
@@ -139,20 +145,17 @@ const InquiriesPageContent = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
 
-      // Update local status
       setInquiriesData((prev) =>
         prev.map((i) =>
           i.id === selectedInquiry.id ? { ...i, Status: "Reviewed" } : i
         )
       );
 
-      // Reset modal and fields
       setModalType(null);
       setSelectedInquiry(null);
       setReplySubject("");
       setReplyBody("");
 
-      //  SweetAlert2 success popup
       Swal.fire({
         icon: "success",
         title: "Reply Sent",
@@ -161,8 +164,6 @@ const InquiriesPageContent = () => {
       });
     } catch (err) {
       console.error(err);
-
-      // ❌ SweetAlert2 error popup
       Swal.fire({
         icon: "error",
         title: "Failed",
@@ -178,37 +179,50 @@ const InquiriesPageContent = () => {
     setSelectedStatus("");
   };
 
-  return (
-    <div className="p-4 space-y-4">
-      <SearchFilter
-        onSearchChange={setSearchTerm}
-        onRoleChange={setSelectedRole}
-        onStatusChange={setSelectedStatus}
-        onDateChange={() => {}}
-        onClearFilters={handleClearFilters}
-        config={{
-          SearchBarCss: "min-w-[350px] sm:min-w-[400px]",
-          showAddButton: false,
-          searchPlaceholder: "Search by name or subject or request type...",
-          addButtonText: "",
-          statusOptions: [
-            { value: "", label: "Status" },
-            { value: "Pending", label: "Pending" },
-            { value: "Reviewed", label: "Reviewed" },
-          ],
-          roleOptions: [
-            { value: "", label: "Role" },
-            { value: "Driver", label: "Driver" },
-            { value: "Parent", label: "Parent" },
-            { value: "Guest", label: "Guest" },
-            { value: "Van Owner", label: "Van Owner" },
-          ],
-        }}
-      />
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0099cc]"></div>
+      </div>
+    );
+  }
 
-      {loading ? (
-        <div className="text-center py-10">Loading inquiries...</div>
-      ) : (
+  return (
+    <div className="space-y-6">
+      {/* Header Card */}
+
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-5">
+        {/* Search and Filter */}
+
+        <SearchFilter
+          onSearchChange={setSearchTerm}
+          onRoleChange={setSelectedRole}
+          onStatusChange={setSelectedStatus}
+          onDateChange={() => {}}
+          onClearFilters={handleClearFilters}
+          config={{
+            SearchBarCss: "min-w-[350px] sm:min-w-[400px]",
+            showAddButton: false,
+            searchPlaceholder: "Search by name, subject, or request type...",
+            addButtonText: "",
+            statusOptions: [
+              { value: "", label: "All Status" },
+              { value: "Pending", label: "Pending" },
+              { value: "Reviewed", label: "Reviewed" },
+            ],
+            roleOptions: [
+              { value: "", label: "All Roles" },
+              { value: "Driver", label: "Driver" },
+              { value: "Parent", label: "Parent" },
+              { value: "Guest", label: "Guest" },
+              { value: "Van Owner", label: "Van Owner" },
+            ],
+          }}
+        />
+      </div>
+
+      {/* Data Table Card */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         <DataTable
           columns={columns}
           data={filteredData}
@@ -227,129 +241,154 @@ const InquiriesPageContent = () => {
             },
           ]}
         />
-      )}
+      </div>
 
       {/* View Inquiry Modal */}
       {selectedInquiry && modalType === "view" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0"
-            onClick={() => {
-              setModalType(null);
-              setSelectedInquiry(null);
-            }}
-          />
-
-          {/* Modal Content */}
-          <div className="relative z-10 w-full max-w-3xl bg-white rounded-lg shadow-xl p-10 animate-slideUp">
-            {/* Close Button (optional) */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100">
+            {/* Close Button */}
             <button
               onClick={() => {
                 setModalType(null);
                 setSelectedInquiry(null);
-                setReplySubject("");
-                setReplyBody("");
               }}
-              className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-[#0099cc] font-bold"
-              aria-label="Close"
+              className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              &times;
+              <X size={20} />
             </button>
 
             {/* Header */}
-            <h3 className="text-2xl font-semibold text-[#6a6c6c] mb-6 flex items-center gap-2">
-              <span className="text-[#0099cc]">📩</span> Inquiry Details
-            </h3>
-
-            {/* Inquiry Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm border-b pb-6 mb-6">
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold font-medium">
-                  Name:
-                </span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedInquiry.FullName}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold font-medium">
-                  Email:
-                </span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedInquiry.Email}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold font-medium">
-                  Role:
-                </span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedInquiry.Role}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold font-medium">
-                  Date:
-                </span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedInquiry.Date}
-                </span>
-              </div>
-              {/*  Request Type */}
-              <div className="flex justify-between">
-                <span className="text-[#0099cc] font-bold font-medium">
-                  Request Type:
-                </span>
-                <span className="font-semibold text-gray-900 text-right">
-                  {selectedInquiry.Type.charAt(0).toUpperCase() +
-                    selectedInquiry.Type.slice(1)}
-                </span>
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <MessageSquare className="w-6 h-6 text-[#0099cc]" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Inquiry Details
+                  </h3>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Complete inquiry information and message
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Subject */}
-            <div className="mb-2">
-              <h4 className="text-[#0099cc] font-bold font-medium mb-2">
-                Subject
-              </h4>
-              <div className="border rounded p-3 bg-gray-50 text-gray-800 text-sm whitespace-pre-line">
-                {selectedInquiry.Subject || "No subject provided."}
+            {/* Content */}
+            <div className="p-6">
+              {/* Inquiry Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <User className="w-4 h-4 text-[#0099cc]" />
+                    <h4 className="font-semibold text-gray-800">
+                      Contact Information
+                    </h4>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Name:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedInquiry.FullName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Email:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedInquiry.Email}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Role:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedInquiry.Role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Tag className="w-4 h-4 text-[#0099cc]" />
+                    <h4 className="font-semibold text-gray-800">
+                      Request Details
+                    </h4>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Date:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedInquiry.Date}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Type:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedInquiry.Type}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Status:</span>
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${selectedInquiry.Status}`}
+                      >
+                        {selectedInquiry.Status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            {/* Message */}
-            <div className="mb-6">
-              <h4 className="text-[#0099cc] font-bold font-medium mb-2">
-                Message
-              </h4>
-              <div className="border rounded p-4 bg-gray-50 text-gray-800 text-sm whitespace-pre-line">
-                {selectedInquiry.Message || "No message provided."}
+
+              {/* Subject */}
+              <div className="mb-6">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-[#0099cc]" />
+                  Subject
+                </h4>
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-gray-800">
+                  {selectedInquiry.Subject || "No subject provided"}
+                </div>
+              </div>
+
+              {/* Message */}
+              <div className="mb-6">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-[#0099cc]" />
+                  Message
+                </h4>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-gray-800 whitespace-pre-line">
+                  {selectedInquiry.Message || "No message provided"}
+                </div>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setModalType(null);
-                  setSelectedInquiry(null);
-                  setReplySubject("");
-                  setReplyBody("");
-                }}
-                className="px-5 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition font-semibold"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  setModalType("reply");
-                  setReplySubject(`Re: ${selectedInquiry.Subject}`);
-                  setReplyBody(`Hello ${selectedInquiry.FullName},\n\n`);
-                }}
-                className="px-5 py-2 bg-[#0099cc] hover:bg-[#007aaf] text-white rounded-md font-semibold transition"
-              >
-                Reply
-              </button>
+            {/* Footer */}
+            <div className="sticky bottom-0 left-0 bg-white py-4 px-6 border-t border-gray-100 rounded-b-xl">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setModalType(null);
+                    setSelectedInquiry(null);
+                  }}
+                  className="flex items-center gap-2 px-5 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 font-medium"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setModalType("reply");
+                    setReplySubject(`Re: ${selectedInquiry.Subject}`);
+                    setReplyBody(
+                      `Hello ${selectedInquiry.FullName},\n\nThank you for contacting us. `
+                    );
+                  }}
+                  className="flex items-center gap-2 px-5 py-2 text-white bg-[#0099cc] rounded-lg hover:bg-[#007bbd] transition-colors font-medium shadow-sm hover:shadow-md"
+                >
+                  <Mail className="w-4 h-4" />
+                  Reply to Inquiry
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -357,88 +396,106 @@ const InquiriesPageContent = () => {
 
       {/* Reply Modal */}
       {selectedInquiry && modalType === "reply" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0"
-            onClick={() => {
-              setModalType(null);
-              setSelectedInquiry(null);
-              setReplySubject("");
-              setReplyBody("");
-            }}
-          />
-
-          {/* Modal Content */}
-          <div className="relative z-10 w-full max-w-3xl bg-white rounded-lg shadow-xl p-8 animate-slideUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100">
             {/* Close Button */}
             <button
               onClick={() => {
                 setModalType(null);
                 setSelectedInquiry(null);
+                setReplySubject("");
+                setReplyBody("");
               }}
-              className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-[#0099cc] font-bold"
-              aria-label="Close"
+              className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              &times;
+              <X size={20} />
             </button>
 
             {/* Header */}
-            <h3 className="text-2xl font-semibold text-[#6a6c6c] mb-6">
-              Reply Email to Inquiry
-            </h3>
-
-            {/* Recipient */}
-            <p className="text-sm mb-4 text-gray-700">
-              <span className="font-bold font-medium text-[#0099cc]">To:</span>{" "}
-              {selectedInquiry.Email}
-            </p>
-
-            {/* Subject */}
-            <div className="mb-4">
-              <label className="block text-sm font-bold font-medium text-gray-700 mb-1">
-                Subject
-              </label>
-              <input
-                type="text"
-                value={replySubject}
-                onChange={(e) => setReplySubject(e.target.value)}
-                className="w-full border rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0099cc] transition"
-              />
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-green-100 rounded-xl">
+                  <Mail className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Send Reply
+                  </h3>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Compose and send response to inquiry
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Message */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold font-medium text-gray-700 mb-1">
-                Message
-              </label>
-              <textarea
-                rows={6}
-                value={replyBody}
-                onChange={(e) => setReplyBody(e.target.value)}
-                className="w-full border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0099cc] transition"
-              />
+            {/* Content */}
+            <div className="p-6">
+              {/* Recipient Info */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-[#0099cc] mb-6">
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-[#0099cc]" />
+                  <div>
+                    <p className="text-sm font-medium text-[#0099cc]">
+                      Replying to
+                    </p>
+                    <p className="text-sm text-[#0099cc]">
+                      {selectedInquiry.FullName} &lt;{selectedInquiry.Email}&gt;
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={replySubject}
+                  onChange={(e) => setReplySubject(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0099cc] focus:border-transparent transition-all"
+                  placeholder="Enter email subject..."
+                />
+              </div>
+
+              {/* Message */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Message
+                </label>
+                <textarea
+                  rows={8}
+                  value={replyBody}
+                  onChange={(e) => setReplyBody(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0099cc] focus:border-transparent transition-all resize-none"
+                  placeholder="Type your response message here..."
+                />
+              </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setModalType(null);
-                  setSelectedInquiry(null);
-                  setReplySubject("");
-                  setReplyBody("");
-                }}
-                className="px-5 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition font-semibold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={sendReply}
-                className="px-5 py-2 bg-[#0099cc] hover:bg-[#007aaf] text-white rounded-md font-semibold transition"
-              >
-                Send Reply
-              </button>
+            {/* Footer */}
+            <div className="sticky bottom-0 left-0 bg-white py-4 px-6 border-t border-gray-100 rounded-b-xl">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setModalType(null);
+                    setSelectedInquiry(null);
+                    setReplySubject("");
+                    setReplyBody("");
+                  }}
+                  className="flex items-center gap-2 px-5 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={sendReply}
+                  className="flex items-center gap-2 px-5 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm hover:shadow-md"
+                >
+                  <Mail className="w-4 h-4" />
+                  Send Reply
+                </button>
+              </div>
             </div>
           </div>
         </div>

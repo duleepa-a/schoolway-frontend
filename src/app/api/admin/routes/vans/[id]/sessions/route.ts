@@ -3,8 +3,11 @@ import prisma from "@/lib/prisma";
 
 // GET /api/admin/routes/vans/:id/sessions?date=YYYY-MM-DD
 // Returns TransportSession records for the provided van id and date (if given).
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
+// export async function GET(req: Request, { params }: { params: { id: string } }) {
+//   const { id } = params;
+export async function GET(req: Request, context: { params: { id: string } }) {
+  const { params } = context;
+  const { id } = await params; // ✅ correct
   try {
     const url = new URL(req.url);
     const dateParam = url.searchParams.get("date");
@@ -35,6 +38,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ sessions });
   } catch (error) {
     console.error("Error fetching sessions for van", id, error);
-    return NextResponse.json({ error: "Failed to fetch sessions" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch sessions" },
+      { status: 500 }
+    );
   }
 }
