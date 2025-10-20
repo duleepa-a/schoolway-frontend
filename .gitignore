@@ -45,10 +45,8 @@ next-env.d.ts
 /src/generated/*
 
 /prisma/migrations
-/prisma/schema.prisma
 /prisma/*
 
-/firebase-admin-key.json
 
 # Firebase Admin SDK
 # /config/firebase-admin.json
