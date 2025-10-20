@@ -60,11 +60,35 @@ export async function GET(
                   }
                 }
               }
+            },
+            Assistant: {
+              select: {
+                id: true,
+                name: true,
+                contact: true,
+                nic: true,
+                profilePic: true
+              }
             }
           }
         },
-        School: true,
-        UserProfile: true,
+        School: {
+          select: {
+            id: true,
+            schoolName: true,
+            address: true
+          }
+        },
+        UserProfile: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            mobile: true,
+            dp: true
+          }
+        }
       },
     });
 
