@@ -44,7 +44,7 @@ interface Van {
   hasDriver: boolean;
   hasAssistant: boolean;
   status: number;
-  assistant?: Assistant | null;
+  Assistant?: Assistant | null;
   driver?: Driver | null;
   hasRoute: boolean;
   routeAssigned: boolean;
@@ -502,7 +502,7 @@ const VanDetails = ({ van }: { van: Van }) => {
                         <div className="flex items-center space-x-4">
                           <div>
                             <Image
-                              src={localVan.assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
+                              src={localVan.Assistant?.profilePic || '/Images/male_pro_pic_placeholder.png'}
                               alt="Assistant"
                               width={50}
                               height={50}
@@ -510,9 +510,9 @@ const VanDetails = ({ van }: { van: Van }) => {
                             />
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{localVan.assistant?.name}</p>
-                            <p className="text-xs text-gray-500">NIC: {localVan.assistant?.nic}</p>
-                            <p className="text-xs text-gray-500">Contact: {localVan.assistant?.contact}</p>
+                            <p className="font-medium text-sm">{localVan.Assistant?.name}</p>
+                            <p className="text-xs text-gray-500">NIC: {localVan.Assistant?.nic}</p>
+                            <p className="text-xs text-gray-500">Contact: {localVan.Assistant?.contact}</p>
                           </div>
                         </div>
                         <div className='flex items-center justify-center'> 
