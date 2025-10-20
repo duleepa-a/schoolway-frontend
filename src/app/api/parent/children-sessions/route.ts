@@ -19,8 +19,8 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); // distance in km
 }
 
-const ETA_THRESHOLD_MINUTES = 5; // Trigger alert when ETA < 5 minutes
-const NOTIFICATION_COOLDOWN_MINUTES = 15;
+const ETA_THRESHOLD_MINUTES = 25; // Trigger alert when ETA < 5 minutes
+const NOTIFICATION_COOLDOWN_MINUTES = 5;
 
 export async function GET(req: NextRequest) {
   try {
@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
               const etaMinutes = distance / VAN_SPEED_KMPM;
               etaMap[childId] = Math.round(etaMinutes);
 
-              if (etaMap[childId] < ETA_THRESHOLD_MINUTES) {
+              if (etaMap[childId] <= ETA_THRESHOLD_MINUTES) {
                 const title = `Van for ${child.name} is almost there!`;
                 const message = `ETA: ${Math.round(etaMap[childId])} minutes`;
 
@@ -130,7 +130,8 @@ export async function GET(req: NextRequest) {
                       targetUserId: parentId,
                       title,
                       message,
-                      type: "REMINDER",
+                      type: "ALERT",
+                      createdAt : new Date()
                     },
                   });
                   console.log(`🔔 Alert created for ${child.name}`);
