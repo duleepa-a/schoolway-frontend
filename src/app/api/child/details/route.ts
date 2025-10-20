@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
                 email: true,
                 mobile: true,
                 dp: true,
-                vanService: {
+                VanService: {
                   select: {
                     id: true,
                     serviceName: true,
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
                 }
               }
             },
-            UserProfile_assignedDriverIdToUserProfile: {
+            UserProfile_Van_assignedDriverIdToUserProfile: {
               select: {
                 id: true,
                 firstname: true,
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
                 email: true,
                 mobile: true,
                 dp: true,
-                driverProfile: {
+                DriverProfile: {
                   select: {
                     id: true,
                     licenseId: true,
@@ -127,13 +127,13 @@ export async function GET(request: NextRequest) {
         seatingCapacity: child.Van.seatingCapacity,
         acCondition: child.Van.acCondition,
         photoUrl: child.Van.photoUrl,
-        vanService: child.Van.UserProfile?.vanService ? {
-          id: child.Van.UserProfile.vanService.id,
-          serviceName: child.Van.UserProfile.vanService.serviceName,
-          contactNo: child.Van.UserProfile.vanService.contactNo,
-          serviceRegNumber: child.Van.UserProfile.vanService.serviceRegNumber,
-          averageRating: child.Van.UserProfile.vanService.averageRating,
-          totalReviews: child.Van.UserProfile.vanService.totalReviews,
+        vanService: child.Van.UserProfile?.VanService ? {
+          id: child.Van.UserProfile.VanService.id,
+          serviceName: child.Van.UserProfile.VanService.serviceName,
+          contactNo: child.Van.UserProfile.VanService.contactNo,
+          serviceRegNumber: child.Van.UserProfile.VanService.serviceRegNumber,
+          averageRating: child.Van.UserProfile.VanService.averageRating,
+          totalReviews: child.Van.UserProfile.VanService.totalReviews,
           owner: {
             id: child.Van.UserProfile.id,
             firstname: child.Van.UserProfile.firstname,
@@ -143,25 +143,25 @@ export async function GET(request: NextRequest) {
             profilePicture: child.Van.UserProfile.dp
           }
         } : null,
-        driver: child.Van.UserProfile_assignedDriverIdToUserProfile ? {
-          id: child.Van.UserProfile_assignedDriverIdToUserProfile.id,
-          firstname: child.Van.UserProfile_assignedDriverIdToUserProfile.firstname,
-          lastname: child.Van.UserProfile_assignedDriverIdToUserProfile.lastname,
-          email: child.Van.UserProfile_assignedDriverIdToUserProfile.email,
-          mobile: child.Van.UserProfile_assignedDriverIdToUserProfile.mobile,
-          profilePicture: child.Van.UserProfile_assignedDriverIdToUserProfile.dp,
-          driverProfile: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile ? {
-            id: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.id,
-            licenseId: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.licenseId,
-            licenseExpiry: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.licenseExpiry,
-            startedDriving: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.startedDriving,
-            bio: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.bio,
-            languages: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.languages,
-            licenseType: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.licenseType,
-            averageRating: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.averageRating,
-            totalReviews: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.totalReviews,
-            experience: child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.startedDriving 
-              ? `${new Date().getFullYear() - new Date(child.Van.UserProfile_assignedDriverIdToUserProfile.driverProfile.startedDriving).getFullYear()} years`
+        driver: child.Van.UserProfile_Van_assignedDriverIdToUserProfile ? {
+          id: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.id,
+          firstname: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.firstname,
+          lastname: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.lastname,
+          email: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.email,
+          mobile: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.mobile,
+          profilePicture: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.dp,
+          driverProfile: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile ? {
+            id: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.id,
+            licenseId: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.licenseId,
+            licenseExpiry: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.licenseExpiry,
+            startedDriving: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.startedDriving,
+            bio: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.bio,
+            languages: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.languages,
+            licenseType: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.licenseType,
+            averageRating: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.averageRating,
+            totalReviews: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.totalReviews,
+            experience: child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.startedDriving 
+              ? `${new Date().getFullYear() - new Date(child.Van.UserProfile_Van_assignedDriverIdToUserProfile.DriverProfile.startedDriving).getFullYear()} years`
               : 'Not specified'
           } : null
         } : null

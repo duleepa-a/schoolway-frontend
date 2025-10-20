@@ -1,52 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// GET /api/vans/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id: idString } = await params;
-  const id = parseInt(idString);
+  try {
+    const id = parseInt(params.id);
 
-  if (isNaN(id)) {
-    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
-  }
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
 
-  const van = await prisma.van.findUnique({
-    where: { id },
-    include: {
-      assistant: true,
-      DriverVanJobRequests: {
-        where: {
-          status: 'ACCEPTED',
-        },
-        include: {
-          UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
+    const van = await prisma.van.findUnique({
+      where: { id },
+      include: {
+        Assistant: true,
+        DriverVanJobRequest: {
+          where: { status: 'ACCEPTED' },
+          include: {
+            UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!van) {
-    return NextResponse.json({ error: 'Van not found' }, { status: 404 });
+    if (!van) {
+      return NextResponse.json({ error: 'Van not found' }, { status: 404 });
+    }
+
+    const driverRequest = van.DriverVanJobRequest[0];
+    const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
+
+    const transformedVan = {
+      ...van,
+      driver,
+      hasRoute: !!van.Path,
+      routeAssigned: !!van.pathId && !!van.Path,
+    };
+
+    return NextResponse.json(transformedVan);
+  } catch (error) {
+    console.error('Error fetching van:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  // Extract driver info from the first accepted request
-  const driverRequest = van.DriverVanJobRequests[0]; // assuming only one accepted at a time
-
-  const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
-
-  return NextResponse.json({
-    ...van,
-    driver, 
-  });
 }
 
-
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// PUT /api/vans/[id]
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id: idString } = await params;
-    const id = Number(idString);
+    const id = Number(params.id);
     const data = await req.json();
 
     const updatedVan = await prisma.van.update({

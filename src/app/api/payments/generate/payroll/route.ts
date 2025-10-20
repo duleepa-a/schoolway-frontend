@@ -32,6 +32,15 @@ export async function POST() {
       const systemFee = (SYSTEM_FEE_PERCENT / 100) * payment.amount;
       const remaining = payment.amount - systemFee;
 
+
+      await prisma.payment.update({
+        where : { id : payment.id},
+        data: {
+          systemFee : systemFee,
+          systemFeePercentage : SYSTEM_FEE_PERCENT,
+        }
+      })
+
       // Driver share
       const driverShare = (payment.salaryPercentageForDriver / 100) * remaining;
       const ownerShare = remaining - driverShare;

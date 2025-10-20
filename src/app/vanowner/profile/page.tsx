@@ -1,19 +1,14 @@
 import React from 'react'
-import {FaBell, FaMoon } from 'react-icons/fa';
-import Image from 'next/image';
 import TopBar from '@/app/dashboardComponents/TopBar';
 import ProfileDetailForm from './profileDetailForm';
 
-const profilePage = () => {
+const ProfilePage = async () => {
   return (
     <section className="p-6 md:p-10 min-h-screen w-full">
-
       <TopBar heading='My Profile'/>        
-
-      <ProfileDetailForm/>
-
+      <ProfileDetailForm />
     </section>
   )
 }
 
-export default profilePage
+export default ProfilePage

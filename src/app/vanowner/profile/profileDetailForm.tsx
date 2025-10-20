@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Edit2, Save, X, Camera, User} from 'lucide-react';
 import Image from 'next/image';
 import FormInput from '../../components/FormInput';
+import AddBankDetailsForm from './addBankDetailsForm';
 
 interface data{
   firstname: string;
@@ -160,7 +161,8 @@ const ProfileDetailForm = () => {
 
       alert('Password updated successfully!');
       setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
-    } catch (error) {
+    } catch {
+      // Ignore the actual error and just show a generic message
       alert('Something went wrong.');
     }
   };
@@ -187,6 +189,16 @@ const ProfileDetailForm = () => {
           }`}
         >
           Security
+        </button>
+        <button
+          onClick={() => setActiveTab('bankDetails')}
+          className={`pb-2 font-semibold cursor-pointer transition-colors duration-200
+            ${activeTab === 'bankDetails'
+              ? 'border-b-4 border-[var(--blue-shade-dark)] text-[var(--blue-shade-dark)]'
+              : 'text-[var(--color-inactive-text)]'
+          }`}
+        >
+          Bank Details
         </button>
       </div>
 
@@ -420,6 +432,10 @@ const ProfileDetailForm = () => {
             </div>
           </div>
         </>
+      )}
+
+      {activeTab === 'bankDetails' && (
+        <AddBankDetailsForm />
       )}
       </div>
   );
