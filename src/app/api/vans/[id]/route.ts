@@ -38,10 +38,13 @@ export async function GET(
       where: { id },
       include: {
         Assistant: true,
-        DriverVanJobRequest: {
-          where: { status: 'ACCEPTED' },
-          include: {
-            UserProfile_DriverVanJobRequest_driverIdToUserProfile: true,
+        UserProfile_Van_assignedDriverIdToUserProfile: {
+          select: {
+            firstname: true,
+            lastname: true,
+            nic: true,
+            mobile: true,
+            dp: true,
           },
         },
       },
@@ -114,8 +117,8 @@ export async function GET(
       }
     }
 
-    const driverRequest = van.DriverVanJobRequest[0];
-    const driver = driverRequest?.UserProfile_DriverVanJobRequest_driverIdToUserProfile;
+    // Driver data is already fetched from UserProfile_Van_assignedDriverIdToUserProfile
+    // No need to access DriverVanJobRequest anymore
 
     // Determine route status
     const hasRoute = !!pathData && (!!pathData.routeStart || !!pathData.routeEnd);
@@ -130,13 +133,22 @@ export async function GET(
       isEmpty: !pathData || (!pathData.routeStart && !pathData.routeEnd && (!pathData.WayPoint || pathData.WayPoint.length === 0))
     };
 
+    // Transform driver data to match expected format
+    const transformedDriver = van.UserProfile_Van_assignedDriverIdToUserProfile ? {
+      firstname: van.UserProfile_Van_assignedDriverIdToUserProfile.firstname || '',
+      lastname: van.UserProfile_Van_assignedDriverIdToUserProfile.lastname || '',
+      nic: van.UserProfile_Van_assignedDriverIdToUserProfile.nic || '',
+      mobile: van.UserProfile_Van_assignedDriverIdToUserProfile.mobile || '',
+      dp: van.UserProfile_Van_assignedDriverIdToUserProfile.dp || '',
+    } : null;
+
     const transformedVan = {
       ...van,
       Path: pathData,
-      driver,
+      driver: transformedDriver,
       hasRoute,
       routeAssigned,
-      routeStatus, // Add this
+      routeStatus,
     };
 
     console.log('✓ Fetched van:', {
@@ -146,6 +158,8 @@ export async function GET(
       pathId: transformedVan.pathId,
       routeStatus: transformedVan.routeStatus
     });
+
+    console.log('Van details:', JSON.stringify(transformedVan, null, 2));
     
     return NextResponse.json(transformedVan);
   } catch (error) {
