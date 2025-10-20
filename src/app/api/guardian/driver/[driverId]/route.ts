@@ -21,33 +21,38 @@ export async function GET(req: Request, { params }: { params: { driverId: string
       return NextResponse.json({ success: false, message: "Guardian not found" }, { status: 404 });
     }
 
-    // 🚐 Get driver's active EVENING_DROPOFF session
+    // 🚐 Get driver's active EVENING_DROPOFF session : for demo lehan put all route types
     const sessionData = await prisma.transportSession.findFirst({
       where: {
         driverId: params.driverId,
-        routeType: "EVENING_DROPOFF",
+        routeType: { in: ["MORNING_PICKUP", "EVENING_DROPOFF", "BOTH"] },
         status: { in: ["ACTIVE", "PENDING"] },
       },
       orderBy: { createdAt: "desc" },
       include: {
-        sessionStudents: {
+        SessionStudent: {
           include: {
-            child: {
+            Child: {
               include: {
-                School: { select: { id: true, schoolName: true } },
+                School: {
+                  select: {
+                    id: true,
+                    schoolName: true,
+                  },
+                },
                 Gate: true,
               },
             },
           },
         },
-        van: {
+        Van: {
           select: {
             registrationNumber: true,
             makeAndModel: true,
             photoUrl: true,
           },
         },
-        driver: {
+        UserProfile: {
           select: {
             firstname: true,
             lastname: true,
@@ -66,21 +71,21 @@ export async function GET(req: Request, { params }: { params: { driverId: string
     }
 
     // 🎯 Filter children belonging to guardian's school
-    const filteredStudents = sessionData.sessionStudents
-      .filter((ss) => ss.child.schoolID === guardian.schoolId)
-      .map((ss) => ({
-        id: ss.child.id,
-        name: ss.child.name,
-        grade: ss.child.grade,
-        gate: ss.child.Gate?.gateName || "N/A",
-        pickupAddress: ss.child.pickupAddress,
-        profilePicture: ss.child.profilePicture,
-      }));
-
+    const filteredStudents = sessionData.SessionStudent.filter(
+      (ss) => ss.Child.schoolID === guardian.schoolId
+    ).map((ss) => ({
+      id: ss.Child.id,
+      name: ss.Child.name,
+      grade: ss.Child.grade,
+      gate: ss.Child.Gate?.gateName || "N/A",
+      pickupAddress: ss.Child.pickupAddress,
+      profilePicture: ss.Child.profilePicture,
+    }));
+    console.log("✅ Fetched driver info successfully.", sessionData);
     return NextResponse.json({
       success: true,
-      driver: sessionData.driver,
-      van: sessionData.van,
+      driver: sessionData.UserProfile,
+      van: sessionData.Van,
       students: filteredStudents,
     });
   } catch (error) {
