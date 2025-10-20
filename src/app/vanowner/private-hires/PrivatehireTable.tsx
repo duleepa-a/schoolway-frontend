@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaEllipsisV, FaChevronDown } from 'react-icons/fa';
 import { GoogleMap, Marker, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import Image from 'next/image';
 
 function RouteMap({ pickup, destination }) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -226,14 +227,39 @@ function PrivatehireTable() {
                                 setAcceptMsg('Failed to accept hire.');
                                 setTimeout(() => setAcceptMsg(''), 2000);
                               }
-                            } catch (err) {
+                            } catch (error) {
+                              console.error('Error accepting hire:', error);
                               setAcceptMsg('Error accepting hire.');
                               setTimeout(() => setAcceptMsg(''), 2000);
                             }
                             setActionMenuIndex(null);
                           }}>Accept</button>
                         <button className="px-4 py-2 text-left hover:bg-gray-100 text-red-500 font-semibold"
-                          onClick={() => { alert('Rejected!'); setActionMenuIndex(null); }}>Reject</button>
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/vanowner/private-hires/${hire.id}/reject-hire`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: hire.id })
+                              });
+                              if (res.ok) {
+                                // Update the hire status in the state
+                                setHires(prev => prev.map(h => 
+                                  h.id === hire.id ? { ...h, status: 'rejected' } : h
+                                ));
+                                setAcceptMsg('Hire rejected successfully!');
+                                setTimeout(() => setAcceptMsg(''), 2000);
+                              } else {
+                                setAcceptMsg('Failed to reject hire.');
+                                setTimeout(() => setAcceptMsg(''), 2000);
+                              }
+                            } catch (error) {
+                              console.error('Error rejecting hire:', error);
+                              setAcceptMsg('Error rejecting hire.');
+                              setTimeout(() => setAcceptMsg(''), 2000);
+                            }
+                            setActionMenuIndex(null);
+                          }}>Reject</button>
                         <button className="px-4 py-2 text-left hover:bg-gray-100 text-blue-600 font-semibold"
                           onClick={() => { setSelectedHire(hire); setShowModal(true); setActionMenuIndex(null); }}>Show Details</button>
                       </div>
@@ -297,7 +323,15 @@ function PrivatehireTable() {
                 <strong>User Info:</strong>
                 <div className="flex items-center gap-3 mt-1">
                   {selectedHire.UserProfile?.dp && (
-                    <img src={selectedHire.UserProfile.dp} alt="User DP" className="w-10 h-10 rounded-full border" />
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden border">
+                      <Image 
+                        src={selectedHire.UserProfile.dp}
+                        alt="User DP"
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    </div>
                   )}
                   <div>
                     <div>{selectedHire.UserProfile?.firstname} {selectedHire.UserProfile?.lastname}</div>
@@ -338,7 +372,8 @@ function PrivatehireTable() {
                       }
                       setSelectedHire({ ...selectedHire, fare: finalFare });
                       setFareUpdateMsg('Fare updated successfully');
-                    } catch (err) {
+                    } catch (error) {
+                      console.error('Error updating fare:', error);
                       setFareUpdateMsg('Error updating fare');
                     }
                   }}

@@ -402,7 +402,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             <p className='text-sm'><span className="font-medium">Salary Percentage</span><span className="text-active-text"> {localVan.salaryPercentage} %</span></p>
           </div>
         </div>
-        <div>
+        {/* <div>
           <h3 className="text-lg font-semibold mb-2 text-gray-900">Actions</h3>
           <div className="relative">
             <ul>
@@ -410,7 +410,7 @@ const VanDetails = ({ van }: { van: Van }) => {
             </ul>
             
           </div>
-        </div>
+        </div> */}
       </div>
       <div className='col-span-2 space-y-2'>
           {/* Driver & Assistant */}
@@ -694,23 +694,8 @@ const VanDetails = ({ van }: { van: Van }) => {
         </div>
       )}
 
-      {/* Add Route Modal */}
-      {isRouteModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-[95%] max-w-5xl shadow-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Add New Route</h2>
-              <button
-                onClick={() => setIsRouteModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
-              >
-                ×
-              </button>
-            </div>
-            <AddRoute />
-          </div>
-        </div>
-      )}
+      {/* Add Route Modal - Using showAddRoute state */}
+      {/* Note: We're now handling this with showAddRoute at the top of the component */}
 
 
     </div>
