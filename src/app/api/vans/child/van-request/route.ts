@@ -36,6 +36,7 @@ export async function POST(req: Request) {
         vanId: vanID,
         childId: childID,
         estimatedFare: estimatedFareNum,
+        updatedAt: new Date(),
       },
     });
 
