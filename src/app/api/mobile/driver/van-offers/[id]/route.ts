@@ -22,7 +22,7 @@ export async function GET(
       where: {
         id: driverId,
         role: 'DRIVER',
-        driverProfile: {
+        DriverProfile: {
           isNot: null
         }
       }
@@ -126,7 +126,7 @@ export async function POST(
       where: {
         id: driverId,
         role: 'DRIVER',
-        driverProfile: {
+        DriverProfile: {
           isNot: null
         }
       }

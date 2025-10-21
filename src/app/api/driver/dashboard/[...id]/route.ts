@@ -101,18 +101,21 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
 
     let hasSessionDue = true;
 
-    const createdAt = new Date(recentSessions[0].createdAt);
+    if (recentSessions.length > 0) {
+      const latestSession = recentSessions[0];
+      const createdAt = new Date(latestSession.createdAt);
 
-    if (
-      recentSessions[0].routeType === routeType &&
-      recentSessions[0].status === "COMPLETED" &&
-      createdAt.getDate() === now.getDate() &&
-      createdAt.getMonth() === now.getMonth() &&
-      createdAt.getFullYear() === now.getFullYear()
-    ) {
- 
-      hasSessionDue = false;
+      if (
+        latestSession.routeType === routeType &&
+        latestSession.status === "COMPLETED" &&
+        createdAt.getDate() === now.getDate() &&
+        createdAt.getMonth() === now.getMonth() &&
+        createdAt.getFullYear() === now.getFullYear()
+      ) {
+        hasSessionDue = false;
+      }
     }
+
 
     const recentActivity = recentSessions.map((s) => ({
       time: s.endedAt ?? s.startedAt ?? s.createdAt,
