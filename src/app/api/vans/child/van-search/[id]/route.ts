@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-const PROXIMITY_RADIUS_KM = 200; // Configurable proximity radius in km
+const PROXIMITY_RADIUS_KM = 100; // Configurable proximity radius in km
 
 // Helper function to calculate distance between two points (Haversine formula)
 function calculateDistance(
@@ -52,7 +52,7 @@ function isDirectionMatching(
 
   // Child pickup should be close to van's start, and school close to van's end
   // Allowing flexibility (within 10km each for general direction check)
-  return childPickupToVanStart <= 10 && schoolToVanEnd <= 10;
+  return childPickupToVanStart <= 100 && schoolToVanEnd <= 100;
 }
 
 // Helper function to check if van route is within proximity radius of both pickup and dropoff
