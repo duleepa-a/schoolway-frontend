@@ -15,7 +15,7 @@ interface User {
 }
 
 interface UseUsersProps {
-  userRole: 'driver' | 'parent' | 'van owner' | 'admin' | 'all';
+  userRole: 'driver' | 'parent' | 'van owner' | 'admin' | 'guardian' | 'all';
   searchTerm?: string;
   statusFilter?: string;
   roleFilter?: string;

@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Assistant {
-  id         String  @id
+  id         String  @id @default(cuid())
   name       String
   contact    String
   nic        String
@@ -67,7 +67,7 @@ model ContactUs {
 }
 
 model DriverProfile {
-  id             String      @id
+  id             String      @id @default(cuid())
   licenseId      String
   licenseExpiry  DateTime
   licenseFront   String?
@@ -92,7 +92,7 @@ model DriverProfile {
 }
 
 model DriverVanJobRequest {
-  id                                                      String           @id
+  id                                                      String           @id @default(cuid())
   driverId                                                String
   vanId                                                   Int
   vanOwnerId                                              String
@@ -132,7 +132,7 @@ model Gate {
 }
 
 model Path {
-  id                String                  @id
+  id                String                  @id @default(cuid())
   routeStart        Unsupported("geometry")
   routeEnd          Unsupported("geometry")
   routeGeometry     Unsupported("geometry")
@@ -171,7 +171,7 @@ model Payment {
 }
 
 model PrivateHire {
-  id             String      @id
+  id             String      @id @default(cuid())
   userId         String
   vanId          Int?
   pickupLat      Float
@@ -223,7 +223,7 @@ model SchoolGuardian {
 }
 
 model UserProfile {
-  id                                                              String                @id
+  id                                                              String                @id @default(cuid())
   email                                                           String                @unique
   firstname                                                       String?
   createdAt                                                       DateTime              @default(now())
@@ -300,7 +300,7 @@ model Van {
 }
 
 model VanRequest {
-  id            String        @id
+  id            String       @id @default(cuid())
   vanId         Int
   childId       Int           @unique
   status        RequestStatus @default(PENDING)
@@ -312,7 +312,7 @@ model VanRequest {
 }
 
 model VanService {
-  id               String      @id
+  id               String      @id @default(cuid())
   serviceName      String
   contactNo        String
   serviceRegNumber String
@@ -342,7 +342,7 @@ model WayPoint {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model spatial_ref_sys {
-  srid      Int     @id
+  srid      Int     @id @default(autoincrement())
   auth_name String? @db.VarChar(256)
   auth_srid Int?
   srtext    String? @db.VarChar(2048)
@@ -364,7 +364,7 @@ model Payroll {
 }
 
 model Review {
-  id          String      @id
+  id          String      @id @default(cuid())
   childId     Int
   reviewType  ReviewType
   targetId    String
@@ -451,7 +451,7 @@ model LocationHistory {
 }
 
 model AwarenessPost {
-  id             String      @id
+  id             String      @id @default(cuid())
   title          String
   content        String
   imageUrl       String?
@@ -499,7 +499,7 @@ enum NotificationType {
 
 
 model BankAccount {
-  id          String      @id
+  id          String      @id @default(cuid())
   userId      String      @unique
   accountNo   String
   accountName String

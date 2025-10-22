@@ -285,15 +285,15 @@ const AssignDriver = () => {
                                 <div className="flex space-x-2 mt-4">
                                     <button
                                         className={`flex-1 ${
-                                            driver.hasVan === true 
+                                            driver.hasVan === 1 
                                             ? 'btn-secondary bg-gray-900 text-white hover:bg-gray-800 justify-center' // Changed to black style
                                             : 'btn-primary'
                                         } text-xs py-2 px-2 rounded-lg min-w-[90px]`}
                                         onClick={() => handleAssignDriver(driver.id, driver.name)}
-                                        disabled={driver.hasVan === true}
-                                        title={driver.hasVan === true ? 'Driver already has a van assigned' : 'Request this driver'}
+                                        disabled={driver.hasVan === 1}
+                                        title={driver.hasVan === 1 ? 'Driver already has a van assigned' : 'Request this driver'}
                                     >
-                                        {driver.hasVan === true ? 'Has Van' : 'Request Driver'} {/* Changed button text */}
+                                        {driver.hasVan === 1 ? 'Has Van' : 'Request Driver'} {/* Changed button text */}
                                     </button>
                                     <Link href={`/vanowner/vehicles/driver/details/${driver.id}${driver.id ? `?vanId=${vanId}&vanMakeAndModel=${vanMakeAndModel ?? ''}` : ''}`} className="flex-1">
                                         <button className="btn-secondary text-xs py-2 px-2 rounded-lg min-w-[90px] w-full justify-center">

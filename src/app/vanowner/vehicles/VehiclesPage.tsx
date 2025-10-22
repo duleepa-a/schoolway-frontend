@@ -328,7 +328,7 @@ const VehiclesPage = ({ serverSession }: Props) => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 mt-2">
-                    <FormInput label="School Van Rating - Per Km (Rs)" name="studentRating" type="number" value={formData.studentRating} onChange={handleInputChange} placeholder="15" error={errors.studentRating} />
+                    <FormInput label="School Van Rating - Per Km Per Month(Rs)" name="studentRating" type="number" value={formData.studentRating} onChange={handleInputChange} placeholder="15" error={errors.studentRating} />
                     <FormInput label="Private Hire Rating - Per Km (Rs)" name="privateRating" type="number" value={formData.privateRating} onChange={handleInputChange} placeholder="15" error={errors.privateRating} />
                   </div>
 

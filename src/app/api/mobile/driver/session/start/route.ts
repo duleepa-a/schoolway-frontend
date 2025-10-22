@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // Determine route type based on current time
     const now = new Date();
     const currentHour = now.getHours();
-    const routeType: RouteType = currentHour < 10 ? 'MORNING_PICKUP' : 'EVENING_DROPOFF';
+    const routeType: RouteType = currentHour < 11 ? 'MORNING_PICKUP' : 'EVENING_DROPOFF';
 
     const newd = new Date(now.toLocaleDateString())
     console.log("now",now);

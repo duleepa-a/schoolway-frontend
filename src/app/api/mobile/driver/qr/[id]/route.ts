@@ -17,9 +17,16 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     }
 
     // If QR code is not stored yet, generate it
-    if (!driverProfile.Qrcode) {
-      const qrUrl = `http://localhost:3000/guardian/driverInfo/${driverProfile.userId}`;
-      const qrDataUrl = await QRCode.toDataURL(qrUrl);
+    if (
+        driverProfile.Qrcode?.startsWith('LO') || driverProfile.Qrcode?.startsWith('DE') || !driverProfile.Qrcode
+    )
+    {
+
+      const baseUrl = (driverProfile.Qrcode?.startsWith('DE') || process.env.NODE_ENV === 'production' )
+          ? 'https://schoolway-frontend.vercel.app/guardian/driverInfo/'
+          : 'http://localhost:3000/guardian/driverInfo/';
+
+      const qrDataUrl = await QRCode.toDataURL(baseUrl + driverProfile.userId.toString());
 
       const updatedDriver = await prisma.driverProfile.update({
         where: { id: driverProfile.id },

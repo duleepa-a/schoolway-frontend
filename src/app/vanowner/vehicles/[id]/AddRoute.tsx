@@ -22,70 +22,69 @@ interface AddRouteProps {
 }
 
 const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
+  // Move all refs to the top
+  const startInputRef = useRef<HTMLInputElement>(null);
+  const endInputRef = useRef<HTMLInputElement>(null);
+
   const [routeStart, setRouteStart] = useState<Location | null>(null);
   const [routeEnd, setRouteEnd] = useState<Location | null>(null);
   const [path, setPath] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Refs for input fields to set values programmatically
-  const startInputRef = useRef<HTMLInputElement>(null);
-  const endInputRef = useRef<HTMLInputElement>(null);
-
-
-    useEffect(() => {
-      async function fetchPath() {
-        setLoading(true);
-        try {
-          const res = await fetch(`/api/vans/${vehicleId}/path`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data) {
-              setPath(data);
-              console.log('Fetched path data:', data);
-              
-              // Set route start and end points
-              if (data.routeStart) {
-                setRouteStart(data.routeStart);
-                if (startInputRef.current) {
-                  // You'll need to reverse geocode to get the address
-                  reverseGeocode(data.routeStart, startInputRef);
-                }
-              }
-              
-              if (data.routeEnd) {
-                setRouteEnd(data.routeEnd);
-                if (endInputRef.current) {
-                  // You'll need to reverse geocode to get the address
-                  reverseGeocode(data.routeEnd, endInputRef);
-                }
-              }
-              
-              // Transform WayPoint data to match waypoint interface
-              if (Array.isArray(data.WayPoint) && data.WayPoint.length > 0) {
-                const transformedWaypoints = data.WayPoint.map(wp => ({
-                  name: wp.name,
-                  placeId: wp.placeId,
-                  latitude: wp.latitude,
-                  longitude: wp.longitude,
-                  order: wp.order,
-                  isStop: wp.isStop
-                }));
-                
-                setWaypoints(transformedWaypoints);
+  useEffect(() => {
+    async function fetchPath() {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/vans/${vehicleId}/path`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            setPath(data);
+            console.log('Fetched path data:', data);
+            
+            // Set route start and end points
+            if (data.routeStart) {
+              setRouteStart(data.routeStart);
+              if (startInputRef.current) {
+                // You'll need to reverse geocode to get the address
+                reverseGeocode(data.routeStart, startInputRef);
               }
             }
+            
+            if (data.routeEnd) {
+              setRouteEnd(data.routeEnd);
+              if (endInputRef.current) {
+                // You'll need to reverse geocode to get the address
+                reverseGeocode(data.routeEnd, endInputRef);
+              }
+            }
+            
+            // Transform WayPoint data to match waypoint interface
+            if (Array.isArray(data.WayPoint) && data.WayPoint.length > 0) {
+              const transformedWaypoints = data.WayPoint.map(wp => ({
+                name: wp.name,
+                placeId: wp.placeId,
+                latitude: wp.latitude,
+                longitude: wp.longitude,
+                order: wp.order,
+                isStop: wp.isStop
+              }));
+              
+              setWaypoints(transformedWaypoints);
+            }
           }
-        } catch (error) {
-          console.error('Error fetching path:', error);
-        } finally {
-          setLoading(false);
         }
+      } catch (error) {
+        console.error('Error fetching path:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      if (vehicleId) {
-        fetchPath();
-      }
-    }, [vehicleId]);
+    }
+    
+    if (vehicleId) {
+      fetchPath();
+    }
+  }, [vehicleId]);
 
   type Waypoint = {
     name: string;
@@ -115,7 +114,7 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
 
     const newWaypoint: Waypoint = {
       name: place.name,
-      placeId: place.place_id,
+      placeId: place.place_id, // Ensure this matches your DB schema
       latitude: place.geometry.location.lat(),
       longitude: place.geometry.location.lng(),
       order: waypoints.length + 1,
@@ -156,15 +155,24 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
         [routeEnd.lng, routeEnd.lat] // End point
       ];
 
+      // Ensure waypoints are properly formatted with correct order
+      const formattedWaypoints = waypoints.map((wp, index) => ({
+        name: wp.name.trim(),
+        placeId: wp.placeId ? String(wp.placeId) : null,
+        latitude: Number(wp.latitude),
+        longitude: Number(wp.longitude),
+        order: index + 1,  // Ensure order starts from 1
+        isStop: Boolean(wp.isStop)
+      }));
+
       const body = {
-        routeStart: { lat: routeStart.lat, lng: routeStart.lng },
-        routeEnd: { lat: routeEnd.lat, lng: routeEnd.lng },
+        routeStart: { lat: Number(routeStart.lat), lng: Number(routeStart.lng) },
+        routeEnd: { lat: Number(routeEnd.lat), lng: Number(routeEnd.lng) },
         routeGeometry,
-        waypoints: waypoints.map((wp, index) => ({
-          ...wp,
-          order: index + 1
-        }))
+        waypoints: formattedWaypoints
       };
+
+      console.log('📤 Submitting route with waypoints:', JSON.stringify(body, null, 2));
 
       const res = await fetch(`/api/vans/${vehicleId}/path`, {
         method: 'POST',
@@ -173,22 +181,23 @@ const AddRoute = ({ vehicleId, onClose, isLoaded }: AddRouteProps) => {
       });
 
       if (res.ok) {
-        alert('Route created successfully!');
-        // Reset form
+        const responseData = await res.json();
+        console.log('✓ Route creation successful:', responseData);
+        alert('Route created successfully with ' + waypoints.length + ' waypoints!');
         setRouteStart(null);
         setRouteEnd(null);
         setWaypoints([]);
-        // Close the modal if onClose is provided
         if (onClose) {
           onClose();
         }
       } else {
         const errorData = await res.json();
         setError(errorData.error || 'Failed to create route');
+        console.error('✗ API error:', errorData);
       }
     } catch (error) {
       setError('An unexpected error occurred');
-      console.error('Error creating route:', error);
+      console.error('✗ Error creating route:', error);
     } finally {
       setIsSubmitting(false);
     }

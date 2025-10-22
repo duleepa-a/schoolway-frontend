@@ -1,7 +1,6 @@
 "use client";
 import  { useState }  from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Client } from '@neondatabase/serverless';
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 

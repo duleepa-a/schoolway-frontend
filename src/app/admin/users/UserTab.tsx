@@ -12,7 +12,7 @@ import VansViewModal from './components/VansViewModal';
 import { useUsers } from '@/hooks/useUsers';
 
 interface UserTabProps {
-  userRole: 'driver' | 'parent' | 'van owner' | 'admin';
+  userRole: 'driver' | 'parent' | 'van owner' | 'admin' | 'guardian';
   tabTitle: string;
 }
 
@@ -117,6 +117,13 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
       type: 'text' as const,
       required: false,
       placeholder: 'Enter service name'
+    }] : []),
+    ...(userRole === 'guardian' ? [{
+      name: 'SchoolName',
+      label: 'School Name',
+      type: 'text' as const,
+      required: false,
+      placeholder: 'Enter school name'
     }] : [])
   ];
 
@@ -328,6 +335,14 @@ const UserTab = ({ userRole, tabTitle }: UserTabProps) => {
     { key: "Mobile", label: "Phone" },
     { key: "NIC", label: "NIC" },
     { key: "Vans", label: "Vans" },
+    { key: "Actions", label: "Actions" },
+  ] : userRole === 'guardian' ? [
+    { key: "ProfilePicture", label: "Photo" },
+    { key: "Name", label: "Name" },
+    { key: "Email", label: "Email" },
+    { key: "Mobile", label: "Phone" },
+    { key: "NIC", label: "NIC" },
+    { key: "SchoolName", label: "School" },
     { key: "Actions", label: "Actions" },
   ] : [
     { key: "ProfilePicture", label: "Photo" },

@@ -9,6 +9,7 @@ interface Guardian {
   lastName: string;
   email: string;
   phone?: string;
+  nic?: string;
   schoolId: number;
 }
 
@@ -23,7 +24,8 @@ const EditGuardianModal = ({ guardian, onClose, onSuccess }: EditGuardianModalPr
     firstName: guardian.firstName,
     lastName: guardian.lastName,
     email: guardian.email,
-    phone: guardian.phone || ''
+    phone: guardian.phone || '',
+    nic: guardian.nic || ''
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -57,16 +59,8 @@ const EditGuardianModal = ({ guardian, onClose, onSuccess }: EditGuardianModalPr
       return;
     }
     
-    if (!formData.email.trim()) {
-      setConfirmationMessage('Email is required');
-      setShowErrorConfirmation(true);
-      return;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setConfirmationMessage('Please enter a valid email address');
+    if (!formData.nic.trim()) {
+      setConfirmationMessage('NIC is required');
       setShowErrorConfirmation(true);
       return;
     }
@@ -85,6 +79,7 @@ const EditGuardianModal = ({ guardian, onClose, onSuccess }: EditGuardianModalPr
           lastName: formData.lastName,
           email: formData.email,
           phone: formData.phone,
+          nic: formData.nic,
           schoolId: guardian.schoolId
         })
       });
@@ -112,8 +107,14 @@ const EditGuardianModal = ({ guardian, onClose, onSuccess }: EditGuardianModalPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 relative">
+    <div 
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
@@ -161,18 +162,20 @@ const EditGuardianModal = ({ guardian, onClose, onSuccess }: EditGuardianModalPr
           
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
+              Email * (Read-only)
             </label>
             <input
               type="email"
               id="email"
               name="email"
               value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter email address"
+              readOnly
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
+              placeholder="Email cannot be changed"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Guardian email cannot be modified after creation
+            </p>
           </div>
           
           <div>
@@ -187,6 +190,22 @@ const EditGuardianModal = ({ guardian, onClose, onSuccess }: EditGuardianModalPr
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter phone number"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="nic" className="block text-sm font-medium text-gray-700 mb-1">
+              NIC Number *
+            </label>
+            <input
+              type="text"
+              id="nic"
+              name="nic"
+              value={formData.nic}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter NIC number"
             />
           </div>
           
